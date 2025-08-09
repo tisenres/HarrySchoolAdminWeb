@@ -228,7 +228,7 @@ Home/End    - Navigate to beginning/end of lists
 #### Automated Testing Tools
 ```bash
 # Install accessibility testing tools
-npm install --save-dev @axe-core/playwright
+npm install --save-dev @axe-core/puppeteer
 npm install --save-dev jest-axe
 npm install --save-dev @testing-library/jest-dom
 ```
@@ -242,9 +242,9 @@ npm install --save-dev @testing-library/jest-dom
 
 #### Automated Test Examples
 ```typescript
-// Playwright accessibility test
-import { test, expect } from '@playwright/test';
-import { injectAxe, checkA11y } from '@axe-core/playwright';
+// Puppeteer accessibility test
+import { test, expect } from '@puppeteer/test';
+import { injectAxe, checkA11y } from '@axe-core/puppeteer';
 
 test('Teachers page accessibility', async ({ page }) => {
   await page.goto('/teachers');

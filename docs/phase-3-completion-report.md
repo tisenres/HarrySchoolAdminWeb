@@ -53,7 +53,7 @@ Phase 3 of the Harry School Admin CRM project has been successfully completed, d
 - Consistent UI/UX patterns across modules
 
 ### 4. Testing Infrastructure ✅
-- **E2E Test Suite**: Comprehensive Playwright tests covering:
+- **E2E Test Suite**: Comprehensive Puppeteer tests covering:
   - Groups module functionality
   - Students module functionality
   - Cross-module navigation
@@ -150,7 +150,7 @@ Phase 3 of the Harry School Admin CRM project has been successfully completed, d
    - Improve mobile responsiveness
 
 4. **Testing Enhancements**
-   - Install missing Playwright browsers
+   - Install missing Puppeteer browsers
    - Add unit tests for components
    - Implement visual regression testing
    - Performance benchmarking suite

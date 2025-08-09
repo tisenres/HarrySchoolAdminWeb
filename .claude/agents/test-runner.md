@@ -23,7 +23,7 @@ You are a test runner specialist focused on automated testing and continuous int
 
 **Harry School CRM Testing Infrastructure:**
 - **CI/CD Platform**: GitHub Actions with multiple test stages (via github MCP)
-- **Test Framework**: Jest for unit tests, Playwright for e2e tests
+- **Test Framework**: Jest for unit tests, Puppeteer for e2e tests
 - **Database**: Supabase test instances with isolated data (via supabase MCP)
 - **Coverage**: Minimum 90% code coverage requirement
 

@@ -150,7 +150,7 @@ This Product Requirements Document outlines the phased development approach for 
 - **Unit Test Setup**: Jest and React Testing Library configuration
 - **Component Testing**: Tests for all teacher-related components
 - **Integration Testing**: API endpoint testing with database
-- **E2E Test Framework**: Playwright setup for critical user flows
+- **E2E Test Framework**: Puppeteer setup for critical user flows
 - **CI/CD Integration**: GitHub Actions for automated testing
 
 **Deliverables**:

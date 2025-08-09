@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Preview</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-50">
+    <div class="min-h-screen">
+        <!-- Header -->
+        <header class="bg-white shadow-sm border-b">
+            <div class="px-6 py-4 flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <span class="text-2xl font-bold text-green-600">Harry School</span>
+                    <span class="text-gray-600">Admin Dashboard</span>
+                </div>
+                <div class="flex items-center gap-4">
+                    <button class="p-2 hover:bg-gray-100 rounded">🌐</button>
+                    <button class="p-2 hover:bg-gray-100 rounded">🔔</button>
+                    <button class="p-2 hover:bg-gray-100 rounded">👤</button>
+                </div>
+            </div>
+        </header>
+
+        <div class="flex">
+            <!-- Sidebar -->
+            <aside class="w-64 bg-white shadow-md h-screen">
+                <nav class="p-4">
+                    <div class="space-y-2">
+                        <a href="#" class="flex items-center gap-3 px-3 py-2 bg-green-600 text-white rounded">
+                            <span>📊</span> Dashboard
+                        </a>
+                        <a href="#" class="flex items-center gap-3 px-3 py-2 hover:bg-gray-100 rounded">
+                            <span>👨‍🏫</span> Teachers
+                        </a>
+                        <a href="#" class="flex items-center gap-3 px-3 py-2 hover:bg-gray-100 rounded">
+                            <span>📚</span> Groups
+                        </a>
+                        <a href="#" class="flex items-center gap-3 px-3 py-2 hover:bg-gray-100 rounded">
+                            <span>👥</span> Students
+                        </a>
+                        <a href="#" class="flex items-center gap-3 px-3 py-2 hover:bg-gray-100 rounded">
+                            <span>⚙️</span> Settings
+                        </a>
+                    </div>
+                </nav>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="flex-1 p-6">
+                <div class="space-y-6">
+                    <!-- Page Header -->
+                    <div>
+                        <h1 class="text-3xl font-bold">Dashboard</h1>
+                        <p class="text-gray-600 mt-2">Welcome to Harry School CRM Admin Panel</p>
+                    </div>
+
+                    <!-- Stats Cards -->
+                    <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                        <div class="bg-white rounded-lg shadow p-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-600">Total Students</p>
+                                    <p class="text-2xl font-bold">12</p>
+                                    <p class="text-xs text-gray-500">12 active</p>
+                                </div>
+                                <div class="p-3 bg-blue-100 rounded-lg">
+                                    <span class="text-2xl">👥</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-lg shadow p-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-600">Active Groups</p>
+                                    <p class="text-2xl font-bold">3</p>
+                                    <p class="text-xs text-gray-500">3 total groups</p>
+                                </div>
+                                <div class="p-3 bg-green-100 rounded-lg">
+                                    <span class="text-2xl">🎓</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-lg shadow p-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-600">Teachers</p>
+                                    <p class="text-2xl font-bold">3</p>
+                                    <p class="text-xs text-gray-500">3 active</p>
+                                </div>
+                                <div class="p-3 bg-purple-100 rounded-lg">
+                                    <span class="text-2xl">👨‍🏫</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-lg shadow p-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-600">Monthly Revenue</p>
+                                    <p class="text-2xl font-bold">$8,500</p>
+                                    <p class="text-xs text-gray-500">$1,200 outstanding</p>
+                                </div>
+                                <div class="p-3 bg-green-100 rounded-lg">
+                                    <span class="text-2xl">💰</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Secondary Stats -->
+                    <div class="grid gap-4 md:grid-cols-3">
+                        <div class="bg-white rounded-lg shadow p-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-600">Recent Enrollments</p>
+                                    <p class="text-2xl font-bold">10</p>
+                                    <p class="text-xs text-gray-500">Last 30 days</p>
+                                </div>
+                                <span class="text-3xl">📈</span>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-lg shadow p-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-600">Upcoming Classes</p>
+                                    <p class="text-2xl font-bold">3</p>
+                                    <p class="text-xs text-gray-500">Next 7 days</p>
+                                </div>
+                                <span class="text-3xl">📅</span>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-lg shadow p-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-600">Outstanding Balance</p>
+                                    <p class="text-2xl font-bold text-red-600">$1,200</p>
+                                    <p class="text-xs text-gray-500">To be collected</p>
+                                </div>
+                                <span class="text-3xl">⚠️</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Charts -->
+                    <div class="grid gap-6 lg:grid-cols-2">
+                        <!-- Enrollment Trends -->
+                        <div class="bg-white rounded-lg shadow p-6">
+                            <h3 class="text-lg font-semibold mb-4">Enrollment Trends</h3>
+                            <p class="text-sm text-gray-600 mb-4">New student enrollments over the last 6 months</p>
+                            <canvas id="enrollmentChart" height="150"></canvas>
+                        </div>
+
+                        <!-- Revenue Overview -->
+                        <div class="bg-white rounded-lg shadow p-6">
+                            <h3 class="text-lg font-semibold mb-4">Revenue Overview</h3>
+                            <p class="text-sm text-gray-600 mb-4">Monthly revenue and outstanding payments</p>
+                            <canvas id="revenueChart" height="150"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Activity Feed and Quick Actions -->
+                    <div class="grid gap-6 lg:grid-cols-2">
+                        <!-- Recent Activity -->
+                        <div class="bg-white rounded-lg shadow p-6">
+                            <h3 class="text-lg font-semibold mb-4">Recent Activity</h3>
+                            <div class="space-y-4">
+                                <div class="flex gap-3">
+                                    <div class="p-2 bg-blue-100 rounded-full">
+                                        <span>👥</span>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm">John Doe enrolled in Math Advanced A1</p>
+                                        <p class="text-xs text-gray-500">2 hours ago</p>
+                                    </div>
+                                </div>
+                                <div class="flex gap-3">
+                                    <div class="p-2 bg-green-100 rounded-full">
+                                        <span>💰</span>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm">Payment of $850 received from Jane Smith</p>
+                                        <p class="text-xs text-gray-500">5 hours ago</p>
+                                    </div>
+                                </div>
+                                <div class="flex gap-3">
+                                    <div class="p-2 bg-purple-100 rounded-full">
+                                        <span>📚</span>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm">New group "Science Explorers" created</p>
+                                        <p class="text-xs text-gray-500">1 day ago</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quick Actions -->
+                        <div class="bg-white rounded-lg shadow p-6">
+                            <h3 class="text-lg font-semibold mb-4">Quick Actions</h3>
+                            <div class="space-y-3">
+                                <button class="w-full text-left px-4 py-2 border rounded hover:bg-gray-50 flex items-center gap-2">
+                                    <span>👨‍🏫</span> Add new teacher
+                                </button>
+                                <button class="w-full text-left px-4 py-2 border rounded hover:bg-gray-50 flex items-center gap-2">
+                                    <span>📚</span> Create group
+                                </button>
+                                <button class="w-full text-left px-4 py-2 border rounded hover:bg-gray-50 flex items-center gap-2">
+                                    <span>👥</span> Enroll student
+                                </button>
+                                <button class="w-full text-left px-4 py-2 border rounded hover:bg-gray-50 flex items-center gap-2">
+                                    <span>💰</span> Record Payment
+                                </button>
+                                <button class="w-full text-left px-4 py-2 border rounded hover:bg-gray-50 flex items-center gap-2">
+                                    <span>📊</span> View Reports
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // Enrollment Trends Chart
+        const enrollmentCtx = document.getElementById('enrollmentChart').getContext('2d');
+        new Chart(enrollmentCtx, {
+            type: 'line',
+            data: {
+                labels: ['Mar 2024', 'Apr 2024', 'May 2024', 'Jun 2024', 'Jul 2024', 'Aug 2024'],
+                datasets: [{
+                    label: 'Enrollments',
+                    data: [5, 8, 6, 12, 10, 10],
+                    borderColor: 'rgb(59, 130, 246)',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // Revenue Chart
+        const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+        new Chart(revenueCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Mar 2024', 'Apr 2024', 'May 2024', 'Jun 2024', 'Jul 2024', 'Aug 2024'],
+                datasets: [{
+                    label: 'Collected',
+                    data: [6500, 7200, 6800, 8500, 7900, 8500],
+                    backgroundColor: 'rgb(34, 197, 94)'
+                }, {
+                    label: 'Outstanding',
+                    data: [800, 600, 900, 500, 1100, 1200],
+                    backgroundColor: 'rgb(239, 68, 68)'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        stacked: true
+                    },
+                    y: {
+                        stacked: true,
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

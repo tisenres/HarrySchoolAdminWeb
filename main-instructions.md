@@ -20,7 +20,7 @@ You are now the **Project Coordinator** for Harry School CRM development. Your r
 - **Research with External Validation**: `ux-researcher` + browser MCP for competitive analysis
 - **Design with Documentation**: `ui-designer` + context7 MCP for design system storage
 - **Architecture with Database**: `backend-architect` + supabase MCP for schema validation
-- **Quality with Automation**: `code-reviewer` + github MCP + playwright MCP for automated quality gates
+- **Quality with Automation**: `code-reviewer` + github MCP + Puppeteer MCP for automated quality gates
 
 ### 2. Phase Execution Protocol
 
@@ -54,7 +54,7 @@ You are now the **Project Coordinator** for Harry School CRM development. Your r
 #### Phase 2: Teachers Module (Weeks 5-6)
 ```bash
 # Core Development with Testing Integration
-"Use the frontend-developer to build Teachers CRUD interface, then use the playwright MCP server to create automated e2e tests for all user workflows"
+"Use the frontend-developer to build Teachers CRUD interface, then use the Puppeteer MCP server to create automated e2e tests for all user workflows"
 
 # Testing Infrastructure with Memory Storage
 "Use the test-automator to create comprehensive test suites, then use the memory MCP server to store test patterns and reusable testing utilities"
@@ -111,7 +111,7 @@ You are now the **Project Coordinator** for Harry School CRM development. Your r
 "Use the ui-designer to review current implementation, use the browser MCP server to validate cross-browser compatibility, then coordinate with frontend-developer on any adjustments"
 
 # Quality checkpoints with automation
-"Use the code-reviewer to assess code quality, use the playwright MCP server to run automated test suites, then use the supabase MCP server to validate database performance"
+"Use the code-reviewer to assess code quality, use the Puppeteer MCP server to run automated test suites, then use the supabase MCP server to validate database performance"
 
 # End-of-week review with documentation
 "Use the context7 MCP server to document week's accomplishments, use the memory MCP server to store lessons learned, then plan next week's coordination strategy"
@@ -151,7 +151,7 @@ You are now the **Project Coordinator** for Harry School CRM development. Your r
 "Use the backend-architect and database-optimizer to document query patterns, then use the supabase MCP server to create optimized query templates for future development"
 
 # Testing Pattern Automation
-"Use the test-automator to document testing strategies, then use the playwright MCP server to create reusable test automation patterns and utilities"
+"Use the test-automator to document testing strategies, then use the Puppeteer MCP server to create reusable test automation patterns and utilities"
 ```
 
 ### 7. Quality Gates & Reviews
@@ -161,7 +161,7 @@ You are now the **Project Coordinator** for Harry School CRM development. Your r
 **Automated Phase Completion Checklist**
 ```bash
 # Comprehensive quality validation
-"Use the code-reviewer to conduct code review, use the playwright MCP server to run full e2e test suite, use the supabase MCP server to validate database performance, then use the github MCP server to create phase completion report"
+"Use the code-reviewer to conduct code review, use the Puppeteer MCP server to run full e2e test suite, use the supabase MCP server to validate database performance, then use the github MCP server to create phase completion report"
 
 # Security and Performance Validation
 "Use the security-auditor to run security scans, use the browser MCP server to validate cross-browser compatibility, then use the context7 MCP server to document all validation results"
@@ -170,7 +170,7 @@ You are now the **Project Coordinator** for Harry School CRM development. Your r
 **Advanced Integration Testing Protocol with MCP**
 ```bash
 # Cross-module integration with automation
-"Use the playwright MCP server to execute integration tests across Teachers, Groups, and Students modules, use the supabase MCP server to validate data consistency, then use the memory MCP server to store integration test results"
+"Use the Puppeteer MCP server to execute integration tests across Teachers, Groups, and Students modules, use the supabase MCP server to validate data consistency, then use the memory MCP server to store integration test results"
 
 # Performance testing with real-time monitoring
 "Use the performance-engineer to conduct load testing, use the supabase MCP server to monitor database performance under load, then use the context7 MCP server to document performance benchmarks"

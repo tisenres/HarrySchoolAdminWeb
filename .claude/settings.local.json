@@ -85,7 +85,9 @@
       "mcp__browser__puppeteer_fill",
       "mcp__browser__puppeteer_click",
       "mcp__playwright__browser_take_screenshot",
-      "Bash(cd:*)"
+      "Bash(cd:*)",
+      "mcp__context7__resolve-library-id",
+      "mcp__context7__get-library-docs"
     ],
     "deny": [
       "Bash(rm -rf /)",
