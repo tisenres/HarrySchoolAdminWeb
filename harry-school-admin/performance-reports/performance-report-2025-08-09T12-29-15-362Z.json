@@ -1,0 +1,118 @@
+{
+  "timestamp": "2025-08-09T12:29:15.359Z",
+  "environment": "development",
+  "results": [
+    {
+      "name": "Students List - Heavy Load",
+      "description": "Test students list performance with large dataset",
+      "setup": {
+        "recordCount": 1000,
+        "includeImages": true,
+        "enableVirtualScroll": true
+      },
+      "tests": [
+        {
+          "name": "Initial Render",
+          "metric": "renderTime",
+          "budget": 200,
+          "actual": 142,
+          "unit": "ms",
+          "passed": true,
+          "message": "✅ Initial Render: 142ms (budget: 200ms)"
+        },
+        {
+          "name": "Search Performance",
+          "metric": "searchTime",
+          "budget": 50,
+          "actual": 40,
+          "unit": "ms",
+          "passed": true,
+          "message": "✅ Search Performance: 40ms (budget: 50ms)"
+        },
+        {
+          "name": "Memory Usage",
+          "metric": "memoryUsage",
+          "budget": 50,
+          "actual": 54,
+          "unit": "MB",
+          "passed": false,
+          "message": "❌ Memory Usage: 54MB exceeds budget of 50MB"
+        }
+      ],
+      "passed": 2,
+      "failed": 1
+    },
+    {
+      "name": "Groups Management",
+      "description": "Test groups management page performance",
+      "setup": {
+        "recordCount": 100,
+        "includeSchedules": true,
+        "includeEnrollmentData": true
+      },
+      "tests": [
+        {
+          "name": "Page Load",
+          "metric": "renderTime",
+          "budget": 150,
+          "actual": 56,
+          "unit": "ms",
+          "passed": true,
+          "message": "✅ Page Load: 56ms (budget: 150ms)"
+        },
+        {
+          "name": "Filter Operations",
+          "metric": "filterTime",
+          "budget": 25,
+          "actual": 12,
+          "unit": "ms",
+          "passed": true,
+          "message": "✅ Filter Operations: 12ms (budget: 25ms)"
+        }
+      ],
+      "passed": 2,
+      "failed": 0
+    },
+    {
+      "name": "Dashboard Overview",
+      "description": "Test dashboard page with full data",
+      "setup": {
+        "includeCharts": true,
+        "includeStats": true,
+        "includeRecentActivity": true
+      },
+      "tests": [
+        {
+          "name": "Dashboard Load",
+          "metric": "renderTime",
+          "budget": 300,
+          "actual": 49,
+          "unit": "ms",
+          "passed": true,
+          "message": "✅ Dashboard Load: 49ms (budget: 300ms)"
+        },
+        {
+          "name": "Interactive Elements",
+          "metric": "interactionTime",
+          "budget": 100,
+          "actual": 69,
+          "unit": "ms",
+          "passed": true,
+          "message": "✅ Interactive Elements: 69ms (budget: 100ms)"
+        }
+      ],
+      "passed": 2,
+      "failed": 0
+    }
+  ],
+  "summary": {
+    "passed": 6,
+    "failed": 1,
+    "totalTests": 7,
+    "successRate": "85.7%"
+  },
+  "recommendations": [
+    "💾 Review component lifecycle and ensure proper cleanup of event listeners.",
+    "🖼️ Optimize image loading with lazy loading and proper sizing."
+  ]
+}

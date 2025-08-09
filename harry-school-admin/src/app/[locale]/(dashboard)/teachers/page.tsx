@@ -18,7 +18,10 @@ import {
 import { TeachersTable } from '@/components/admin/teachers/teachers-table'
 import { TeachersFilters } from '@/components/admin/teachers/teachers-filters'
 import { TeacherForm } from '@/components/admin/teachers/teacher-form'
-// import { mockTeacherService } from '@/lib/services/mock-teacher-service'
+import { ImportModal } from '@/components/admin/shared/import-modal'
+import { ExportModal } from '@/components/admin/shared/export-modal'
+import { TeachersExportService } from '@/lib/services/teachers-export-service'
+import { ImportResult } from '@/lib/services/import-export-service'
 import type { Teacher, TeacherFilters, TeacherSortConfig } from '@/types/teacher'
 import type { CreateTeacherRequest } from '@/lib/validations/teacher'
 
@@ -56,6 +59,12 @@ export default function TeachersPage() {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
   const [teacherToDelete, setTeacherToDelete] = useState<string | null>(null)
   const [bulkDeleteConfirmOpen, setBulkDeleteConfirmOpen] = useState(false)
+  
+  // Import/Export states
+  const [showImportModal, setShowImportModal] = useState(false)
+  const [showExportModal, setShowExportModal] = useState(false)
+  const [importing, setImporting] = useState(false)
+  const [exporting, setExporting] = useState(false)
 
   const availableSpecializations = [
     'English',
@@ -291,8 +300,124 @@ export default function TeachersPage() {
   }, [])
 
   const handleExport = useCallback(async (teacherIds?: string[]) => {
-    // Implementation would go here
-    console.log('Export teachers:', teacherIds || 'all')
+    setShowExportModal(true)
+  }, [])
+  
+  const handleImport = useCallback(() => {
+    setShowImportModal(true)
+  }, [])
+  
+  const handleImportFile = useCallback(async (file: File): Promise<ImportResult> => {
+    try {
+      setImporting(true)
+      
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('organizationId', '00000000-0000-0000-0000-000000000000') // Replace with actual org ID
+      
+      const response = await fetch('/api/import/teachers', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include'
+      })
+      
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Import failed')
+      }
+      
+      const result = await response.json()
+      
+      // Reload teachers data after successful import
+      if (result.success || result.successRows > 0) {
+        await manualLoadTeachers(false)
+      }
+      
+      return result
+    } catch (error) {
+      throw error
+    } finally {
+      setImporting(false)
+    }
+  }, [manualLoadTeachers])
+  
+  const handleExportFile = useCallback(async (options: any) => {
+    try {
+      setExporting(true)
+      
+      const exportData = {
+        organizationId: '00000000-0000-0000-0000-000000000000', // Replace with actual org ID
+        format: options.format,
+        fields: options.fields,
+        filters: options.useFilters ? filters : undefined,
+        useFilters: options.useFilters,
+        includeHeaders: options.includeHeaders,
+        filename: options.filename
+      }
+      
+      const response = await fetch('/api/export/teachers', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(exportData),
+        credentials: 'include'
+      })
+      
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Export failed')
+      }
+      
+      // Download the file
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      
+      const filename = response.headers.get('Content-Disposition')
+        ?.split('filename=')[1]
+        ?.replace(/"/g, '') || `teachers_export.${options.format}`
+      
+      link.download = filename
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+      
+      setShowExportModal(false)
+    } catch (error) {
+      console.error('Export error:', error)
+      throw error
+    } finally {
+      setExporting(false)
+    }
+  }, [filters])
+  
+  const handleDownloadTemplate = useCallback(async () => {
+    try {
+      const response = await fetch('/api/templates/teachers', {
+        method: 'GET',
+        credentials: 'include'
+      })
+      
+      if (!response.ok) {
+        throw new Error('Failed to download template')
+      }
+      
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = 'teachers_import_template.xlsx'
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+    } catch (error) {
+      console.error('Template download error:', error)
+      setError('Failed to download template. Please try again.')
+    }
   }, [])
 
   const handleFormSubmit = useCallback(async (data: CreateTeacherRequest) => {
@@ -372,9 +497,14 @@ export default function TeachersPage() {
             <Download className="h-4 w-4" />
             {tCommon('export')}
           </Button>
-          <Button variant="outline" className="gap-2">
+          <Button 
+            variant="outline" 
+            onClick={handleImport}
+            disabled={importing}
+            className="gap-2"
+          >
             <Upload className="h-4 w-4" />
-            {tCommon('import')}
+            {importing ? 'Importing...' : tCommon('import')}
           </Button>
           <Button onClick={() => setShowEditForm(true)}>
             <Plus className="h-4 w-4 mr-2" />
@@ -496,6 +626,31 @@ export default function TeachersPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Import Modal */}
+      <ImportModal
+        isOpen={showImportModal}
+        onClose={() => setShowImportModal(false)}
+        title="Import Teachers"
+        description="Upload an Excel or CSV file to import teacher data into the system."
+        dataType="teachers"
+        onImport={handleImportFile}
+        onDownloadTemplate={handleDownloadTemplate}
+      />
+
+      {/* Export Modal */}
+      <ExportModal
+        isOpen={showExportModal}
+        onClose={() => setShowExportModal(false)}
+        title="Export Teachers"
+        description="Export teacher data to Excel or CSV format with customizable field selection."
+        dataType="teachers"
+        totalRecords={totalCount}
+        filteredRecords={filteredTeachers.length}
+        availableFields={TeachersExportService.getAvailableFields()}
+        onExport={handleExportFile}
+        isExporting={exporting}
+      />
     </div>
   )
 }

@@ -30,6 +30,25 @@ export async function getCurrentUser() {
 }
 
 /**
+ * Get the current user's organization
+ */
+export async function getCurrentOrganization() {
+  try {
+    const profile = await getCurrentProfile()
+    
+    if (!profile || !profile.organizations) {
+      return null
+    }
+    
+    // Return the organization from the profile
+    return Array.isArray(profile.organizations) ? profile.organizations[0] : profile.organizations
+  } catch (error) {
+    console.error('Error getting current organization:', error)
+    return null
+  }
+}
+
+/**
  * Get the current user's profile with organization and role
  */
 export async function getCurrentProfile() {

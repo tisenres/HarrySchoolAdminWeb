@@ -30,13 +30,19 @@ import {
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, parseISO } from 'date-fns'
 
 interface FinancialOverviewProps {
-  payments: any[]
-  invoices: any[]
-  transactions: any[]
+  organizationId: string
 }
 
-export function FinancialOverview({ payments, invoices, transactions }: FinancialOverviewProps) {
+export function FinancialOverview({ organizationId }: FinancialOverviewProps) {
+  // Mock data for development - would be replaced with actual API calls
+  const [payments] = useState([])
+  const [invoices] = useState([])
+  const [transactions] = useState([])
   const stats = useMemo(() => {
+    const now = new Date()
+    const thirtyDaysAgo = new Date(now)
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+    
     const totalRevenue = payments
       .filter((p) => p.status === 'completed')
       .reduce((sum, p) => sum + p.amount, 0)
@@ -54,10 +60,6 @@ export function FinancialOverview({ payments, invoices, transactions }: Financia
         inv.status === 'overdue' ||
         (inv.status !== 'paid' && new Date(inv.due_date) < now)
     ).length
-
-    const now = new Date()
-    const thirtyDaysAgo = new Date(now)
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
     
     const recentPayments = payments
       .filter((p) => {
