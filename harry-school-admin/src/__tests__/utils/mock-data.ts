@@ -273,4 +273,6 @@ export const createMockHandlers = () => ({
   onFiltersChange: jest.fn(),
   onSubmit: jest.fn(),
   onCancel: jest.fn(),
+  onArchive: jest.fn(),
+  onRestore: jest.fn(),
 })

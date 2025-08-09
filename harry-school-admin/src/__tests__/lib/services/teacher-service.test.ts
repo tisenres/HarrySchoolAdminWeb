@@ -1,8 +1,7 @@
 import { TeacherService } from '@/lib/services/teacher-service'
 import { 
   createMockTeacher,
-  createMockCreateTeacherRequest,
-  createMockTeacherServiceResponse
+  createMockCreateTeacherRequest
 } from '../../utils/mock-data'
 
 // Mock Supabase client
@@ -40,7 +39,7 @@ jest.mock('@/lib/services/base-service', () => {
         this.tableName = tableName
       }
 
-      protected async checkPermission(roles: string[]) {
+      protected async checkPermission(_roles: string[]) {
         return true
       }
 
@@ -53,12 +52,12 @@ jest.mock('@/lib/services/base-service', () => {
       }
 
       protected async logActivity(
-        action: string,
-        entityId: string,
-        entityName: string,
-        oldData: any,
-        newData: any,
-        description: string
+        _action: string,
+        _entityId: string,
+        _entityName: string,
+        _oldData: any,
+        _newData: any,
+        _description: string
       ) {
         return Promise.resolve()
       }
@@ -130,7 +129,7 @@ describe('TeacherService', () => {
     })
 
     it('requires admin permissions', async () => {
-      const originalCheckPermission = teacherService['checkPermission']
+      // const originalCheckPermission = teacherService['checkPermission']
       teacherService['checkPermission'] = jest.fn().mockRejectedValue(new Error('Access denied'))
 
       await expect(teacherService.create(mockTeacherRequest)).rejects.toThrow('Access denied')

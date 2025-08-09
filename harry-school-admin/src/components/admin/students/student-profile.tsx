@@ -27,6 +27,7 @@ import {
   DollarSign,
 } from 'lucide-react'
 import type { Student } from '@/types/student'
+import { ClientOnly } from '@/components/ui/client-only'
 import { fadeVariants } from '@/lib/animations'
 
 interface StudentProfileProps {
@@ -139,7 +140,9 @@ export function StudentProfile({
                 <div className="flex items-center space-x-4 text-sm text-muted-foreground">
                   <div className="flex items-center">
                     <Calendar className="h-4 w-4 mr-1" />
-                    Enrolled {formatDate(student.enrollment_date)}
+                    Enrolled <ClientOnly fallback="Loading...">
+                      {formatDate(student.enrollment_date)}
+                    </ClientOnly>
                   </div>
                   <div className="flex items-center">
                     <GraduationCap className="h-4 w-4 mr-1" />
@@ -185,7 +188,9 @@ export function StudentProfile({
               <CardContent>
                 <div className="text-2xl font-bold">{enrollmentDuration} months</div>
                 <p className="text-xs text-muted-foreground">
-                  Since {formatDate(student.enrollment_date)}
+                  Since <ClientOnly fallback="Loading...">
+                    {formatDate(student.enrollment_date)}
+                  </ClientOnly>
                 </p>
               </CardContent>
             </Card>
@@ -393,7 +398,11 @@ export function StudentProfile({
                   )}
                   <div>
                     <p className="text-sm text-muted-foreground">Enrollment Date</p>
-                    <p className="font-medium">{formatDate(student.enrollment_date)}</p>
+                    <p className="font-medium">
+                      <ClientOnly fallback="Loading...">
+                        {formatDate(student.enrollment_date)}
+                      </ClientOnly>
+                    </p>
                   </div>
                 </div>
               </CardContent>

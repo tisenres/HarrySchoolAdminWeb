@@ -16,6 +16,12 @@
     "import": "Импорт",
     "language": "Язык"
   },
+  "actions": {
+    "cancel": "Отмена",
+    "confirm": "Подтвердить",
+    "delete": "Удалить",
+    "save": "Сохранить"
+  },
   "navigation": {
     "adminDashboard": "Административная панель",
     "welcomeMessage": "Добро пожаловать в административную панель Harry School CRM"
@@ -77,7 +83,7 @@
     "editGroup": "Редактировать группу",
     "editGroupDescription": "Обновить информацию о группе",
     "deleteGroup": "Удалить группу",
-    "deleteGroupConfirmation": "Вы уверены, что хотите удалить группу {{groupName}}? Это действие нельзя отменить.",
+    "deleteGroupConfirmation": "Вы уверены, что хотите удалить группу {groupName}? Это действие нельзя отменить.",
     "deleting": "Удаление...",
     "groupName": "Название группы",
     "groupCode": "Код группы",

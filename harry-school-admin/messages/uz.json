@@ -16,6 +16,12 @@
     "import": "Import",
     "language": "Til"
   },
+  "actions": {
+    "cancel": "Bekor qilish",
+    "confirm": "Tasdiqlash",
+    "delete": "O'chirish",
+    "save": "Saqlash"
+  },
   "navigation": {
     "adminDashboard": "Administrator paneli",
     "welcomeMessage": "Harry School CRM administrator paneliga xush kelibsiz"
@@ -77,7 +83,7 @@
     "editGroup": "Guruhni tahrirlash",
     "editGroupDescription": "Guruh ma'lumotlarini yangilash",
     "deleteGroup": "Guruhni o'chirish",
-    "deleteGroupConfirmation": "{{groupName}} guruhini o'chirishni xohlaysizmi? Bu harakatni bekor qilib bo'lmaydi.",
+    "deleteGroupConfirmation": "{groupName} guruhini o'chirishni xohlaysizmi? Bu harakatni bekor qilib bo'lmaydi.",
     "deleting": "O'chirilmoqda...",
     "groupName": "Guruh nomi",
     "groupCode": "Guruh kodi",

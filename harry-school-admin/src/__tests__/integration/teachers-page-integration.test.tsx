@@ -5,7 +5,6 @@
  * without attempting to access server-side resources or service role keys.
  */
 
-import React from 'react'
 import { render, screen, waitFor } from '@testing-library/react'
 import { mockTeacherService } from '@/lib/services/mock-teacher-service'
 import TeachersPage from '@/app/dashboard/teachers/page'

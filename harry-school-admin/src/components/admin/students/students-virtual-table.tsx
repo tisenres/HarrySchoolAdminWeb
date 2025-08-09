@@ -49,6 +49,7 @@ import {
 } from 'lucide-react'
 import { VirtualTable, VirtualTableColumn } from '@/components/ui/virtual-table'
 import type { Student, StudentSortConfig } from '@/types/student'
+import { ClientOnly } from '@/components/ui/client-only'
 
 export interface StudentsVirtualTableProps {
   students: Student[]
@@ -540,7 +541,9 @@ export const StudentsVirtualTable = memo<StudentsVirtualTableProps>(({
       width: 120,
       render: (student: Student) => (
         <span className="text-sm text-muted-foreground">
-          {formatDate(student.enrollment_date)}
+          <ClientOnly fallback="Loading...">
+            {formatDate(student.enrollment_date)}
+          </ClientOnly>
         </span>
       ),
     },

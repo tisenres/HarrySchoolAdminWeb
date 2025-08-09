@@ -118,7 +118,7 @@
     "zustand": "^5.0.7"
   },
   "devDependencies": {
-    "@axe-core/puppeteer": "^4.8.0",
+    "@axe-core/playwright": "^4.10.2",
     "@eslint/eslintrc": "^3",
     "@lhci/cli": "^0.12.0",
     "@next/bundle-analyzer": "^15.4.5",

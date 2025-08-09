@@ -1,4 +1,3 @@
-import React from 'react'
 import userEvent from '@testing-library/user-event'
 
 import { TeacherForm } from '@/components/admin/teachers/teacher-form'
@@ -12,7 +11,7 @@ import { render, screen, fireEvent, waitFor } from '../../../utils/test-utils'
 
 // Mock Next.js Image component
 jest.mock('next/image', () => {
-  const MockImage = ({ src, alt, ...props }: any): JSX.Element => {
+  const MockImage = ({ src, alt, ...props }: any) => {
     return <img src={src} alt={alt} {...props} />
   }
   MockImage.displayName = 'MockImage'
@@ -288,7 +287,7 @@ describe('TeacherForm', () => {
       expect(badges).toHaveLength(2)
 
       const removeButtons = screen.getAllByRole('button', { name: '' }) // X buttons in badges
-      await user.click(removeButtons[0])
+      if (removeButtons[0]) await user.click(removeButtons[0])
 
       // Should remove the specialization
       await waitFor(() => {
@@ -338,7 +337,7 @@ describe('TeacherForm', () => {
 
       // Remove first language
       const removeButtons = screen.getAllByRole('button', { name: '' })
-      await user.click(removeButtons[0])
+      if (removeButtons[0]) await user.click(removeButtons[0])
 
       await waitFor(() => {
         const remainingBadges = screen.getAllByText(/english|russian/i)

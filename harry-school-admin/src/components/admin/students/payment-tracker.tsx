@@ -36,6 +36,7 @@ import {
 } from 'lucide-react'
 import type { Student } from '@/types/student'
 import { fadeVariants } from '@/lib/animations'
+import { ClientOnly } from '@/components/ui/client-only'
 
 interface PaymentRecord {
   id: string
@@ -380,7 +381,9 @@ export function PaymentTracker({
                         {payment.method.replace('_', ' ')}
                       </Badge>
                       <span className="text-sm text-muted-foreground">
-                        {new Date(payment.date).toLocaleDateString()}
+                        <ClientOnly fallback="Loading...">
+                          {new Date(payment.date).toLocaleDateString()}
+                        </ClientOnly>
                       </span>
                     </div>
                     {payment.description && (

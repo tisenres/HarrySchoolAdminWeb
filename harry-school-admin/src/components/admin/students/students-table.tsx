@@ -59,6 +59,7 @@ import {
   tableRowVariants,
   educationalLoadingVariants
 } from '@/lib/animations'
+import { ClientOnly } from '@/components/ui/client-only'
 
 export interface StudentsTableProps {
   students: Student[]
@@ -629,7 +630,9 @@ export function StudentsTable({
 
                       {column.key === 'enrollment_date' && (
                         <span className="text-sm text-muted-foreground">
-                          {formatDate(student.enrollment_date)}
+                          <ClientOnly fallback="Loading...">
+                            {formatDate(student.enrollment_date)}
+                          </ClientOnly>
                         </span>
                       )}
 

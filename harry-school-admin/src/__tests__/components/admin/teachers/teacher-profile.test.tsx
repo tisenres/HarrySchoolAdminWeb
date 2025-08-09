@@ -1,5 +1,4 @@
-import React from 'react'
-import { render, screen, fireEvent, waitFor } from '../../../utils/test-utils'
+import { render, screen } from '../../../utils/test-utils'
 import { TeacherProfile } from '@/components/admin/teachers/teacher-profile'
 import { 
   createMockTeacher,
@@ -75,7 +74,8 @@ describe('TeacherProfile', () => {
     })
 
     it('shows default avatar when no profile image', () => {
-      const teacherWithoutImage = createMockTeacher({ profile_image_url: undefined })
+      const teacherWithoutImage = createMockTeacher()
+      delete (teacherWithoutImage as any).profile_image_url
       
       render(<TeacherProfile {...defaultProps} teacher={teacherWithoutImage} />)
 
@@ -122,7 +122,7 @@ describe('TeacherProfile', () => {
     it('displays email with mailto link', () => {
       render(<TeacherProfile {...defaultProps} />)
 
-      const emailLink = screen.getByRole('link', { name: mockTeacher.email })
+      const emailLink = screen.getByRole('link', { name: mockTeacher.email! })
       expect(emailLink).toHaveAttribute('href', `mailto:${mockTeacher.email}`)
     })
 
@@ -140,7 +140,8 @@ describe('TeacherProfile', () => {
     })
 
     it('handles missing email gracefully', () => {
-      const teacherWithoutEmail = createMockTeacher({ email: undefined })
+      const teacherWithoutEmail = createMockTeacher()
+      delete (teacherWithoutEmail as any).email
       
       expect(() => {
         render(<TeacherProfile {...defaultProps} teacher={teacherWithoutEmail} />)
@@ -167,10 +168,9 @@ describe('TeacherProfile', () => {
     })
 
     it('handles missing salary gracefully', () => {
-      const teacherWithoutSalary = createMockTeacher({ 
-        salary_amount: undefined,
-        salary_currency: undefined 
-      })
+      const teacherWithoutSalary = createMockTeacher()
+      delete (teacherWithoutSalary as any).salary_amount
+      delete (teacherWithoutSalary as any).salary_currency
       
       render(<TeacherProfile {...defaultProps} teacher={teacherWithoutSalary} />)
 
@@ -267,7 +267,8 @@ describe('TeacherProfile', () => {
     })
 
     it('handles missing emergency contact', () => {
-      const teacherWithoutEmergency = createMockTeacher({ emergency_contact: undefined })
+      const teacherWithoutEmergency = createMockTeacher()
+      delete (teacherWithoutEmergency as any).emergency_contact
       
       render(<TeacherProfile {...defaultProps} teacher={teacherWithoutEmergency} />)
 
@@ -427,7 +428,8 @@ describe('TeacherProfile', () => {
     })
 
     it('hides notes section when not available', () => {
-      const teacherWithoutNotes = createMockTeacher({ notes: undefined })
+      const teacherWithoutNotes = createMockTeacher()
+      delete (teacherWithoutNotes as any).notes
       
       render(<TeacherProfile {...defaultProps} teacher={teacherWithoutNotes} />)
 
@@ -516,19 +518,17 @@ describe('TeacherProfile', () => {
 
   describe('Error Handling', () => {
     it('handles missing optional fields gracefully', () => {
-      const minimalTeacher = {
-        ...mockTeacher,
-        email: undefined,
-        date_of_birth: undefined,
-        gender: undefined,
-        address: undefined,
-        emergency_contact: undefined,
-        notes: undefined,
-        qualifications: [],
-        certifications: [],
-        specializations: [],
-        languages_spoken: []
-      }
+      const minimalTeacher = { ...mockTeacher }
+      delete (minimalTeacher as any).email
+      delete (minimalTeacher as any).date_of_birth
+      delete (minimalTeacher as any).gender
+      delete (minimalTeacher as any).address
+      delete (minimalTeacher as any).emergency_contact
+      delete (minimalTeacher as any).notes
+      minimalTeacher.qualifications = []
+      minimalTeacher.certifications = []
+      minimalTeacher.specializations = []
+      minimalTeacher.languages_spoken = []
       
       expect(() => {
         render(<TeacherProfile {...defaultProps} teacher={minimalTeacher} />)

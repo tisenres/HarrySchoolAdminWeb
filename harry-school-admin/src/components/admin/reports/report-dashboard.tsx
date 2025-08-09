@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { format, startOfMonth, endOfMonth, startOfYear, endOfYear } from 'date-fns'
 import {
   BarChart3,
@@ -37,20 +37,42 @@ interface ReportDashboardProps {
 export function ReportDashboard({ organizationId }: ReportDashboardProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [reportType, setReportType] = useState<ReportFilters['reportType']>('revenue')
-  const [dateRange, setDateRange] = useState({
-    from: startOfMonth(new Date()),
-    to: endOfMonth(new Date()),
-  })
+  const [dateRange, setDateRange] = useState<{
+    from: Date
+    to: Date
+  } | null>(null)
   const [reportData, setReportData] = useState<any>(null)
+  const [quickDateRanges, setQuickDateRanges] = useState<Array<{
+    label: string
+    value: string
+    from: Date
+    to: Date
+  }>>([])
 
-  const quickDateRanges = [
-    { label: 'This Month', value: 'month', from: startOfMonth(new Date()), to: endOfMonth(new Date()) },
-    { label: 'Last Month', value: 'lastMonth', from: startOfMonth(new Date(new Date().setMonth(new Date().getMonth() - 1))), to: endOfMonth(new Date(new Date().setMonth(new Date().getMonth() - 1))) },
-    { label: 'This Year', value: 'year', from: startOfYear(new Date()), to: endOfYear(new Date()) },
-    { label: 'Last Year', value: 'lastYear', from: startOfYear(new Date(new Date().setFullYear(new Date().getFullYear() - 1))), to: endOfYear(new Date(new Date().setFullYear(new Date().getFullYear() - 1))) },
-  ]
+  useEffect(() => {
+    const now = new Date()
+    
+    // Set initial date range
+    setDateRange({
+      from: startOfMonth(now),
+      to: endOfMonth(now),
+    })
+
+    // Set quick date ranges
+    const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+    const lastYear = new Date(now.getFullYear() - 1, 0, 1)
+    
+    setQuickDateRanges([
+      { label: 'This Month', value: 'month', from: startOfMonth(now), to: endOfMonth(now) },
+      { label: 'Last Month', value: 'lastMonth', from: startOfMonth(lastMonth), to: endOfMonth(lastMonth) },
+      { label: 'This Year', value: 'year', from: startOfYear(now), to: endOfYear(now) },
+      { label: 'Last Year', value: 'lastYear', from: startOfYear(lastYear), to: endOfYear(lastYear) },
+    ])
+  }, [])
 
   const generateReport = async () => {
+    if (!dateRange) return
+    
     setIsLoading(true)
     try {
       const filters: ReportFilters = {
@@ -168,8 +190,8 @@ export function ReportDashboard({ organizationId }: ReportDashboardProps) {
               </Select>
 
               <DateRangePicker
-                from={dateRange.from}
-                to={dateRange.to}
+                from={dateRange?.from}
+                to={dateRange?.to}
                 onSelect={setDateRange}
               />
 
@@ -221,7 +243,7 @@ export function ReportDashboard({ organizationId }: ReportDashboardProps) {
           <CardHeader>
             <CardTitle>Report Results</CardTitle>
             <CardDescription>
-              {reportType.replace('_', ' ').charAt(0).toUpperCase() + reportType.replace('_', ' ').slice(1)} for {format(dateRange.from, 'MMM dd, yyyy')} - {format(dateRange.to, 'MMM dd, yyyy')}
+              {reportType.replace('_', ' ').charAt(0).toUpperCase() + reportType.replace('_', ' ').slice(1)} for {dateRange ? format(dateRange.from, 'MMM dd, yyyy') + ' - ' + format(dateRange.to, 'MMM dd, yyyy') : 'Loading...'}
             </CardDescription>
           </CardHeader>
           <CardContent>

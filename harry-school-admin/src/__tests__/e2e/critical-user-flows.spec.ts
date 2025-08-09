@@ -7,9 +7,9 @@ import { test, expect, Page, BrowserContext } from '@playwright/test'
 import { validateTestEnvironment } from '../setup/test-environment'
 
 // Test configuration
-const BASE_URL = process.env.BASE_URL || 'http://localhost:3000'
-const TEST_USER_EMAIL = process.env.TEST_USER_EMAIL || 'admin@test.com'
-const TEST_USER_PASSWORD = process.env.TEST_USER_PASSWORD || 'test123'
+const BASE_URL = process.env['BASE_URL'] || 'http://localhost:3000'
+const TEST_USER_EMAIL = process.env['TEST_USER_EMAIL'] || 'admin@test.com'
+const TEST_USER_PASSWORD = process.env['TEST_USER_PASSWORD'] || 'test123'
 
 test.describe('Critical User Flow Tests', () => {
   let page: Page

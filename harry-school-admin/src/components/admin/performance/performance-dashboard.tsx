@@ -33,6 +33,7 @@ import {
   type CustomMetric,
   PERFORMANCE_BUDGET
 } from '@/lib/performance/web-vitals'
+import { ClientOnly } from '@/components/ui/client-only'
 
 interface PerformanceDashboardProps {
   className?: string
@@ -210,7 +211,7 @@ export const PerformanceDashboard = memo<PerformanceDashboardProps>(({ className
   })
 
   const [isLoading, setIsLoading] = useState(true)
-  const [lastUpdated, setLastUpdated] = useState<Date>(new Date())
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
 
   const loadPerformanceData = useCallback(() => {
     setIsLoading(true)
@@ -312,7 +313,9 @@ export const PerformanceDashboard = memo<PerformanceDashboardProps>(({ className
         </div>
         <div className="flex items-center space-x-4">
           <div className="text-sm text-muted-foreground">
-            Last updated: {lastUpdated.toLocaleTimeString()}
+            Last updated: <ClientOnly fallback="Never">
+              {lastUpdated ? lastUpdated.toLocaleTimeString() : 'Never'}
+            </ClientOnly>
           </div>
           <Button variant="outline" size="sm" onClick={loadPerformanceData}>
             <RefreshCw className="h-4 w-4 mr-2" />

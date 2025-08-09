@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import {
   ArrowDownRight,
   ArrowUpRight,
@@ -52,14 +52,16 @@ export function FinancialOverview({ payments, invoices, transactions }: Financia
     const overdueInvoices = invoices.filter(
       (inv) =>
         inv.status === 'overdue' ||
-        (inv.status !== 'paid' && new Date(inv.due_date) < new Date())
+        (inv.status !== 'paid' && new Date(inv.due_date) < now)
     ).length
 
+    const now = new Date()
+    const thirtyDaysAgo = new Date(now)
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+    
     const recentPayments = payments
       .filter((p) => {
         const paymentDate = new Date(p.payment_date || p.created_at)
-        const thirtyDaysAgo = new Date()
-        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
         return paymentDate >= thirtyDaysAgo
       })
       .reduce((sum, p) => sum + p.amount, 0)
@@ -74,8 +76,15 @@ export function FinancialOverview({ payments, invoices, transactions }: Financia
     }
   }, [payments, invoices])
 
+  const [currentMonth, setCurrentMonth] = useState<Date | null>(null)
+
+  useEffect(() => {
+    setCurrentMonth(new Date())
+  }, [])
+
   const monthlyRevenue = useMemo(() => {
-    const currentMonth = new Date()
+    if (!currentMonth) return []
+    
     const startDate = startOfMonth(currentMonth)
     const endDate = endOfMonth(currentMonth)
     const days = eachDayOfInterval({ start: startDate, end: endDate })
@@ -96,7 +105,7 @@ export function FinancialOverview({ payments, invoices, transactions }: Financia
     })
 
     return revenueByDay
-  }, [payments])
+  }, [payments, currentMonth])
 
   const paymentMethodBreakdown = useMemo(() => {
     const breakdown: Record<string, number> = {}

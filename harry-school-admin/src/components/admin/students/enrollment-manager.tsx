@@ -36,6 +36,7 @@ import {
 } from 'lucide-react'
 import type { Student } from '@/types/student'
 import { fadeVariants } from '@/lib/animations'
+import { ClientOnly } from '@/components/ui/client-only'
 
 interface Group {
   id: string
@@ -173,7 +174,9 @@ export function EnrollmentManager({
                           )}
                           <div className="flex items-center space-x-1 text-sm text-muted-foreground">
                             <Calendar className="h-3 w-3" />
-                            <span>{new Date(group.start_date).toLocaleDateString()}</span>
+                            <ClientOnly fallback="Loading...">
+                              <span>{new Date(group.start_date).toLocaleDateString()}</span>
+                            </ClientOnly>
                           </div>
                           {group.schedule_summary && (
                             <div className="flex items-center space-x-1 text-sm text-muted-foreground">
@@ -315,7 +318,9 @@ export function EnrollmentManager({
                                 </div>
                                 <div className="flex items-center space-x-1">
                                   <Calendar className="h-3 w-3" />
-                                  <span>{new Date(group.start_date).toLocaleDateString()}</span>
+                                  <ClientOnly fallback="Loading...">
+                              <span>{new Date(group.start_date).toLocaleDateString()}</span>
+                            </ClientOnly>
                                 </div>
                               </div>
                               

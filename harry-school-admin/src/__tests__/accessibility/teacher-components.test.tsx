@@ -1,4 +1,3 @@
-import React from 'react'
 import { render } from '../utils/test-utils'
 import { TeachersTable } from '@/components/admin/teachers/teachers-table'
 import { TeacherForm } from '@/components/admin/teachers/teacher-form'

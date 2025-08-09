@@ -1,4 +1,3 @@
-import React from 'react'
 import userEvent from '@testing-library/user-event'
 
 import { TeachersFilters } from '@/components/admin/teachers/teachers-filters'
@@ -326,7 +325,6 @@ describe('TeachersFilters', () => {
       await user.click(startDateButton)
 
       // Calendar should open - we'll simulate selecting a date
-      const today = new Date()
       
       expect(mockHandlers.onFiltersChange).toHaveBeenCalledWith({
         ...defaultProps.filters,
@@ -342,7 +340,6 @@ describe('TeachersFilters', () => {
       await user.click(endDateButton)
 
       // Calendar should open
-      const today = new Date()
       
       expect(mockHandlers.onFiltersChange).toHaveBeenCalledWith({
         ...defaultProps.filters,
@@ -468,7 +465,7 @@ describe('TeachersFilters', () => {
 
       // Remove search filter
       const searchRemoveButton = screen.getAllByRole('button', { name: '' })[0] // X button
-      await user.click(searchRemoveButton)
+      if (searchRemoveButton) await user.click(searchRemoveButton)
 
       expect(mockHandlers.onFiltersChange).toHaveBeenCalledWith({
         ...defaultProps.filters,
@@ -549,7 +546,6 @@ describe('TeachersFilters', () => {
             search: 'test', // 1
             employment_status: [], // 0
             specializations: [], // 0
-            is_active: undefined, // 0
           }}
         />
       )

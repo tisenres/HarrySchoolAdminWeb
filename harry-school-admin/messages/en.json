@@ -20,6 +20,12 @@
     "pending": "Pending",
     "overdue": "Overdue"
   },
+  "actions": {
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "delete": "Delete",
+    "save": "Save"
+  },
   "navigation": {
     "adminDashboard": "Admin Dashboard",
     "welcomeMessage": "Welcome to Harry School CRM Admin Panel"
@@ -87,7 +93,7 @@
     "editGroup": "Edit Group",
     "editGroupDescription": "Update the group information",
     "deleteGroup": "Delete Group",
-    "deleteGroupConfirmation": "Are you sure you want to delete the group {{groupName}}? This action cannot be undone.",
+    "deleteGroupConfirmation": "Are you sure you want to delete the group {groupName}? This action cannot be undone.",
     "deleting": "Deleting...",
     "groupName": "Group Name",
     "groupCode": "Group Code",

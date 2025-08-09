@@ -30,6 +30,7 @@ import {
 } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
 import { toast } from '@/components/ui/use-toast'
+import { ClientOnly } from '@/components/ui/client-only'
 import {
   UserPlus,
   Mail,
@@ -312,7 +313,9 @@ export function UserManagement({ organizationId }: UserManagementProps) {
                 <TableCell>{getRoleBadge(user.role)}</TableCell>
                 <TableCell>{getStatusBadge(user.status)}</TableCell>
                 <TableCell>
-                  {user.last_login ? new Date(user.last_login).toLocaleDateString() : 'Never'}
+                  <ClientOnly fallback="Loading...">
+                    {user.last_login ? new Date(user.last_login).toLocaleDateString() : 'Never'}
+                  </ClientOnly>
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex items-center justify-end gap-2">

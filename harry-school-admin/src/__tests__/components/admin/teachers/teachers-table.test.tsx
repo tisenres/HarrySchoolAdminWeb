@@ -1,4 +1,3 @@
-import React from 'react'
 import userEvent from '@testing-library/user-event'
 
 import { TeachersTable } from '@/components/admin/teachers/teachers-table'
@@ -12,7 +11,7 @@ import { render, screen, waitFor } from '../../../utils/test-utils'
 
 // Mock Next.js Link component
 jest.mock('next/link', () => {
-  const MockLink = ({ children, href, ...props }: any): JSX.Element => {
+  const MockLink = ({ children, href, ...props }: any) => {
     return <a href={href} {...props}>{children}</a>
   }
   MockLink.displayName = 'MockLink'
@@ -86,9 +85,9 @@ describe('TeachersTable', () => {
       render(<TeachersTable {...defaultProps} />)
 
       const checkbox = screen.getAllByRole('checkbox')[1] // First teacher checkbox (index 0 is select all)
-      await user.click(checkbox)
+      if (checkbox) await user.click(checkbox)
 
-      expect(mockHandlers.onSelectionChange).toHaveBeenCalledWith([mockTeachers[0].id])
+      expect(mockHandlers.onSelectionChange).toHaveBeenCalledWith([mockTeachers[0]!.id])
     })
 
     it('handles select all functionality', async () => {
@@ -96,7 +95,7 @@ describe('TeachersTable', () => {
       render(<TeachersTable {...defaultProps} />)
 
       const selectAllCheckbox = screen.getAllByRole('checkbox')[0]
-      await user.click(selectAllCheckbox)
+      if (selectAllCheckbox) await user.click(selectAllCheckbox)
 
       expect(mockHandlers.onSelectionChange).toHaveBeenCalledWith(
         mockTeachers.map(t => t.id)
@@ -107,7 +106,7 @@ describe('TeachersTable', () => {
       render(
         <TeachersTable 
           {...defaultProps} 
-          selectedTeachers={[mockTeachers[0].id, mockTeachers[1].id]} 
+          selectedTeachers={[mockTeachers[0]!.id, mockTeachers[1]!.id]} 
         />
       )
 
@@ -117,7 +116,7 @@ describe('TeachersTable', () => {
 
     it('handles bulk delete', async () => {
       const user = userEvent.setup()
-      const selectedIds = [mockTeachers[0].id, mockTeachers[1].id]
+      const selectedIds = [mockTeachers[0]!.id, mockTeachers[1]!.id]
       
       render(
         <TeachersTable 
@@ -249,7 +248,7 @@ describe('TeachersTable', () => {
 
       // Click first teacher's action menu
       const actionButton = screen.getAllByLabelText(/open menu for/i)[0]
-      await user.click(actionButton)
+      if (actionButton) await user.click(actionButton)
 
       const editButton = screen.getByText('Edit')
       await user.click(editButton)
@@ -262,12 +261,12 @@ describe('TeachersTable', () => {
       render(<TeachersTable {...defaultProps} />)
 
       const actionButton = screen.getAllByLabelText(/open menu for/i)[0]
-      await user.click(actionButton)
+      if (actionButton) await user.click(actionButton)
 
       const deleteButton = screen.getByText('Delete')
       await user.click(deleteButton)
 
-      expect(mockHandlers.onDelete).toHaveBeenCalledWith(mockTeachers[0].id)
+      expect(mockHandlers.onDelete).toHaveBeenCalledWith(mockTeachers[0]!.id)
     })
 
     it('renders profile links correctly', () => {
@@ -282,11 +281,12 @@ describe('TeachersTable', () => {
 
   describe('Data Display', () => {
     it('displays employment status badges correctly', () => {
+      const baseTeacher = createMockTeacherList(1)[0]!
       const teachersWithStatuses = [
-        createMockTeacherList(1)[0],
-        { ...createMockTeacherList(1)[0], id: 'teacher-status-2', employment_status: 'inactive' as const },
-        { ...createMockTeacherList(1)[0], id: 'teacher-status-3', employment_status: 'on_leave' as const },
-        { ...createMockTeacherList(1)[0], id: 'teacher-status-4', employment_status: 'terminated' as const },
+        baseTeacher,
+        { ...baseTeacher, id: 'teacher-status-2', employment_status: 'inactive' as const },
+        { ...baseTeacher, id: 'teacher-status-3', employment_status: 'on_leave' as const },
+        { ...baseTeacher, id: 'teacher-status-4', employment_status: 'terminated' as const },
       ]
 
       render(<TeachersTable {...defaultProps} teachers={teachersWithStatuses} />)
@@ -298,10 +298,8 @@ describe('TeachersTable', () => {
     })
 
     it('handles missing email gracefully', () => {
-      const teacherWithoutEmail = {
-        ...mockTeachers[0],
-        email: undefined
-      }
+      const teacherWithoutEmail = { ...mockTeachers[0]! }
+      delete (teacherWithoutEmail as any).email
 
       render(
         <TeachersTable 
@@ -310,12 +308,12 @@ describe('TeachersTable', () => {
         />
       )
 
-      expect(screen.getByText(teacherWithoutEmail.phone)).toBeInTheDocument()
+      expect(screen.getByText(teacherWithoutEmail.phone!)).toBeInTheDocument()
     })
 
     it('displays specializations with truncation', () => {
       const teacherWithManySpecs = {
-        ...mockTeachers[0],
+        ...mockTeachers[0]!,
         specializations: ['English', 'Mathematics', 'Physics', 'Chemistry', 'Biology']
       }
 
@@ -332,7 +330,7 @@ describe('TeachersTable', () => {
 
     it('displays profile images when available', () => {
       const teacherWithImage = {
-        ...mockTeachers[0],
+        ...mockTeachers[0]!,
         profile_image_url: 'https://example.com/image.jpg'
       }
 
@@ -343,8 +341,8 @@ describe('TeachersTable', () => {
         />
       )
 
-      const profileImage = screen.getByAltText(teacherWithImage.full_name)
-      expect(profileImage).toHaveAttribute('src', teacherWithImage.profile_image_url)
+      const profileImage = screen.getByAltText(teacherWithImage.full_name!)
+      expect(profileImage).toHaveAttribute('src', teacherWithImage.profile_image_url!)
     })
   })
 
@@ -388,7 +386,7 @@ describe('TeachersTable', () => {
   describe('Bulk Operations', () => {
     const bulkProps = {
       ...defaultProps,
-      selectedTeachers: [mockTeachers[0].id, mockTeachers[1].id],
+      selectedTeachers: [mockTeachers[0]!.id, mockTeachers[1]!.id],
       onBulkStatusChange: mockHandlers.onBulkStatusChange,
       onBulkArchive: mockHandlers.onBulkArchive,
       onExport: mockHandlers.onExport,

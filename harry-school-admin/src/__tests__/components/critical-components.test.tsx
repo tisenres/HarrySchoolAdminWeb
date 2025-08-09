@@ -4,8 +4,7 @@
  */
 
 import React from 'react'
-import { render, screen, waitFor, act } from '@testing-library/react'
-import { renderHook } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { createMockSupabaseClient } from '../setup/test-environment'
 
@@ -206,7 +205,7 @@ describe('Critical Component Tests', () => {
         return (
           <div data-testid="consistent-component">
             <span data-testid="count">{count}</span>
-            <button onClick={() => setCount(c => c + 1)}>Increment</button>
+            <button onClick={() => setCount(count + 1)}>Increment</button>
           </div>
         )
       }
@@ -394,17 +393,17 @@ describe('Critical Component Tests', () => {
         const newErrors: Record<string, string> = {}
         
         if (!formData.first_name.trim()) {
-          newErrors.first_name = 'First name is required'
+          newErrors['first_name'] = 'First name is required'
         }
         
         if (!formData.email.trim()) {
-          newErrors.email = 'Email is required'
+          newErrors['email'] = 'Email is required'
         } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-          newErrors.email = 'Email format is invalid'
+          newErrors['email'] = 'Email format is invalid'
         }
         
         if (formData.phone && !/^\+\d{10,15}$/.test(formData.phone)) {
-          newErrors.phone = 'Phone format is invalid'
+          newErrors['phone'] = 'Phone format is invalid'
         }
         
         setErrors(newErrors)
@@ -423,10 +422,10 @@ describe('Critical Component Tests', () => {
               name="first_name"
               placeholder="First Name"
               value={formData.first_name}
-              onChange={(e) => setFormData(prev => ({ ...prev, first_name: e.target.value }))}
+              onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
               data-testid="first-name-input"
             />
-            {errors.first_name && <div data-testid="first-name-error">{errors.first_name}</div>}
+            {errors['first_name'] && <div data-testid="first-name-error">{errors['first_name']}</div>}
           </div>
           
           <div>
@@ -435,10 +434,10 @@ describe('Critical Component Tests', () => {
               type="email"
               placeholder="Email"
               value={formData.email}
-              onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               data-testid="email-input"
             />
-            {errors.email && <div data-testid="email-error">{errors.email}</div>}
+            {errors['email'] && <div data-testid="email-error">{errors['email']}</div>}
           </div>
           
           <div>
@@ -446,10 +445,10 @@ describe('Critical Component Tests', () => {
               name="phone"
               placeholder="Phone"
               value={formData.phone}
-              onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
               data-testid="phone-input"
             />
-            {errors.phone && <div data-testid="phone-error">{errors.phone}</div>}
+            {errors['phone'] && <div data-testid="phone-error">{errors['phone']}</div>}
           </div>
           
           <button type="submit" data-testid="submit-button">

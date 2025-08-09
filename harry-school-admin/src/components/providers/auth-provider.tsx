@@ -23,6 +23,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null)
   const [profile, setProfile] = useState<any | null>(null)
   const [loading, setLoading] = useState(true)
+  const [isHydrated, setIsHydrated] = useState(false)
   const router = useRouter()
 
   const supabase = createBrowserClient<Database>(
@@ -31,6 +32,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   )
 
   useEffect(() => {
+    setIsHydrated(true)
+    
     // Check active session
     const checkSession = async () => {
       try {

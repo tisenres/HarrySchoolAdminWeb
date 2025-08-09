@@ -38,6 +38,7 @@ import {
 import { mockGroupService } from '@/lib/services/mock-group-service'
 import type { GroupTableRow, GroupFilters, GroupSortConfig } from '@/types/group'
 import { cn } from '@/lib/utils'
+import { ClientOnly } from '@/components/ui/client-only'
 
 interface GroupsTableProps {
   filters?: GroupFilters
@@ -359,7 +360,9 @@ export function GroupsTable({
                   <TableCell>
                     <div className="flex items-center gap-1 text-sm">
                       <Calendar className="h-3 w-3 text-muted-foreground" />
-                      {new Date(group.start_date).toLocaleDateString()}
+                      <ClientOnly fallback={<span>Loading...</span>}>
+                        {group.start_date ? new Date(group.start_date).toLocaleDateString() : 'Not set'}
+                      </ClientOnly>
                     </div>
                   </TableCell>
                   

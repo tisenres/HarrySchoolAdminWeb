@@ -32,6 +32,7 @@ import {
 } from 'lucide-react'
 import type { StudentFilters } from '@/types/student'
 import { fadeVariants } from '@/lib/animations'
+import { ClientOnly } from '@/components/ui/client-only'
 
 export interface StudentsFiltersProps {
   filters: StudentFilters
@@ -406,10 +407,12 @@ export function StudentsFilters({
                         className="justify-start text-left font-normal w-32"
                       >
                         <CalendarIcon className="mr-2 h-4 w-4" />
-                        {localFilters.enrollment_date_from 
-                          ? localFilters.enrollment_date_from.toLocaleDateString()
-                          : 'From'
-                        }
+                        <ClientOnly fallback="From">
+                          {localFilters.enrollment_date_from 
+                            ? localFilters.enrollment_date_from.toLocaleDateString()
+                            : 'From'
+                          }
+                        </ClientOnly>
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
@@ -432,10 +435,12 @@ export function StudentsFilters({
                         className="justify-start text-left font-normal w-32"
                       >
                         <CalendarIcon className="mr-2 h-4 w-4" />
-                        {localFilters.enrollment_date_to 
-                          ? localFilters.enrollment_date_to.toLocaleDateString()
-                          : 'To'
-                        }
+                        <ClientOnly fallback="To">
+                          {localFilters.enrollment_date_to 
+                            ? localFilters.enrollment_date_to.toLocaleDateString()
+                            : 'To'
+                          }
+                        </ClientOnly>
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
