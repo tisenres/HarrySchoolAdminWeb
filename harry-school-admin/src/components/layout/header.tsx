@@ -6,6 +6,7 @@ import { LogoutButton } from '@/components/auth/logout-button'
 import { Bell, User } from 'lucide-react'
 import { useParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
+import Link from 'next/link'
 
 export function Header() {
   const params = useParams()
@@ -25,8 +26,10 @@ export function Header() {
         </Button>
         
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon">
-            <User className="h-4 w-4" />
+          <Button variant="ghost" size="icon" asChild>
+            <Link href={`/${locale}/profile`}>
+              <User className="h-4 w-4" />
+            </Link>
           </Button>
           <LogoutButton 
             variant="ghost" 

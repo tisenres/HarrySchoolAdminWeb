@@ -32,6 +32,12 @@ export const POST = withAuth(async (request: NextRequest, { user }) => {
       filename: validatedData.filename
     })
 
+    // Debug: Check if exportData is valid
+    if (!exportData || !exportData.buffer) {
+      console.error('Export data is invalid:', exportData)
+      throw new Error('Export failed: Invalid export data generated')
+    }
+
     // Return file data as response
     const contentType = validatedData.format === 'xlsx' 
       ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
@@ -44,7 +50,7 @@ export const POST = withAuth(async (request: NextRequest, { user }) => {
       headers: {
         'Content-Type': contentType,
         'Content-Disposition': `attachment; filename="${filename}${extension}"`,
-        'Content-Length': exportData.buffer.length.toString()
+        'Content-Length': exportData.buffer.byteLength.toString()
       }
     })
 

@@ -134,12 +134,31 @@ export class TeachersExportService {
   }
 
   private async fetchTeachersData(filters?: Record<string, any>): Promise<Teacher[]> {
-    // Use the existing teacher service to fetch data
+    // Use the existing teacher service to fetch data with pagination to handle large datasets
     const searchParams = filters || {}
-    const pagination = { page: 1, limit: 10000, sort_by: 'created_at', sort_order: 'desc' as const }
+    let allTeachers: Teacher[] = []
+    let page = 1
+    const maxLimit = 100 // Maximum allowed by pagination schema
+    let hasMore = true
     
-    const result = await this.teacherService.getAll(searchParams, pagination)
-    return result.data
+    while (hasMore) {
+      const pagination = { page, limit: maxLimit, sort_by: 'created_at', sort_order: 'desc' as const }
+      const result = await this.teacherService.getAll(searchParams, pagination)
+      
+      allTeachers = allTeachers.concat(result.data)
+      
+      // Check if we have more data to fetch
+      hasMore = result.data.length === maxLimit
+      page++
+      
+      // Safety check to prevent infinite loops
+      if (page > 1000) {
+        console.warn('Export reached maximum page limit (1000), stopping pagination')
+        break
+      }
+    }
+    
+    return allTeachers
   }
 
   private transformTeachersData(teachers: Teacher[], fields: string[]): any[] {
@@ -243,49 +262,87 @@ export class TeachersExportService {
   }
 
   private generateExcelFile(data: any[], options: TeachersExportOptions): ExportData {
-    const headers = (options.fields || DEFAULT_FIELDS).map(field => FIELD_LABELS[field] || field)
-    const rows = data.map(row => (options.fields || DEFAULT_FIELDS).map(field => row[field] || ''))
-    
-    const workbook = ImportExportService.createWorkbook(rows, headers, 'Teachers')
-    const buffer = XLSX.write(workbook, { 
-      bookType: 'xlsx', 
-      type: 'array',
-      cellStyles: true 
-    })
+    try {
+      const headers = (options.fields || DEFAULT_FIELDS).map(field => FIELD_LABELS[field] || field)
+      const rows = data.map(row => (options.fields || DEFAULT_FIELDS).map(field => row[field] || ''))
+      
+      console.log('Export data summary:', {
+        headerCount: headers.length,
+        rowCount: rows.length,
+        fieldsSelected: options.fields?.length || DEFAULT_FIELDS.length
+      })
+      
+      const workbook = ImportExportService.createWorkbook(rows, headers, 'Teachers')
+      const xlsxBuffer = XLSX.write(workbook, { 
+        bookType: 'xlsx', 
+        type: 'array',
+        cellStyles: true 
+      })
 
-    const filename = options.filename || `teachers_export_${new Date().toISOString().split('T')[0]}.xlsx`
+      // Ensure the buffer is properly typed as ArrayBuffer
+      const buffer = xlsxBuffer instanceof ArrayBuffer ? xlsxBuffer : new Uint8Array(xlsxBuffer).buffer
 
-    return {
-      buffer: buffer as ArrayBuffer,
-      filename,
-      contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      const filename = options.filename || `teachers_export_${new Date().toISOString().split('T')[0]}.xlsx`
+
+      console.log('Generated Excel file:', {
+        bufferSize: buffer.byteLength,
+        filename,
+        hasBuffer: !!buffer
+      })
+
+      return {
+        buffer,
+        filename,
+        contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      }
+    } catch (error) {
+      console.error('Error generating Excel file:', error)
+      throw new Error(`Failed to generate Excel file: ${error.message}`)
     }
   }
 
   private generateCSVFile(data: any[], options: TeachersExportOptions): ExportData {
-    const headers = (options.fields || DEFAULT_FIELDS).map(field => FIELD_LABELS[field] || field)
-    const rows = data.map(row => (options.fields || DEFAULT_FIELDS).map(field => {
-      let value = row[field] || ''
-      // Escape quotes and wrap in quotes if contains comma
-      if (typeof value === 'string' && (value.includes(',') || value.includes('"'))) {
-        value = `"${value.replace(/"/g, '""')}"`
+    try {
+      const headers = (options.fields || DEFAULT_FIELDS).map(field => FIELD_LABELS[field] || field)
+      const rows = data.map(row => (options.fields || DEFAULT_FIELDS).map(field => {
+        let value = row[field] || ''
+        // Escape quotes and wrap in quotes if contains comma
+        if (typeof value === 'string' && (value.includes(',') || value.includes('"'))) {
+          value = `"${value.replace(/"/g, '""')}"`
+        }
+        return value
+      }))
+      
+      console.log('CSV export data summary:', {
+        headerCount: headers.length,
+        rowCount: rows.length,
+        includeHeaders: options.includeHeaders !== false
+      })
+      
+      let csvContent = ''
+      if (options.includeHeaders !== false) {
+        csvContent += headers.join(',') + '\n'
       }
-      return value
-    }))
-    
-    let csvContent = ''
-    if (options.includeHeaders !== false) {
-      csvContent += headers.join(',') + '\n'
-    }
-    csvContent += rows.map(row => row.join(',')).join('\n')
-    
-    const buffer = new TextEncoder().encode(csvContent).buffer
-    const filename = options.filename || `teachers_export_${new Date().toISOString().split('T')[0]}.csv`
+      csvContent += rows.map(row => row.join(',')).join('\n')
+      
+      const buffer = new TextEncoder().encode(csvContent).buffer
+      const filename = options.filename || `teachers_export_${new Date().toISOString().split('T')[0]}.csv`
 
-    return {
-      buffer,
-      filename,
-      contentType: 'text/csv'
+      console.log('Generated CSV file:', {
+        bufferSize: buffer.byteLength,
+        filename,
+        contentLength: csvContent.length,
+        hasBuffer: !!buffer
+      })
+
+      return {
+        buffer,
+        filename,
+        contentType: 'text/csv'
+      }
+    } catch (error) {
+      console.error('Error generating CSV file:', error)
+      throw new Error(`Failed to generate CSV file: ${error.message}`)
     }
   }
 

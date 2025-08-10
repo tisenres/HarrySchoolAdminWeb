@@ -20,8 +20,9 @@ import { TeachersFilters } from '@/components/admin/teachers/teachers-filters'
 import { TeacherForm } from '@/components/admin/teachers/teacher-form'
 import { ImportModal } from '@/components/admin/shared/import-modal'
 import { ExportModal } from '@/components/admin/shared/export-modal'
-import { TeachersExportService } from '@/lib/services/teachers-export-service'
+// Import/Export functionality now handled via API routes
 import { ImportResult } from '@/lib/services/import-export-service'
+import { getAvailableFields } from '@/lib/constants/teachers-export-fields'
 import type { Teacher, TeacherFilters, TeacherSortConfig } from '@/types/teacher'
 import type { CreateTeacherRequest } from '@/lib/validations/teacher'
 
@@ -396,7 +397,7 @@ export default function TeachersPage() {
   
   const handleDownloadTemplate = useCallback(async () => {
     try {
-      const response = await fetch('/api/templates/teachers', {
+      const response = await fetch('/api/import/teachers/template', {
         method: 'GET',
         credentials: 'include'
       })
@@ -647,7 +648,7 @@ export default function TeachersPage() {
         dataType="teachers"
         totalRecords={totalCount}
         filteredRecords={filteredTeachers.length}
-        availableFields={TeachersExportService.getAvailableFields()}
+        availableFields={getAvailableFields()}
         onExport={handleExportFile}
         isExporting={exporting}
       />

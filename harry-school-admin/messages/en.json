@@ -104,12 +104,6 @@
     "backupSystem": "Backup System",
     "checking": "Checking..."
   },
-  "actions": {
-    "cancel": "Cancel",
-    "confirm": "Confirm",
-    "delete": "Delete",
-    "save": "Save"
-  },
   "navigation": {
     "adminDashboard": "Admin Dashboard",
     "welcomeMessage": "Welcome to Harry School CRM Admin Panel"
@@ -387,6 +381,9 @@
     "freelance": "Freelance"
   },
   "actions": {
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "save": "Save",
     "view": "View",
     "edit": "Edit",
     "delete": "Delete",
@@ -477,5 +474,34 @@
     "createTestAdmin": "Create Test Admin",
     "testCredentials": "Test Credentials",
     "developmentTools": "Development Tools"
+  },
+  "profile": {
+    "title": "Profile",
+    "subtitle": "Manage your personal information and preferences",
+    "edit": "Edit Profile",
+    "editProfile": "Edit Profile",
+    "cancel": "Cancel",
+    "save": "Save",
+    "saveChanges": "Save Changes",
+    "personalInformation": "Personal Information",
+    "contactInformation": "Contact Information",
+    "accountInformation": "Account Information",
+    "organization": "Organization",
+    "fullName": "Full Name",
+    "email": "Email Address",
+    "phone": "Phone Number",
+    "timezone": "Timezone",
+    "language": "Language",
+    "memberSince": "Member Since",
+    "lastLogin": "Last Login",
+    "yourRole": "Your Role",
+    "profilePicture": "Profile Picture",
+    "uploadImage": "Upload Image",
+    "imageUploadNote": "Image upload coming soon",
+    "selectTimezone": "Select timezone",
+    "selectLanguage": "Select language",
+    "emailNote": "Contact your administrator to change your email address",
+    "updateSuccess": "Profile updated successfully",
+    "updateError": "Failed to update profile. Please try again."
   }
 }

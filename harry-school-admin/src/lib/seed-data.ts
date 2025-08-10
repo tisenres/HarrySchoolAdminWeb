@@ -1,4 +1,4 @@
-import { createAdminClient } from '@/lib/supabase'
+import { createAdminClient } from '@/lib/supabase-server'
 
 export async function seedDatabase() {
   const supabase = createAdminClient()

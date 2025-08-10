@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase-client'
 import type { Teacher, CreateTeacherRequest, UpdateTeacherRequest, TeacherFilters, TeacherSortConfig } from '@/types/teacher'
 
 export class TeacherService {
