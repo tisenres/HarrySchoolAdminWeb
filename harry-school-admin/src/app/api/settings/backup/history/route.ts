@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
         file_path,
         tables_included,
         error_message,
-        created_at,
+        started_at as created_at,
         completed_at,
         profiles!backup_history_created_by_fkey (
           full_name,
@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
         )
       `)
       .eq('organization_id', profile.organization_id)
-      .order('created_at', { ascending: false })
+      .order('started_at', { ascending: false })
 
     // Apply filters
     if (status) {
@@ -186,7 +186,7 @@ export async function DELETE(request: NextRequest) {
         .select('id, backup_name')
         .eq('organization_id', profile.organization_id)
         .eq('status', 'completed')
-        .lt('created_at', cutoffDate.toISOString())
+        .lt('started_at', cutoffDate.toISOString())
 
       if (fetchError) throw fetchError
 
@@ -203,7 +203,7 @@ export async function DELETE(request: NextRequest) {
         .delete()
         .eq('organization_id', profile.organization_id)
         .eq('status', 'completed')
-        .lt('created_at', cutoffDate.toISOString())
+        .lt('started_at', cutoffDate.toISOString())
 
       if (deleteError) throw deleteError
 

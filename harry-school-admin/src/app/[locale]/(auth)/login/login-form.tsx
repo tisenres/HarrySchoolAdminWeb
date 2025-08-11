@@ -36,8 +36,8 @@ import {
 
 // Form validation schema
 const loginSchema = z.object({
-  email: z.string().email('Invalid email address'),
-  password: z.string().min(6, 'Password too short'),
+  email: z.string().email(),
+  password: z.string().min(6),
 })
 
 type LoginFormValues = z.infer<typeof loginSchema>
@@ -45,13 +45,20 @@ type LoginFormValues = z.infer<typeof loginSchema>
 export default function LoginForm() {
   const router = useRouter()
   const t = useTranslations('auth')
+  const tLogin = useTranslations('loginForm')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showPassword, setShowPassword] = useState(false)
   const [isTestMode, setIsTestMode] = useState(false)
 
+  // Create validation schema with translations
+  const validationSchema = z.object({
+    email: z.string().email(tLogin('validation.invalidEmail')),
+    password: z.string().min(6, tLogin('validation.passwordTooShort')),
+  })
+
   const form = useForm<LoginFormValues>({
-    resolver: zodResolver(loginSchema),
+    resolver: zodResolver(validationSchema),
     defaultValues: {
       email: '',
       password: '',
@@ -80,12 +87,12 @@ export default function LoginForm() {
 
       if (data?.user) {
         // Redirect to dashboard - profile check will be done by middleware
-        router.push('/en/teachers')
+        router.push('/en')
         router.refresh()
       }
     } catch (err) {
       console.error('Login error:', err)
-      setError('An unexpected error occurred. Please try again.')
+      setError(tLogin('errors.unexpectedError'))
     } finally {
       setLoading(false)
     }
@@ -135,16 +142,16 @@ export default function LoginForm() {
 
         if (profileError) {
           console.error('Profile creation error:', profileError)
-          setError('Failed to create user profile. The user may already exist.')
+          setError(tLogin('errors.failedToCreateProfile'))
         } else {
           setError(null)
-          alert('Test admin account created successfully! You can now login.')
+          alert(tLogin('success.adminCreated'))
           fillTestCredentials()
         }
       }
     } catch (err) {
       console.error('Error creating test admin:', err)
-      setError('Failed to create test admin account.')
+      setError(tLogin('errors.failedToCreateAdmin'))
     } finally {
       setLoading(false)
     }
@@ -165,7 +172,7 @@ export default function LoginForm() {
             </div>
           </div>
           <CardTitle className="text-2xl text-center font-bold">
-            Harry School Admin
+            {tLogin('harrySchoolAdmin')}
           </CardTitle>
           <CardDescription className="text-center">
             {t('signInToContinue')}
@@ -193,7 +200,7 @@ export default function LoginForm() {
                         <Input
                           {...field}
                           type="email"
-                          placeholder="admin@harryschool.uz"
+                          placeholder={tLogin('emailPlaceholder')}
                           className="pl-10"
                           disabled={loading}
                         />
@@ -297,7 +304,7 @@ export default function LoginForm() {
                     {isTestMode && (
                       <Alert>
                       <AlertDescription className="text-xs">
-                      Test credentials filled. Click "{t('signInButton')}" to continue.
+                      {tLogin('testCredentialsFilled')}
                       </AlertDescription>
                       </Alert>
                     )}
@@ -308,8 +315,8 @@ export default function LoginForm() {
           </Form>
         </CardContent>
         <CardFooter className="flex flex-col space-y-2 text-center text-sm text-muted-foreground">
-          <p>© 2025 Harry School. All rights reserved.</p>
-          <p>Admin access only - No self-registration</p>
+          <p>{tLogin('copyright')}</p>
+          <p>{tLogin('adminAccessOnly')}</p>
         </CardFooter>
       </Card>
     </motion.div>

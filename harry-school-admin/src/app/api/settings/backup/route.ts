@@ -200,19 +200,9 @@ export async function POST(request: NextRequest) {
 
     if (error) throw error
 
-    // In a real implementation, you would trigger the actual backup process here
-    // For now, we'll simulate it by updating the status
-    setTimeout(async () => {
-      await supabase
-        .from('backup_history')
-        .update({
-          status: 'completed',
-          completed_at: new Date().toISOString(),
-          file_size: Math.floor(Math.random() * 10000000) + 1000000, // Simulate file size
-          file_path: `/backups/${backupName}.sql`
-        })
-        .eq('id', backup.id)
-    }, 5000)
+    // Start a realistic backup simulation (for demo purposes)
+    // In production, this would trigger actual backup process
+    startBackupSimulation(supabase, backup.id, backupName, profile.organization_id)
 
     // Log the manual backup creation
     await supabase.rpc('log_security_event', {
@@ -235,6 +225,56 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     )
   }
+}
+
+async function startBackupSimulation(supabase: any, backupId: string, backupName: string, organizationId: string) {
+  // Update status to in_progress immediately
+  await supabase
+    .from('backup_history')
+    .update({ status: 'in_progress' })
+    .eq('id', backupId)
+
+  // Simulate backup process with realistic timing (10-15 seconds)
+  const duration = Math.floor(Math.random() * 5000) + 10000 // 10-15 seconds
+  
+  setTimeout(async () => {
+    // Simulate occasional failures for demo realism (10% chance)
+    const shouldFail = Math.random() < 0.1
+    
+    if (shouldFail) {
+      await supabase
+        .from('backup_history')
+        .update({
+          status: 'failed',
+          completed_at: new Date().toISOString(),
+          error_message: 'Demo failure: Connection timeout during backup process'
+        })
+        .eq('id', backupId)
+    } else {
+      // Simulate realistic file sizes (5-50 MB)
+      const fileSize = Math.floor(Math.random() * 45000000) + 5000000
+      
+      await supabase
+        .from('backup_history')
+        .update({
+          status: 'completed',
+          completed_at: new Date().toISOString(),
+          file_size: fileSize,
+          file_path: `/backups/${organizationId}/${backupName}.sql`,
+          checksum: generateDemoChecksum()
+        })
+        .eq('id', backupId)
+    }
+  }, duration)
+}
+
+function generateDemoChecksum(): string {
+  const chars = 'abcdef0123456789'
+  let result = ''
+  for (let i = 0; i < 32; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length))
+  }
+  return result
 }
 
 function calculateNextBackup(frequency: string, time: string): string | null {

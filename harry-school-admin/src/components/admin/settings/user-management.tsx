@@ -29,7 +29,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
-import { toast } from '@/components/ui/use-toast'
+import { toast } from 'sonner'
 import { ClientOnly } from '@/components/ui/client-only'
 import {
   UserPlus,
@@ -51,11 +51,7 @@ interface User {
   last_login?: string
 }
 
-interface UserManagementProps {
-  organizationId: string
-}
-
-export function UserManagement({ organizationId }: UserManagementProps) {
+export function UserManagement() {
   const [users, setUsers] = useState<User[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
@@ -69,54 +65,57 @@ export function UserManagement({ organizationId }: UserManagementProps) {
 
   useEffect(() => {
     fetchUsers()
-  }, [organizationId])
+  }, [])
 
   const fetchUsers = async () => {
     setIsLoading(true)
     try {
-      const response = await fetch(`/api/organizations/${organizationId}/users`)
+      const response = await fetch('/api/settings/users')
       if (response.ok) {
         const data = await response.json()
-        setUsers(data)
+        setUsers(data.users || [])
+      } else {
+        throw new Error('Failed to fetch users')
       }
     } catch (error) {
       console.error('Error fetching users:', error)
-      toast({
-        title: 'Error',
-        description: 'Failed to load users',
-        variant: 'destructive',
-      })
+      toast.error('Failed to load users')
     } finally {
       setIsLoading(false)
     }
   }
 
   const inviteUser = async () => {
+    if (!newUser.email || !newUser.full_name) {
+      toast.error('Please fill in all required fields')
+      return
+    }
+
     setIsAddingUser(true)
     try {
-      const response = await fetch(`/api/organizations/${organizationId}/users`, {
+      const response = await fetch('/api/settings/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newUser),
+        body: JSON.stringify({
+          action: 'invite',
+          ...newUser,
+        }),
       })
 
-      if (!response.ok) throw new Error('Failed to invite user')
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to invite user')
+      }
 
-      toast({
-        title: 'Success',
-        description: 'User invitation sent successfully',
-      })
+      const data = await response.json()
+      toast.success(data.message || 'User invitation sent successfully')
 
       setIsDialogOpen(false)
       setNewUser({ email: '', full_name: '', role: 'admin' })
       fetchUsers()
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error inviting user:', error)
-      toast({
-        title: 'Error',
-        description: 'Failed to invite user',
-        variant: 'destructive',
-      })
+      toast.error(error.message || 'Failed to invite user')
     } finally {
       setIsAddingUser(false)
     }
@@ -124,53 +123,45 @@ export function UserManagement({ organizationId }: UserManagementProps) {
 
   const updateUserRole = async (userId: string, role: string) => {
     try {
-      const response = await fetch(`/api/organizations/${organizationId}/users/${userId}`, {
-        method: 'PATCH',
+      const response = await fetch(`/api/settings/users/${userId}`, {
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ role }),
       })
 
-      if (!response.ok) throw new Error('Failed to update user role')
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to update user role')
+      }
 
-      toast({
-        title: 'Success',
-        description: 'User role updated successfully',
-      })
+      toast.success('User role updated successfully')
 
       fetchUsers()
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating user role:', error)
-      toast({
-        title: 'Error',
-        description: 'Failed to update user role',
-        variant: 'destructive',
-      })
+      toast.error(error.message || 'Failed to update user role')
     }
   }
 
   const removeUser = async (userId: string) => {
-    if (!confirm('Are you sure you want to remove this user?')) return
+    if (!confirm('Are you sure you want to remove this user? This action cannot be undone.')) return
 
     try {
-      const response = await fetch(`/api/organizations/${organizationId}/users/${userId}`, {
+      const response = await fetch(`/api/settings/users/${userId}`, {
         method: 'DELETE',
       })
 
-      if (!response.ok) throw new Error('Failed to remove user')
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to remove user')
+      }
 
-      toast({
-        title: 'Success',
-        description: 'User removed successfully',
-      })
+      toast.success('User removed successfully')
 
       fetchUsers()
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error removing user:', error)
-      toast({
-        title: 'Error',
-        description: 'Failed to remove user',
-        variant: 'destructive',
-      })
+      toast.error(error.message || 'Failed to remove user')
     }
   }
 

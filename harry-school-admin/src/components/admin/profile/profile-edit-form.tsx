@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -11,8 +11,9 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { useTranslations } from 'next-intl'
-import { Save, X, Upload, Loader2 } from 'lucide-react'
+import { Save, X, Upload, Loader2, Trash2 } from 'lucide-react'
 import { useToast } from '@/components/ui/use-toast'
+import { validateImageFile } from '@/lib/utils/image-upload'
 import type { Profile } from '@/types/database'
 
 const profileSchema = z.object({
@@ -60,6 +61,9 @@ const LANGUAGES = [
 
 export function ProfileEditForm({ profile, onCancel, onSuccess }: ProfileEditFormProps) {
   const [isLoading, setIsLoading] = useState(false)
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
+  const [avatarUrl, setAvatarUrl] = useState(profile.avatar_url)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const t = useTranslations('profile')
   const { toast } = useToast()
 
@@ -85,6 +89,94 @@ export function ProfileEditForm({ profile, onCancel, onSuccess }: ProfileEditFor
       .map(part => part.charAt(0).toUpperCase())
       .slice(0, 2)
       .join('')
+  }
+
+  const handleFileSelect = () => {
+    fileInputRef.current?.click()
+  }
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    // Validate file
+    const validation = validateImageFile(file)
+    if (!validation.valid) {
+      toast({
+        title: validation.error,
+        variant: 'destructive'
+      })
+      return
+    }
+
+    setIsUploadingAvatar(true)
+    
+    try {
+      const formData = new FormData()
+      formData.append('avatar', file)
+
+      const response = await fetch('/api/profile/avatar', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to upload avatar')
+      }
+
+      const result = await response.json()
+      setAvatarUrl(result.data.avatar_url)
+      
+      toast({
+        title: 'Avatar updated successfully',
+        variant: 'default'
+      })
+    } catch (error) {
+      console.error('Error uploading avatar:', error)
+      toast({
+        title: error instanceof Error ? error.message : 'Failed to upload avatar',
+        variant: 'destructive'
+      })
+    } finally {
+      setIsUploadingAvatar(false)
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
+    }
+  }
+
+  const handleRemoveAvatar = async () => {
+    if (!avatarUrl) return
+
+    setIsUploadingAvatar(true)
+    
+    try {
+      const response = await fetch('/api/profile/avatar', {
+        method: 'DELETE',
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to remove avatar')
+      }
+
+      setAvatarUrl(null)
+      
+      toast({
+        title: 'Avatar removed successfully',
+        variant: 'default'
+      })
+    } catch (error) {
+      console.error('Error removing avatar:', error)
+      toast({
+        title: error instanceof Error ? error.message : 'Failed to remove avatar',
+        variant: 'destructive'
+      })
+    } finally {
+      setIsUploadingAvatar(false)
+    }
   }
 
   const onSubmit = async (data: ProfileFormData) => {
@@ -142,7 +234,7 @@ export function ProfileEditForm({ profile, onCancel, onSuccess }: ProfileEditFor
           {/* Avatar Section */}
           <div className="flex items-center space-x-4">
             <Avatar className="h-20 w-20">
-              <AvatarImage src={profile.avatar_url || undefined} />
+              <AvatarImage src={avatarUrl || undefined} />
               <AvatarFallback className="text-xl">
                 {getInitials(watch('full_name') || profile.full_name)}
               </AvatarFallback>
@@ -151,13 +243,43 @@ export function ProfileEditForm({ profile, onCancel, onSuccess }: ProfileEditFor
               <p className="text-sm text-muted-foreground">
                 {t('profilePicture')}
               </p>
-              <Button type="button" variant="outline" size="sm" disabled>
-                <Upload className="h-4 w-4 mr-2" />
-                {t('uploadImage')}
-              </Button>
+              <div className="flex items-center space-x-2">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={handleFileSelect}
+                  disabled={isUploadingAvatar}
+                >
+                  {isUploadingAvatar ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Upload className="h-4 w-4 mr-2" />
+                  )}
+                  {t('uploadImage')}
+                </Button>
+                {avatarUrl && (
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={handleRemoveAvatar}
+                    disabled={isUploadingAvatar}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
               <p className="text-xs text-muted-foreground">
-                {t('imageUploadNote')}
+                Max 5MB. JPEG, PNG, WebP formats supported.
               </p>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={handleFileChange}
+                style={{ display: 'none' }}
+              />
             </div>
           </div>
 

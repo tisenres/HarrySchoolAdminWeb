@@ -15,6 +15,9 @@
     "export": "Eksport",
     "import": "Import",
     "language": "Til",
+    "changeLanguage": "Tilni o'zgartirish",
+    "close": "Yopish",
+    "openMenu": "Menyuni ochish",
     "active": "Faol",
     "inactive": "Faol emas",
     "pending": "Kutilmoqda",
@@ -151,7 +154,21 @@
     "createGroup": "• Guruh yaratish",
     "enrollStudent": "• Talaba ro'yxatga olish",
     "recordPayment": "To'lovni qayd etish",
-    "viewReports": "Hisobotlarni ko'rish"
+    "viewReports": "Hisobotlarni ko'rish",
+    "recentEnrollments": "So'nggi ro'yxatga olishlar",
+    "last30Days": "So'nggi 30 kun",
+    "upcomingClasses": "Kelayotgan darslar",
+    "next7Days": "Keyingi 7 kun",
+    "outstandingBalance": "To'lanmagan qoldiq",
+    "toBeCollected": "Yig'ib olinishi kerak",
+    "activity": {
+      "newStudentEnrolled": "Yangi talaba ro'yxatga olingan",
+      "paymentReceived": "To'lov qabul qilingan",
+      "newGroupCreated": "Yangi guruh yaratilgan",
+      "hoursAgo2": "2 soat oldin",
+      "hoursAgo4": "4 soat oldin",
+      "hoursAgo6": "6 soat oldin"
+    }
   },
   "teachers": {
     "title": "O'qituvchilar",
@@ -475,5 +492,269 @@
     "createTestAdmin": "Test administratorini yaratish",
     "testCredentials": "Test ma'lumotlari",
     "developmentTools": "Dasturlash vositalari"
+  },
+  "components": {
+    "statsCard": {
+      "fromLastMonth": "o'tgan oydan beri"
+    },
+    "teachersTable": {
+      "columns": {
+        "name": "Ism",
+        "contact": "Aloqa",
+        "employment": "Ishga joylashish",
+        "specializations": "Ixtisosliklar",
+        "groups": "Guruhlar",
+        "students": "Talabalar",
+        "status": "Holat"
+      },
+      "bulkActions": {
+        "selected": "o'qituvchi tanlandi",
+        "teachersSelected": "o'qituvchilar tanlandi",
+        "changeStatus": "Holatni o'zgartirish",
+        "setActive": "Faollashtirishga o'rnatish",
+        "setInactive": "Faol emaslikka o'rnatish",
+        "setOnLeave": "Ta'tilga yuborish",
+        "exportSelected": "Tanlanganlarni eksport qilish",
+        "archive": "Arxivlash",
+        "restore": "Tiklash",
+        "delete": "O'chirish"
+      },
+      "empty": {
+        "noTeachers": "O'qituvchilar yo'q",
+        "noTeachersFound": "O'qituvchilar topilmadi.",
+        "createFirst": "Ishni boshlash uchun birinchi o'qituvchingizni yarating."
+      },
+      "loading": "O'qituvchilar yuklanmoqda...",
+      "pagination": {
+        "showing": "Ko'rsatilgan",
+        "to": "dan",
+        "of": "dan",
+        "teachers": "o'qituvchilar",
+        "rows": "Qatorlar:",
+        "totalPages": "dan"
+      },
+      "density": {
+        "tableDensity": "Jadval zichligi",
+        "compact": "Ixcham",
+        "comfortable": "Qulay",
+        "spacious": "Keng"
+      },
+      "columns": {
+        "columns": "Ustunlar"
+      },
+      "export": {
+        "exportAll": "Barchasini eksport qilish"
+      },
+      "actions": "Harakatlar",
+      "viewProfile": "Profilni ko'rish"
+    },
+    "teacherForm": {
+      "validation": {
+        "invalidImage": "Iltimos, to'g'ri rasm faylini tanlang",
+        "fileSizeLimit": "Fayl hajmi 5MB dan kichik bo'lishi kerak"
+      },
+      "sections": {
+        "profilePhoto": "Profil rasmi",
+        "basicInformation": "Asosiy ma'lumotlar",
+        "professionalInformation": "Professional ma'lumotlar",
+        "specializationsLanguages": "Ixtisosliklar va tillar",
+        "educationQualifications": "Ta'lim va malaka",
+        "emergencyContact": "Shoshilinch aloqa",
+        "addressInformation": "Manzil ma'lumotlari",
+        "additionalNotes": "Qo'shimcha eslatmalar"
+      },
+      "prompts": {
+        "unsavedChanges": "Saqlanmagan o'zgarishlar",
+        "unsavedMessage": "Sizda saqlanmagan o'zgarishlar bor. Ketishni xohlaysizmi? O'zgarishlaringiz yo'qoladi.",
+        "continueEditing": "Tahrirlashni davom ettirish",
+        "leaveWithoutSaving": "Saqlamasdan ketish"
+      },
+      "titles": {
+        "editTeacher": "O'qituvchini tahrirlash",
+        "addNewTeacher": "Yangi o'qituvchi qo'shish",
+        "updateDescription": "O'qituvchi ma'lumotlari va tayinlovlarini yangilash",
+        "createDescription": "Kompleks o'qituvchi profilini yaratish"
+      },
+      "buttons": {
+        "cancel": "Bekor qilish",
+        "saving": "Saqlanmoqda...",
+        "updateTeacher": "O'qituvchini yangilash",
+        "createTeacher": "O'qituvchi yaratish"
+      },
+      "photo": {
+        "profilePreview": "Profil oldindan ko'rish",
+        "uploadPhoto": "Rasm yuklash",
+        "fileFormats": "JPG, PNG 5MB gacha"
+      },
+      "fields": {
+        "firstName": "Ism",
+        "enterFirstName": "Ismni kiriting",
+        "lastName": "Familiya",
+        "enterLastName": "Familiyani kiriting",
+        "emailAddress": "Elektron pochta manzili",
+        "emailPlaceholder": "teacher@harryschool.uz",
+        "phoneNumber": "Telefon raqami",
+        "phonePlaceholder": "+998901234567",
+        "dateOfBirth": "Tug'ilgan sana",
+        "gender": "Jinsi",
+        "selectGender": "Jinsni tanlang",
+        "male": "Erkak",
+        "female": "Ayol",
+        "other": "Boshqa",
+        "employeeId": "Xodim ID si",
+        "employeeIdPlaceholder": "HS2024001",
+        "hireDate": "Ishga qabul qilingan sana",
+        "employmentStatus": "Ishga joylashish holati",
+        "contractType": "Shartnoma turi",
+        "selectContractType": "Shartnoma turini tanlang",
+        "fullTime": "To'liq kunlik",
+        "partTime": "Qisman kunlik",
+        "contract": "Shartnoma",
+        "substitute": "O'rinbosar",
+        "salaryInformation": "Maosh ma'lumotlari",
+        "hideSalary": "Maoshni yashirish",
+        "showSalary": "Maoshni ko'rsatish",
+        "salaryAmount": "Maosh miqdori",
+        "salaryPlaceholder": "8000000",
+        "currency": "Valyuta",
+        "uzbekSom": "UZS - O'zbek so'm",
+        "usDollar": "USD - AQSH dollari",
+        "euro": "EUR - Evro",
+        "activeTeacher": "Faol o'qituvchi",
+        "teachingSpecializations": "O'qitish ixtisosliklari",
+        "addCustomSpecialization": "Maxsus ixtisoslik qo'shish",
+        "languagesSpoken": "Gapiradigan tillar",
+        "addLanguage": "Til qo'shish",
+        "qualification": "Malaka",
+        "degree": "Daraja",
+        "degreePlaceholder": "San'at bakalavri",
+        "institution": "Muassasa",
+        "institutionPlaceholder": "Universitet nomi",
+        "year": "Yil",
+        "yearPlaceholder": "2020",
+        "fieldOfStudy": "Ta'lim sohasi",
+        "fieldPlaceholder": "Ingliz adabiyoti",
+        "country": "Mamlakat",
+        "countryPlaceholder": "Buyuk Britaniya",
+        "addQualification": "Malaka qo'shish",
+        "contactName": "Aloqa ismi",
+        "contactNamePlaceholder": "Shoshilinch aloqa ismi",
+        "relationship": "Munosabat",
+        "relationshipPlaceholder": "turmush o'rtog'i, ota-ona, aka-uka/opa-singil",
+        "phone": "Telefon",
+        "emergencyEmail": "Elektron pochta",
+        "emergencyEmailPlaceholder": "contact@email.com",
+        "streetAddress": "Ko'cha manzili",
+        "streetPlaceholder": "Asosiy ko'cha 123",
+        "city": "Shahar",
+        "cityPlaceholder": "Toshkent",
+        "region": "Viloyat",
+        "regionPlaceholder": "Toshkent shahar",
+        "postalCode": "Pochta indeksi",
+        "postalPlaceholder": "100000",
+        "countryField": "Mamlakat",
+        "countryFieldPlaceholder": "O'zbekiston",
+        "notesPlaceholder": "O'qituvchi haqida qo'shimcha eslatmalar, maxsus ehtiyojlar yoki boshqa tegishli ma'lumotlar..."
+      },
+      "status": {
+        "readyToCreate": "O'qituvchi profilini yaratishga tayyormisiz?",
+        "readyToUpdate": "O'qituvchi profilini yangilashga tayyormisiz?",
+        "reviewInformation": "Yuborishdan oldin barcha ma'lumotlarni tekshirib chiqing.",
+        "readyToSubmit": "Yuborishga tayyor",
+        "completeRequired": "Iltimos, majburiy maydonlarni to'ldiring",
+        "percentComplete": "% Tugallandi"
+      }
+    }
+  },
+  "hardcodedLabels": {
+    "none": "Yo'q",
+    "more": "yana",
+    "complete": "Tugallandi",
+    "checking": "Tekshirilmoqda...",
+    "needsAttention": "E'tibor talab etadi",
+    "incomplete": "Tugallanmagan",
+    "unknown": "Noma'lum"
+  },
+  "notifications": {
+    "noUnreadNotifications": "O'qilmagan bildirishnomalar yo'q",
+    "message": "Xabar",
+    "additionalDetails": "Qo'shimcha tafsilotlar",
+    "deliveryInformation": "Yetkazib berish ma'lumotlari",
+    "targetRoles": "Maqsadli rollar"
+  },
+  "loginForm": {
+    "harrySchoolAdmin": "Harry School Administrator",
+    "emailPlaceholder": "admin@harryschool.uz",
+    "testCredentialsFilled": "Test ma'lumotlari to'ldirildi. Davom etish uchun Kirish tugmasini bosing.",
+    "copyright": "© 2025 Harry School. Barcha huquqlar himoyalangan.",
+    "adminAccessOnly": "Faqat administrator kirishi - O'z-o'zidan ro'yxatdan o'tish yo'q",
+    "validation": {
+      "invalidEmail": "Noto'g'ri elektron pochta manzili",
+      "passwordTooShort": "Parol juda qisqa"
+    },
+    "errors": {
+      "unexpectedError": "Kutilmagan xatolik yuz berdi. Iltimos, qayta urinib ko'ring.",
+      "failedToCreateProfile": "Foydalanuvchi profilini yaratib bo'lmadi. Foydalanuvchi allaqachon mavjud bo'lishi mumkin.",
+      "failedToCreateAdmin": "Test administrator hisobini yaratib bo'lmadi."
+    },
+    "success": {
+      "adminCreated": "Test administrator hisobi muvaffaqiyatli yaratildi! Endi tizimga kirishingiz mumkin."
+    }
+  },
+  "dashboardPage": {
+    "recentEnrollments": "Yaqinda ro'yxatga olinganlar",
+    "last30Days": "So'nggi 30 kun",
+    "upcomingClasses": "Kelayotgan darslar",
+    "next7Days": "Keyingi 7 kun",
+    "outstandingBalance": "Qarzlar",
+    "toBeCollected": "Yig'ib olinishi kerak",
+    "activity": {
+      "newStudentEnrolled": "Yangi talaba ro'yxatga olindi",
+      "paymentReceived": "To'lov olindi",
+      "newGroupCreated": "Yangi guruh yaratildi",
+      "hoursAgo2": "2 soat oldin",
+      "hoursAgo4": "4 soat oldin",
+      "hoursAgo6": "6 soat oldin"
+    }
+  },
+  "quickActions": {
+    "addStudent": "Talaba qo'shish"
+  },
+  "settingsDashboard": {
+    "organization": "Tashkilot",
+    "organizationDesc": "Asosiy tashkilot ma'lumotlari va afzalliklar",
+    "userManagement": "Foydalanuvchilarni boshqarish",
+    "userManagementDesc": "Administratorlar va ruxsatlarni boshqarish",
+    "security": "Xavfsizlik",
+    "securityDesc": "Parol siyosatlari, 2FA va kirish nazorati",
+    "notifications": "Bildirishnomalar",
+    "notificationsDesc": "Email, push va SMS bildirishnoma sozlamalari",
+    "backupRecovery": "Zaxira nusxa va tiklash",
+    "backupRecoveryDesc": "Avtomatik zaxiralash va ma'lumotlarni tiklash",
+    "systemSettings": "Tizim sozlamalari",
+    "systemSettingsDesc": "Umum tizim konfiguratsiyasi va texnik xizmat",
+    "archiveManagement": "Arxivni boshqarish",
+    "archiveManagementDesc": "Yumshoq o'chirilgan yozuvlarni boshqarish va ma'lumotlarni tiklash",
+    "settingsOverview": "Sozlamalar ko'rinishi",
+    "currentStatusConfiguration": "Tizim konfiguratsiyasining joriy holati",
+    "quickActions": "Tezkor harakatlar",
+    "commonSettingsTasks": "Umumiy sozlamalar vazifalari va konfiguratsiyalar",
+    "inviteNewUser": "Yangi foydalanuvchini taklif qilish",
+    "addAdminUsers": "Tashkilotingizga administratorlar qo'shing",
+    "createBackup": "Zaxira nusxa yaratish",
+    "backupDataImmediately": "Ma'lumotlaringizni darhol zaxiralang",
+    "securityReview": "Xavfsizlik ko'rib chiqish",
+    "reviewSecuritySettings": "Xavfsizlik sozlamalari va siyosatlarini ko'rib chiqish",
+    "manageArchives": "Arxivlarni boshqarish",
+    "restoreOrDeleteArchived": "Arxivlangan elementlarni tiklash yoki butunlay o'chirish",
+    "systemHealth": "Tizim salomatligi",
+    "overallSystemConfiguration": "Umumiy tizim konfiguratsiyasi holati",
+    "organizationSetup": "Tashkilotni sozlash",
+    "userManagementHealth": "Foydalanuvchilarni boshqarish",
+    "securityConfiguration": "Xavfsizlik konfiguratsiyasi",
+    "backupSystem": "Zaxiralash tizimi",
+    "settings": "Sozlamalar",
+    "configureSystemPreferences": "Tizim afzalliklarini sozlash va tashkilotingizni boshqarish",
+    "systemStatus": "Tizim"
   }
 }

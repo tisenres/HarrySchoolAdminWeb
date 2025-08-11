@@ -1,13 +1,17 @@
-import { createServerClient } from '@/lib/supabase-server'
-import type { Database } from '@/types/database'
+import type { Database } from '@/types/database.types'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
 export abstract class BaseService {
   protected tableName: keyof Database['public']['Tables']
   protected supabaseClient: SupabaseClient<Database> | null = null
+  private supabaseClientProvider: () => Promise<SupabaseClient<Database>> | null = null
 
-  constructor(tableName: keyof Database['public']['Tables']) {
+  constructor(
+    tableName: keyof Database['public']['Tables'], 
+    supabaseClientProvider?: () => Promise<SupabaseClient<Database>>
+  ) {
     this.tableName = tableName
+    this.supabaseClientProvider = supabaseClientProvider || null
   }
 
   /**
@@ -15,7 +19,13 @@ export abstract class BaseService {
    */
   protected async getSupabase(): Promise<SupabaseClient<Database>> {
     if (!this.supabaseClient) {
-      this.supabaseClient = await createServerClient()
+      if (this.supabaseClientProvider) {
+        this.supabaseClient = await this.supabaseClientProvider()
+      } else {
+        // For client-side usage only - don't import server modules
+        const { getSupabaseClient } = await import('@/lib/supabase-client')
+        this.supabaseClient = getSupabaseClient()
+      }
     }
     return this.supabaseClient
   }

@@ -1,4 +1,4 @@
-import { createServerClient } from './supabase'
+import { createServerClient } from './supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import type { UserRole } from '@/types/database'
 

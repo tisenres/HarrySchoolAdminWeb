@@ -33,12 +33,11 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL(`/${defaultLocale}${cleanPath}`, request.url));
   }
 
+  // Get the next-intl response first to handle locale properly
+  const intlResponse = intlMiddleware(request);
+  
   // Create a Supabase client configured to use cookies
-  let response = NextResponse.next({
-    request: {
-      headers: request.headers,
-    },
-  });
+  let response = intlResponse;
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -54,11 +53,6 @@ export async function middleware(request: NextRequest) {
             value,
             ...options,
           });
-          response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
-          });
           response.cookies.set({
             name,
             value,
@@ -70,11 +64,6 @@ export async function middleware(request: NextRequest) {
             name,
             value: '',
             ...options,
-          });
-          response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
           });
           response.cookies.set({
             name,
@@ -105,6 +94,45 @@ export async function middleware(request: NextRequest) {
   // Get user session
   const { data: { user } } = await supabase.auth.getUser();
 
+  // Check for maintenance mode (but allow access to API routes and static assets)
+  if (user && !pathname.includes('/api/') && !pathname.includes('/_next/')) {
+    try {
+      // Get user profile to check organization
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('organization_id, role')
+        .eq('id', user.id)
+        .single();
+
+      if (profile) {
+        // Check maintenance mode directly in middleware
+        const { data: maintenanceSetting } = await supabase
+          .from('system_settings')
+          .select('value')
+          .eq('organization_id', profile.organization_id)
+          .eq('category', 'system')
+          .eq('key', 'maintenance_mode')
+          .single();
+        
+        const isMaintenanceMode = maintenanceSetting?.value === true;
+        
+        // Allow superadmin to access during maintenance mode
+        if (isMaintenanceMode && profile.role !== 'superadmin') {
+          const locale = pathname.split('/')[1] || defaultLocale;
+          const maintenanceUrl = new URL(`/${locale}/maintenance`, request.url);
+          
+          // Don't redirect if already on maintenance page
+          if (!pathname.includes('/maintenance')) {
+            return NextResponse.redirect(maintenanceUrl);
+          }
+        }
+      }
+    } catch (error) {
+      // If there's an error checking maintenance mode, log it but don't block access
+      console.warn('Error checking maintenance mode:', error);
+    }
+  }
+
   // Redirect to login if accessing protected route without auth
   if (!user && isProtectedRoute) {
     const locale = pathname.split('/')[1] || defaultLocale;
@@ -114,11 +142,11 @@ export async function middleware(request: NextRequest) {
   // Redirect to dashboard if accessing auth routes while logged in
   if (user && isAuthRoute) {
     const locale = pathname.split('/')[1] || defaultLocale;
-    return NextResponse.redirect(new URL(`/${locale}/teachers`, request.url));
+    return NextResponse.redirect(new URL(`/${locale}`, request.url));
   }
 
-  // Use next-intl middleware for everything else
-  return intlMiddleware(request);
+  // Return the intl response with any cookie modifications
+  return response;
 }
 
 export const config = {

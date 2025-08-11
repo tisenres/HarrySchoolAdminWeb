@@ -15,6 +15,9 @@
     "export": "Export",
     "import": "Import",
     "language": "Language",
+    "changeLanguage": "Change language",
+    "close": "Close",
+    "openMenu": "Open menu",
     "active": "Active",
     "inactive": "Inactive",
     "pending": "Pending",
@@ -110,9 +113,19 @@
   },
   "dashboard": {
     "title": "Dashboard",
+    "welcomeMessage": "Welcome to Harry School CRM Admin Panel",
     "totalStudents": "Total Students",
     "activeGroups": "Active Groups",
+    "totalGroups": "total groups",
     "totalTeachers": "Teachers",
+    "monthlyRevenue": "Monthly Revenue",
+    "outstanding": "outstanding",
+    "recentEnrollments": "Recent Enrollments",
+    "last30Days": "Last 30 days",
+    "upcomingClasses": "Upcoming Classes",
+    "next7Days": "Next 7 days",
+    "outstandingBalance": "Outstanding Balance",
+    "toBeCollected": "To be collected",
     "settings": "Settings",
     "settingsReady": "Ready",
     "recentActivity": "Recent Activity",
@@ -121,8 +134,19 @@
     "addTeacher": "• Add new teacher",
     "createGroup": "• Create group",
     "enrollStudent": "• Enroll student",
+    "manageTeachers": "Manage Teachers",
+    "viewGroups": "View Groups",
+    "manageStudents": "Manage Students",
     "recordPayment": "Record Payment",
-    "viewReports": "View Reports"
+    "viewReports": "View Reports",
+    "activity": {
+      "newStudentEnrolled": "New student enrolled",
+      "paymentReceived": "Payment received",
+      "newGroupCreated": "New group created",
+      "hoursAgo2": "2 hours ago",
+      "hoursAgo4": "4 hours ago",
+      "hoursAgo6": "6 hours ago"
+    }
   },
   "teachers": {
     "title": "Teachers",
@@ -503,5 +527,269 @@
     "emailNote": "Contact your administrator to change your email address",
     "updateSuccess": "Profile updated successfully",
     "updateError": "Failed to update profile. Please try again."
+  },
+  "components": {
+    "statsCard": {
+      "fromLastMonth": "from last month"
+    },
+    "teachersTable": {
+      "columns": {
+        "name": "Name",
+        "contact": "Contact",
+        "employment": "Employment",
+        "specializations": "Specializations",
+        "groups": "Groups",
+        "students": "Students",
+        "status": "Status"
+      },
+      "bulkActions": {
+        "selected": "teacher selected",
+        "teachersSelected": "teachers selected",
+        "changeStatus": "Change Status",
+        "setActive": "Set Active",
+        "setInactive": "Set Inactive",
+        "setOnLeave": "Set On Leave",
+        "exportSelected": "Export Selected",
+        "archive": "Archive",
+        "restore": "Restore",
+        "delete": "Delete"
+      },
+      "empty": {
+        "noTeachers": "No teachers",
+        "noTeachersFound": "No teachers found.",
+        "createFirst": "Create your first teacher to get started."
+      },
+      "loading": "Loading teachers...",
+      "pagination": {
+        "showing": "Showing",
+        "to": "to",
+        "of": "of",
+        "teachers": "teachers",
+        "rows": "Rows:",
+        "totalPages": "of"
+      },
+      "density": {
+        "tableDensity": "Table Density",
+        "compact": "Compact",
+        "comfortable": "Comfortable",
+        "spacious": "Spacious"
+      },
+      "columns": {
+        "columns": "Columns"
+      },
+      "export": {
+        "exportAll": "Export All"
+      },
+      "actions": "Actions",
+      "viewProfile": "View Profile"
+    },
+    "teacherForm": {
+      "validation": {
+        "invalidImage": "Please select a valid image file",
+        "fileSizeLimit": "File size must be less than 5MB"
+      },
+      "sections": {
+        "profilePhoto": "Profile Photo",
+        "basicInformation": "Basic Information",
+        "professionalInformation": "Professional Information",
+        "specializationsLanguages": "Specializations & Languages",
+        "educationQualifications": "Education & Qualifications",
+        "emergencyContact": "Emergency Contact",
+        "addressInformation": "Address Information",
+        "additionalNotes": "Additional Notes"
+      },
+      "prompts": {
+        "unsavedChanges": "Unsaved Changes",
+        "unsavedMessage": "You have unsaved changes. Are you sure you want to leave? Your changes will be lost.",
+        "continueEditing": "Continue Editing",
+        "leaveWithoutSaving": "Leave Without Saving"
+      },
+      "titles": {
+        "editTeacher": "Edit Teacher",
+        "addNewTeacher": "Add New Teacher",
+        "updateDescription": "Update teacher information and assignments",
+        "createDescription": "Create a comprehensive teacher profile"
+      },
+      "buttons": {
+        "cancel": "Cancel",
+        "saving": "Saving...",
+        "updateTeacher": "Update Teacher",
+        "createTeacher": "Create Teacher"
+      },
+      "photo": {
+        "profilePreview": "Profile preview",
+        "uploadPhoto": "Upload Photo",
+        "fileFormats": "JPG, PNG up to 5MB"
+      },
+      "fields": {
+        "firstName": "First Name",
+        "enterFirstName": "Enter first name",
+        "lastName": "Last Name",
+        "enterLastName": "Enter last name",
+        "emailAddress": "Email Address",
+        "emailPlaceholder": "teacher@harryschool.uz",
+        "phoneNumber": "Phone Number",
+        "phonePlaceholder": "+998901234567",
+        "dateOfBirth": "Date of Birth",
+        "gender": "Gender",
+        "selectGender": "Select gender",
+        "male": "Male",
+        "female": "Female",
+        "other": "Other",
+        "employeeId": "Employee ID",
+        "employeeIdPlaceholder": "HS2024001",
+        "hireDate": "Hire Date",
+        "employmentStatus": "Employment Status",
+        "contractType": "Contract Type",
+        "selectContractType": "Select contract type",
+        "fullTime": "Full Time",
+        "partTime": "Part Time",
+        "contract": "Contract",
+        "substitute": "Substitute",
+        "salaryInformation": "Salary Information",
+        "hideSalary": "Hide Salary",
+        "showSalary": "Show Salary",
+        "salaryAmount": "Salary Amount",
+        "salaryPlaceholder": "8000000",
+        "currency": "Currency",
+        "uzbekSom": "UZS - Uzbek Som",
+        "usDollar": "USD - US Dollar",
+        "euro": "EUR - Euro",
+        "activeTeacher": "Active Teacher",
+        "teachingSpecializations": "Teaching Specializations",
+        "addCustomSpecialization": "Add custom specialization",
+        "languagesSpoken": "Languages Spoken",
+        "addLanguage": "Add language",
+        "qualification": "Qualification",
+        "degree": "Degree",
+        "degreePlaceholder": "Bachelor of Arts",
+        "institution": "Institution",
+        "institutionPlaceholder": "University name",
+        "year": "Year",
+        "yearPlaceholder": "2020",
+        "fieldOfStudy": "Field of Study",
+        "fieldPlaceholder": "English Literature",
+        "country": "Country",
+        "countryPlaceholder": "United Kingdom",
+        "addQualification": "Add Qualification",
+        "contactName": "Contact Name",
+        "contactNamePlaceholder": "Emergency contact name",
+        "relationship": "Relationship",
+        "relationshipPlaceholder": "spouse, parent, sibling",
+        "phone": "Phone",
+        "emergencyEmail": "Email",
+        "emergencyEmailPlaceholder": "contact@email.com",
+        "streetAddress": "Street Address",
+        "streetPlaceholder": "123 Main Street",
+        "city": "City",
+        "cityPlaceholder": "Tashkent",
+        "region": "Region",
+        "regionPlaceholder": "Toshkent shahar",
+        "postalCode": "Postal Code",
+        "postalPlaceholder": "100000",
+        "countryField": "Country",
+        "countryFieldPlaceholder": "Uzbekistan",
+        "notesPlaceholder": "Additional notes about the teacher, special accommodations, or other relevant information..."
+      },
+      "status": {
+        "readyToCreate": "Ready to create teacher profile?",
+        "readyToUpdate": "Ready to update teacher profile?",
+        "reviewInformation": "Please review all information before submitting.",
+        "readyToSubmit": "Ready to submit",
+        "completeRequired": "Please complete required fields",
+        "percentComplete": "% Complete"
+      }
+    }
+  },
+  "hardcodedLabels": {
+    "none": "None",
+    "more": "more",
+    "complete": "Complete",
+    "checking": "Checking...",
+    "needsAttention": "Needs Attention",
+    "incomplete": "Incomplete",
+    "unknown": "Unknown"
+  },
+  "notifications": {
+    "noUnreadNotifications": "No unread notifications",
+    "message": "Message",
+    "additionalDetails": "Additional Details",
+    "deliveryInformation": "Delivery Information",
+    "targetRoles": "Target Roles"
+  },
+  "loginForm": {
+    "harrySchoolAdmin": "Harry School Admin",
+    "emailPlaceholder": "admin@harryschool.uz",
+    "testCredentialsFilled": "Test credentials filled. Click Sign In to continue.",
+    "copyright": "© 2025 Harry School. All rights reserved.",
+    "adminAccessOnly": "Admin access only - No self-registration",
+    "validation": {
+      "invalidEmail": "Invalid email address",
+      "passwordTooShort": "Password too short"
+    },
+    "errors": {
+      "unexpectedError": "An unexpected error occurred. Please try again.",
+      "failedToCreateProfile": "Failed to create user profile. The user may already exist.",
+      "failedToCreateAdmin": "Failed to create test admin account."
+    },
+    "success": {
+      "adminCreated": "Test admin account created successfully! You can now login."
+    }
+  },
+  "dashboardPage": {
+    "recentEnrollments": "Recent Enrollments",
+    "last30Days": "Last 30 days",
+    "upcomingClasses": "Upcoming Classes",
+    "next7Days": "Next 7 days",
+    "outstandingBalance": "Outstanding Balance",
+    "toBeCollected": "To be collected",
+    "activity": {
+      "newStudentEnrolled": "New student enrolled",
+      "paymentReceived": "Payment received",
+      "newGroupCreated": "New group created",
+      "hoursAgo2": "2 hours ago",
+      "hoursAgo4": "4 hours ago",
+      "hoursAgo6": "6 hours ago"
+    }
+  },
+  "quickActions": {
+    "addStudent": "Add Student"
+  },
+  "settingsDashboard": {
+    "organization": "Organization",
+    "organizationDesc": "Basic organization information and preferences",
+    "userManagement": "User Management",
+    "userManagementDesc": "Manage admin users and permissions",
+    "security": "Security",
+    "securityDesc": "Password policies, 2FA, and access controls",
+    "notifications": "Notifications",
+    "notificationsDesc": "Email, push, and SMS notification preferences",
+    "backupRecovery": "Backup & Recovery",
+    "backupRecoveryDesc": "Automated backups and data restoration",
+    "systemSettings": "System Settings",
+    "systemSettingsDesc": "System-wide configuration and maintenance",
+    "archiveManagement": "Archive Management",
+    "archiveManagementDesc": "Manage soft-deleted records and data recovery",
+    "settingsOverview": "Settings Overview",
+    "currentStatusConfiguration": "Current status of your system configuration",
+    "quickActions": "Quick Actions",
+    "commonSettingsTasks": "Common settings tasks and configurations",
+    "inviteNewUser": "Invite New User",
+    "addAdminUsers": "Add admin users to your organization",
+    "createBackup": "Create Backup",
+    "backupDataImmediately": "Backup your data immediately",
+    "securityReview": "Security Review",
+    "reviewSecuritySettings": "Review security settings and policies",
+    "manageArchives": "Manage Archives",
+    "restoreOrDeleteArchived": "Restore or permanently delete archived items",
+    "systemHealth": "System Health",
+    "overallSystemConfiguration": "Overall system configuration status",
+    "organizationSetup": "Organization Setup",
+    "userManagementHealth": "User Management",
+    "securityConfiguration": "Security Configuration",
+    "backupSystem": "Backup System",
+    "settings": "Settings",
+    "configureSystemPreferences": "Configure system preferences and manage your organization",
+    "systemStatus": "System"
   }
 }

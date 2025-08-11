@@ -2,5 +2,5 @@
 export { supabase, getSupabaseClient } from './supabase-client'
 export type { SupabaseResponse, SupabasePaginatedResponse } from './supabase-client'
 
-// Re-export server-side utilities
-export { createServerClient, createAdminClient } from './supabase-server'
+// Note: Server-side utilities are available in supabase-server.ts and supabase/server.ts
+// Import them directly from those files when needed in server components

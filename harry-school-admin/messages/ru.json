@@ -15,6 +15,9 @@
     "export": "Экспорт",
     "import": "Импорт",
     "language": "Язык",
+    "changeLanguage": "Изменить язык",
+    "close": "Закрыть",
+    "openMenu": "Открыть меню",
     "active": "Активный",
     "inactive": "Неактивный",
     "pending": "В ожидании",
@@ -151,7 +154,21 @@
     "createGroup": "• Создать группу",
     "enrollStudent": "• Зачислить студента",
     "recordPayment": "Записать платеж",
-    "viewReports": "Просмотр отчетов"
+    "viewReports": "Просмотр отчетов",
+    "recentEnrollments": "Недавние записи",
+    "last30Days": "Последние 30 дней",
+    "upcomingClasses": "Предстоящие занятия",
+    "next7Days": "Ближайшие 7 дней",
+    "outstandingBalance": "Задолженность",
+    "toBeCollected": "К сбору",
+    "activity": {
+      "newStudentEnrolled": "Новый студент зачислен",
+      "paymentReceived": "Платеж получен",
+      "newGroupCreated": "Новая группа создана",
+      "hoursAgo2": "2 часа назад",
+      "hoursAgo4": "4 часа назад",
+      "hoursAgo6": "6 часов назад"
+    }
   },
   "teachers": {
     "title": "Преподаватели",
@@ -475,5 +492,269 @@
     "createTestAdmin": "Создать тестового администратора",
     "testCredentials": "Тестовые данные",
     "developmentTools": "Инструменты разработки"
+  },
+  "components": {
+    "statsCard": {
+      "fromLastMonth": "с прошлого месяца"
+    },
+    "teachersTable": {
+      "columns": {
+        "name": "Имя",
+        "contact": "Контакт",
+        "employment": "Трудоустройство",
+        "specializations": "Специализации",
+        "groups": "Группы",
+        "students": "Студенты",
+        "status": "Статус"
+      },
+      "bulkActions": {
+        "selected": "преподаватель выбран",
+        "teachersSelected": "преподавателей выбрано",
+        "changeStatus": "Изменить статус",
+        "setActive": "Сделать активным",
+        "setInactive": "Сделать неактивным",
+        "setOnLeave": "Отправить в отпуск",
+        "exportSelected": "Экспортировать выбранные",
+        "archive": "Архивировать",
+        "restore": "Восстановить",
+        "delete": "Удалить"
+      },
+      "empty": {
+        "noTeachers": "Нет преподавателей",
+        "noTeachersFound": "Преподаватели не найдены.",
+        "createFirst": "Создайте вашего первого преподавателя для начала работы."
+      },
+      "loading": "Загрузка преподавателей...",
+      "pagination": {
+        "showing": "Показано",
+        "to": "до",
+        "of": "из",
+        "teachers": "преподавателей",
+        "rows": "Строк:",
+        "totalPages": "из"
+      },
+      "density": {
+        "tableDensity": "Плотность таблицы",
+        "compact": "Компактная",
+        "comfortable": "Удобная",
+        "spacious": "Просторная"
+      },
+      "columns": {
+        "columns": "Столбцы"
+      },
+      "export": {
+        "exportAll": "Экспортировать всё"
+      },
+      "actions": "Действия",
+      "viewProfile": "Просмотр профиля"
+    },
+    "teacherForm": {
+      "validation": {
+        "invalidImage": "Пожалуйста, выберите допустимый файл изображения",
+        "fileSizeLimit": "Размер файла должен быть меньше 5МБ"
+      },
+      "sections": {
+        "profilePhoto": "Фото профиля",
+        "basicInformation": "Основная информация",
+        "professionalInformation": "Профессиональная информация",
+        "specializationsLanguages": "Специализации и языки",
+        "educationQualifications": "Образование и квалификация",
+        "emergencyContact": "Экстренный контакт",
+        "addressInformation": "Адресная информация",
+        "additionalNotes": "Дополнительные заметки"
+      },
+      "prompts": {
+        "unsavedChanges": "Несохраненные изменения",
+        "unsavedMessage": "У вас есть несохраненные изменения. Вы уверены, что хотите уйти? Ваши изменения будут потеряны.",
+        "continueEditing": "Продолжить редактирование",
+        "leaveWithoutSaving": "Уйти без сохранения"
+      },
+      "titles": {
+        "editTeacher": "Редактировать преподавателя",
+        "addNewTeacher": "Добавить нового преподавателя",
+        "updateDescription": "Обновить информацию о преподавателе и назначения",
+        "createDescription": "Создать комплексный профиль преподавателя"
+      },
+      "buttons": {
+        "cancel": "Отмена",
+        "saving": "Сохранение...",
+        "updateTeacher": "Обновить преподавателя",
+        "createTeacher": "Создать преподавателя"
+      },
+      "photo": {
+        "profilePreview": "Предварительный просмотр профиля",
+        "uploadPhoto": "Загрузить фото",
+        "fileFormats": "JPG, PNG до 5МБ"
+      },
+      "fields": {
+        "firstName": "Имя",
+        "enterFirstName": "Введите имя",
+        "lastName": "Фамилия",
+        "enterLastName": "Введите фамилию",
+        "emailAddress": "Адрес электронной почты",
+        "emailPlaceholder": "teacher@harryschool.uz",
+        "phoneNumber": "Номер телефона",
+        "phonePlaceholder": "+998901234567",
+        "dateOfBirth": "Дата рождения",
+        "gender": "Пол",
+        "selectGender": "Выберите пол",
+        "male": "Мужской",
+        "female": "Женский",
+        "other": "Другой",
+        "employeeId": "ID сотрудника",
+        "employeeIdPlaceholder": "HS2024001",
+        "hireDate": "Дата найма",
+        "employmentStatus": "Статус трудоустройства",
+        "contractType": "Тип контракта",
+        "selectContractType": "Выберите тип контракта",
+        "fullTime": "Полная занятость",
+        "partTime": "Частичная занятость",
+        "contract": "Контракт",
+        "substitute": "Заместитель",
+        "salaryInformation": "Информация о зарплате",
+        "hideSalary": "Скрыть зарплату",
+        "showSalary": "Показать зарплату",
+        "salaryAmount": "Размер зарплаты",
+        "salaryPlaceholder": "8000000",
+        "currency": "Валюта",
+        "uzbekSom": "UZS - Узбекский сом",
+        "usDollar": "USD - Доллар США",
+        "euro": "EUR - Евро",
+        "activeTeacher": "Активный преподаватель",
+        "teachingSpecializations": "Специализации преподавания",
+        "addCustomSpecialization": "Добавить пользовательскую специализацию",
+        "languagesSpoken": "Говорит на языках",
+        "addLanguage": "Добавить язык",
+        "qualification": "Квалификация",
+        "degree": "Степень",
+        "degreePlaceholder": "Бакалавр искусств",
+        "institution": "Учреждение",
+        "institutionPlaceholder": "Название университета",
+        "year": "Год",
+        "yearPlaceholder": "2020",
+        "fieldOfStudy": "Область изучения",
+        "fieldPlaceholder": "Английская литература",
+        "country": "Страна",
+        "countryPlaceholder": "Великобритания",
+        "addQualification": "Добавить квалификацию",
+        "contactName": "Имя контакта",
+        "contactNamePlaceholder": "Имя экстренного контакта",
+        "relationship": "Отношения",
+        "relationshipPlaceholder": "супруг, родитель, брат/сестра",
+        "phone": "Телефон",
+        "emergencyEmail": "Электронная почта",
+        "emergencyEmailPlaceholder": "contact@email.com",
+        "streetAddress": "Адрес улицы",
+        "streetPlaceholder": "ул. Главная 123",
+        "city": "Город",
+        "cityPlaceholder": "Ташкент",
+        "region": "Регион",
+        "regionPlaceholder": "г. Ташкент",
+        "postalCode": "Почтовый индекс",
+        "postalPlaceholder": "100000",
+        "countryField": "Страна",
+        "countryFieldPlaceholder": "Узбекистан",
+        "notesPlaceholder": "Дополнительные заметки о преподавателе, особые потребности или другая релевантная информация..."
+      },
+      "status": {
+        "readyToCreate": "Готовы создать профиль преподавателя?",
+        "readyToUpdate": "Готовы обновить профиль преподавателя?",
+        "reviewInformation": "Пожалуйста, проверьте всю информацию перед отправкой.",
+        "readyToSubmit": "Готово к отправке",
+        "completeRequired": "Пожалуйста, заполните обязательные поля",
+        "percentComplete": "% Завершено"
+      }
+    }
+  },
+  "hardcodedLabels": {
+    "none": "Нет",
+    "more": "еще",
+    "complete": "Завершено",
+    "checking": "Проверка...",
+    "needsAttention": "Требует внимания",
+    "incomplete": "Незавершено",
+    "unknown": "Неизвестно"
+  },
+  "notifications": {
+    "noUnreadNotifications": "Нет непрочитанных уведомлений",
+    "message": "Сообщение",
+    "additionalDetails": "Дополнительные детали",
+    "deliveryInformation": "Информация о доставке",
+    "targetRoles": "Целевые роли"
+  },
+  "loginForm": {
+    "harrySchoolAdmin": "Администратор Harry School",
+    "emailPlaceholder": "admin@harryschool.uz",
+    "testCredentialsFilled": "Тестовые данные заполнены. Нажмите Войти для продолжения.",
+    "copyright": "© 2025 Harry School. Все права защищены.",
+    "adminAccessOnly": "Только доступ администратора - Без самостоятельной регистрации",
+    "validation": {
+      "invalidEmail": "Неверный адрес электронной почты",
+      "passwordTooShort": "Пароль слишком короткий"
+    },
+    "errors": {
+      "unexpectedError": "Произошла неожиданная ошибка. Попробуйте еще раз.",
+      "failedToCreateProfile": "Не удалось создать профиль пользователя. Пользователь может уже существовать.",
+      "failedToCreateAdmin": "Не удалось создать тестовую учетную запись администратора."
+    },
+    "success": {
+      "adminCreated": "Тестовая учетная запись администратора успешно создана! Теперь вы можете войти в систему."
+    }
+  },
+  "dashboardPage": {
+    "recentEnrollments": "Недавние зачисления",
+    "last30Days": "Последние 30 дней",
+    "upcomingClasses": "Предстоящие занятия",
+    "next7Days": "Следующие 7 дней",
+    "outstandingBalance": "Непогашенная задолженность",
+    "toBeCollected": "К сбору",
+    "activity": {
+      "newStudentEnrolled": "Зачислен новый студент",
+      "paymentReceived": "Получен платеж",
+      "newGroupCreated": "Создана новая группа",
+      "hoursAgo2": "2 часа назад",
+      "hoursAgo4": "4 часа назад",
+      "hoursAgo6": "6 часов назад"
+    }
+  },
+  "quickActions": {
+    "addStudent": "Добавить студента"
+  },
+  "settingsDashboard": {
+    "organization": "Организация",
+    "organizationDesc": "Основная информация об организации и предпочтения",
+    "userManagement": "Управление пользователями",
+    "userManagementDesc": "Управление администраторами и разрешениями",
+    "security": "Безопасность",
+    "securityDesc": "Политики паролей, 2FA и контроль доступа",
+    "notifications": "Уведомления",
+    "notificationsDesc": "Настройки email, push и SMS уведомлений",
+    "backupRecovery": "Резервное копирование и восстановление",
+    "backupRecoveryDesc": "Автоматическое резервное копирование и восстановление данных",
+    "systemSettings": "Системные настройки",
+    "systemSettingsDesc": "Общесистемная конфигурация и обслуживание",
+    "archiveManagement": "Управление архивом",
+    "archiveManagementDesc": "Управление мягко удаленными записями и восстановление данных",
+    "settingsOverview": "Обзор настроек",
+    "currentStatusConfiguration": "Текущее состояние конфигурации вашей системы",
+    "quickActions": "Быстрые действия",
+    "commonSettingsTasks": "Общие задачи настроек и конфигураций",
+    "inviteNewUser": "Пригласить нового пользователя",
+    "addAdminUsers": "Добавить администраторов в вашу организацию",
+    "createBackup": "Создать резервную копию",
+    "backupDataImmediately": "Немедленно создать резервную копию ваших данных",
+    "securityReview": "Проверка безопасности",
+    "reviewSecuritySettings": "Проверить настройки безопасности и политики",
+    "manageArchives": "Управление архивами",
+    "restoreOrDeleteArchived": "Восстановить или навсегда удалить заархивированные элементы",
+    "systemHealth": "Состояние системы",
+    "overallSystemConfiguration": "Общее состояние конфигурации системы",
+    "organizationSetup": "Настройка организации",
+    "userManagementHealth": "Управление пользователями",
+    "securityConfiguration": "Конфигурация безопасности",
+    "backupSystem": "Система резервного копирования",
+    "settings": "Настройки",
+    "configureSystemPreferences": "Настройка системных предпочтений и управление вашей организацией",
+    "systemStatus": "Система"
   }
 }

@@ -19,18 +19,20 @@ export default async function NewStudentPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="outline" size="sm" asChild>
-          <Link href="/students">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Students
-          </Link>
-        </Button>
-        <div>
-          <h1 className="text-3xl font-bold">Add New Student</h1>
-          <p className="text-muted-foreground">
-            Create a new student record in the system
-          </p>
+      <div className="flex items-start justify-between">
+        <div className="flex items-center gap-4">
+          <Button variant="outline" size="sm" asChild>
+            <Link href="/">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Dashboard
+            </Link>
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold">Add New Student</h1>
+            <p className="text-muted-foreground mt-1">
+              Create a new student record in the system
+            </p>
+          </div>
         </div>
       </div>
 
@@ -207,15 +209,15 @@ export default async function NewStudentPage() {
           </CardContent>
         </Card>
 
-        <div className="flex gap-4">
-          <Button type="submit" className="flex-1">
-            <Save className="h-4 w-4 mr-2" />
-            Save Student
-          </Button>
+        <div className="flex justify-end gap-4">
           <Button variant="outline" asChild>
-            <Link href="/students">
+            <Link href="/">
               Cancel
             </Link>
+          </Button>
+          <Button type="submit">
+            <Save className="h-4 w-4 mr-2" />
+            Save Student
           </Button>
         </div>
       </div>

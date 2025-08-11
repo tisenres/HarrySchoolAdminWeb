@@ -74,7 +74,6 @@ export default function SettingsPage() {
 
   return (
     <SettingsDashboard 
-      organizationId={organizationId}
       initialTab={initialTab}
     />
   )

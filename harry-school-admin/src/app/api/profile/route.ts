@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth, getCurrentProfile } from '@/lib/auth'
-import { createServerClient } from '@/lib/supabase'
+import { createServerClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 
 const profileUpdateSchema = z.object({

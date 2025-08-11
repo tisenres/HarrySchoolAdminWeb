@@ -13,7 +13,7 @@ export function Sidebar() {
   const t = useTranslations('common')
 
   const navigation = [
-    { name: t('dashboard'), href: `/${locale}/`, icon: GraduationCap },
+    { name: t('dashboard'), href: `/${locale}`, icon: GraduationCap },
     { name: t('teachers'), href: `/${locale}/teachers`, icon: UserCheck },
     { name: t('groups'), href: `/${locale}/groups`, icon: BookOpen },
     { name: t('students'), href: `/${locale}/students`, icon: Users },
@@ -29,7 +29,7 @@ export function Sidebar() {
         {navigation.map((item) => {
           // Check if current path matches this navigation item
           const isActive = pathname === item.href || 
-            (item.href !== `/${locale}/` && pathname.startsWith(item.href + '/'))
+            (item.href !== `/${locale}` && pathname.startsWith(item.href + '/'))
           return (
             <Link
               key={item.name}

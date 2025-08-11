@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useTransition } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
-import { Check, ChevronDown, Globe } from 'lucide-react'
+import { useTranslations, useLocale } from 'next-intl'
+import { Check, ChevronDown, Globe, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
   DropdownMenu,
@@ -32,24 +33,33 @@ interface LanguageSwitchProps {
 }
 
 export function LanguageSwitch({ 
-  currentLocale = 'en', 
+  currentLocale, 
   variant = 'default',
   className 
 }: LanguageSwitchProps) {
   const router = useRouter()
   const pathname = usePathname()
+  const locale = useLocale()
+  const activeLocale = currentLocale || locale
   const [isOpen, setIsOpen] = useState(false)
+  const [isPending, startTransition] = useTransition()
+  const t = useTranslations('common')
 
-  const currentLanguage = languages.find(lang => lang.code === currentLocale) || languages[0]
+  const currentLanguage = languages.find(lang => lang.code === activeLocale) || languages[0]
 
   const handleLanguageChange = (langCode: string) => {
+    if (langCode === activeLocale) return
+    
     setIsOpen(false)
     
-    // Remove current locale from pathname if present
-    const pathWithoutLocale = pathname.replace(/^\/[a-z]{2}/, '') || '/'
-    
-    // Navigate to new locale
-    router.push(`/${langCode}${pathWithoutLocale}`)
+    startTransition(() => {
+      // Replace the current locale in the pathname with the new one
+      const pathWithoutLocale = pathname.replace(/^\/[a-z]{2}/, '') || '/'
+      const newPath = `/${langCode}${pathWithoutLocale}`
+      
+      // Use replace instead of push to avoid page refresh
+      router.replace(newPath)
+    })
   }
 
   if (variant === 'minimal') {
@@ -63,9 +73,14 @@ export function LanguageSwitch({
               "h-8 w-8 p-0 rounded-full hover:bg-accent",
               className
             )}
+            disabled={isPending}
           >
-            <Globe className="h-4 w-4" />
-            <span className="sr-only">Change language</span>
+            {isPending ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Globe className="h-4 w-4" />
+            )}
+            <span className="sr-only">{t('changeLanguage')}</span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-48">
@@ -75,14 +90,16 @@ export function LanguageSwitch({
               onClick={() => handleLanguageChange(language.code)}
               className={cn(
                 "flex items-center justify-between cursor-pointer",
-                currentLocale === language.code && "bg-accent"
+                activeLocale === language.code && "bg-accent",
+                isPending && "opacity-50 cursor-not-allowed"
               )}
+              disabled={isPending}
             >
               <div className="flex items-center gap-2">
                 <span className="text-lg">{language.flag}</span>
                 <span className="text-sm">{language.nativeName}</span>
               </div>
-              {currentLocale === language.code && (
+              {activeLocale === language.code && (
                 <Check className="h-4 w-4 text-primary" />
               )}
             </DropdownMenuItem>
@@ -101,6 +118,7 @@ export function LanguageSwitch({
             "flex items-center gap-2 min-w-[120px] justify-between",
             className
           )}
+          disabled={isPending}
         >
           <div className="flex items-center gap-2">
             <span className="text-base">{currentLanguage.flag}</span>
@@ -111,10 +129,14 @@ export function LanguageSwitch({
               {currentLanguage.code.toUpperCase()}
             </span>
           </div>
-          <ChevronDown className={cn(
-            "h-4 w-4 transition-transform duration-200",
-            isOpen && "rotate-180"
-          )} />
+          {isPending ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <ChevronDown className={cn(
+              "h-4 w-4 transition-transform duration-200",
+              isOpen && "rotate-180"
+            )} />
+          )}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48">
@@ -124,8 +146,10 @@ export function LanguageSwitch({
             onClick={() => handleLanguageChange(language.code)}
             className={cn(
               "flex items-center justify-between cursor-pointer px-3 py-2",
-              currentLocale === language.code && "bg-accent"
+              activeLocale === language.code && "bg-accent",
+              isPending && "opacity-50 cursor-not-allowed"
             )}
+            disabled={isPending}
           >
             <div className="flex items-center gap-3">
               <span className="text-lg">{language.flag}</span>
@@ -134,7 +158,7 @@ export function LanguageSwitch({
                 <span className="text-xs text-muted-foreground">{language.name}</span>
               </div>
             </div>
-            {currentLocale === language.code && (
+            {activeLocale === language.code && (
               <Check className="h-4 w-4 text-primary" />
             )}
           </DropdownMenuItem>

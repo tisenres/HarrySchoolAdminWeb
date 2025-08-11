@@ -3,6 +3,7 @@
 import { useState, useMemo, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import {
   Table,
   TableBody,
@@ -125,6 +126,7 @@ export function TeachersTable({
   loading = false,
   showArchived = false,
 }: TeachersTableProps) {
+  const t = useTranslations('common')
   const [columnConfig, setColumnConfig] = useState<ColumnConfig[]>(defaultColumns)
   const [tableDensity, setTableDensity] = useState<'comfortable' | 'compact' | 'spacious'>('comfortable')
 
@@ -401,7 +403,7 @@ export function TeachersTable({
                 if (col.key === 'actions') {
                   return (
                     <TableHead key={col.key} className={col.width || ''}>
-                      <span className="sr-only">Actions</span>
+                      <span className="sr-only">{t('actions')}</span>
                     </TableHead>
                   )
                 }
@@ -649,12 +651,12 @@ export function TeachersTable({
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                               <Button variant="ghost" className="h-8 w-8 p-0">
-                                <span className="sr-only">Open menu for {teacher.full_name}</span>
+                                <span className="sr-only">{t('openMenu')} {teacher.full_name}</span>
                                 <MoreHorizontal className="h-4 w-4" />
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                              <DropdownMenuLabel>{t('actions')}</DropdownMenuLabel>
                               <DropdownMenuItem asChild>
                                 <Link href={`/dashboard/teachers/${teacher.id}`}>
                                   <Eye className="h-4 w-4 mr-2" />

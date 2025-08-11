@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tabs } from '@/components/ui/tabs'
 import { Separator } from '@/components/ui/separator'
 import { supabase } from '@/lib/supabase/client'
 import { User } from '@supabase/supabase-js'
@@ -40,7 +40,6 @@ import { SecuritySettings } from './security-settings'
 import { BackupManagement } from './backup-management'
 
 interface SettingsDashboardProps {
-  organizationId: string
   initialTab?: string
 }
 
@@ -52,7 +51,7 @@ interface SettingsStatus {
   notifications: 'complete' | 'incomplete' | 'warning'
 }
 
-export function SettingsDashboard({ organizationId, initialTab = 'overview' }: SettingsDashboardProps) {
+export function SettingsDashboard({ initialTab = 'overview' }: SettingsDashboardProps) {
   const [activeTab, setActiveTab] = useState(initialTab)
   const [settingsStatus, setSettingsStatus] = useState<SettingsStatus | null>(null)
   const [user, setUser] = useState<User | null>(null)
@@ -120,7 +119,14 @@ export function SettingsDashboard({ organizationId, initialTab = 'overview' }: S
   useEffect(() => {
     fetchSettingsStatus()
     fetchUser()
-  }, [organizationId])
+  }, [])
+
+  // Refresh status when tab changes
+  useEffect(() => {
+    if (activeTab === 'overview') {
+      fetchSettingsStatus()
+    }
+  }, [activeTab])
 
   const fetchUser = async () => {
     try {
@@ -133,13 +139,23 @@ export function SettingsDashboard({ organizationId, initialTab = 'overview' }: S
 
   const fetchSettingsStatus = async () => {
     try {
-      const response = await fetch(`/api/settings/status?organizationId=${organizationId}`)
+      const response = await fetch('/api/settings/status')
       if (response.ok) {
         const data = await response.json()
-        setSettingsStatus(data.status)
+        setSettingsStatus(data.status || data)
+      } else {
+        throw new Error('Failed to fetch settings status')
       }
     } catch (error) {
       console.error('Error fetching settings status:', error)
+      // Provide fallback status for demo
+      setSettingsStatus({
+        organization: 'incomplete',
+        users: 'incomplete', 
+        security: 'incomplete',
+        backup: 'incomplete',
+        notifications: 'incomplete'
+      })
     }
   }
 
@@ -186,100 +202,64 @@ export function SettingsDashboard({ organizationId, initialTab = 'overview' }: S
 
   const renderOverview = () => (
     <div className="space-y-6">
-      {/* System Status Overview */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Settings className="h-5 w-5" />
-            Settings Overview
-          </CardTitle>
-          <CardDescription>
-            Current status of your system configuration
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {settingsSections.map((section) => {
-              const status = settingsStatus?.[section.id as keyof SettingsStatus] || 'incomplete'
-              const Icon = section.icon
-              
-              return (
-                <div key={section.id} className="flex items-center justify-between p-4 rounded-lg border">
-                  <div className="flex items-center gap-3">
-                    <Icon className="h-5 w-5 text-muted-foreground" />
-                    <div>
-                      <p className="font-medium">{section.label}</p>
-                      <p className="text-sm text-muted-foreground">{section.description}</p>
-                    </div>
+      {/* Settings Overview Header */}
+      <div>
+        <div className="flex items-center gap-2 mb-2">
+          <Settings className="h-5 w-5" />
+          <h2 className="text-xl font-semibold">Settings Overview</h2>
+        </div>
+        <p className="text-sm text-muted-foreground">Current status of your system configuration</p>
+      </div>
+
+      {/* Status Cards Grid */}
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {settingsSections.map((section) => {
+          const status = settingsStatus?.[section.id as keyof SettingsStatus] || 'incomplete'
+          const Icon = section.icon
+          
+          return (
+            <Card 
+              key={section.id} 
+              className="cursor-pointer hover:shadow-md transition-all duration-200 border-2 hover:border-primary/20"
+              onClick={() => setActiveTab(section.id)}
+            >
+              <CardContent className="p-6">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="p-3 rounded-lg bg-gradient-to-br from-muted to-muted/50">
+                    <Icon className="h-5 w-5 text-foreground/70" />
                   </div>
-                  {getStatusBadge(status)}
+                  <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-muted/50">
+                    {status === 'complete' ? (
+                      <>
+                        <CheckCircle className="h-4 w-4 text-green-600" />
+                        <span className="text-sm font-medium text-green-700">Complete</span>
+                      </>
+                    ) : status === 'warning' ? (
+                      <>
+                        <AlertTriangle className="h-4 w-4 text-yellow-600" />
+                        <span className="text-sm font-medium text-yellow-700">Warning</span>
+                      </>
+                    ) : (
+                      <>
+                        <Info className="h-4 w-4 text-orange-600" />
+                        <span className="text-sm font-medium text-orange-700">Incomplete</span>
+                      </>
+                    )}
+                  </div>
                 </div>
-              )
-            })}
-          </div>
-        </CardContent>
-      </Card>
+                <div className="space-y-2">
+                  <h3 className="font-semibold text-lg text-foreground">{section.label}</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    {section.description}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          )
+        })}
+      </div>
 
-      {/* Quick Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Quick Actions</CardTitle>
-          <CardDescription>
-            Common settings tasks and configurations
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-2">
-            <Button 
-              variant="outline" 
-              className="h-auto p-4 flex flex-col items-start gap-2"
-              onClick={() => setActiveTab('users')}
-            >
-              <Users className="h-5 w-5" />
-              <div className="text-left">
-                <p className="font-medium">Invite New User</p>
-                <p className="text-sm text-muted-foreground">Add admin users to your organization</p>
-              </div>
-            </Button>
 
-            <Button 
-              variant="outline" 
-              className="h-auto p-4 flex flex-col items-start gap-2"
-              onClick={() => setActiveTab('backup')}
-            >
-              <Database className="h-5 w-5" />
-              <div className="text-left">
-                <p className="font-medium">Create Backup</p>
-                <p className="text-sm text-muted-foreground">Backup your data immediately</p>
-              </div>
-            </Button>
-
-            <Button 
-              variant="outline" 
-              className="h-auto p-4 flex flex-col items-start gap-2"
-              onClick={() => setActiveTab('security')}
-            >
-              <Shield className="h-5 w-5" />
-              <div className="text-left">
-                <p className="font-medium">Security Review</p>
-                <p className="text-sm text-muted-foreground">Review security settings and policies</p>
-              </div>
-            </Button>
-
-            <Button 
-              variant="outline" 
-              className="h-auto p-4 flex flex-col items-start gap-2"
-              onClick={() => setActiveTab('archive')}
-            >
-              <Archive className="h-5 w-5" />
-              <div className="text-left">
-                <p className="font-medium">Manage Archives</p>
-                <p className="text-sm text-muted-foreground">Restore or permanently delete archived items</p>
-              </div>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
 
       {/* System Health */}
       <Card>
@@ -358,13 +338,7 @@ export function SettingsDashboard({ organizationId, initialTab = 'overview' }: S
     if (!section) return null
 
     const Component = section.component
-    return (
-      <Component 
-        organizationId={organizationId} 
-        userId={user?.id}
-        {...(section.id === 'notifications' ? { userId: user?.id } : {})}
-      />
-    )
+    return <Component />
   }
 
   return (
@@ -389,19 +363,41 @@ export function SettingsDashboard({ organizationId, initialTab = 'overview' }: S
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          {settingsSections.map((section) => (
-            <TabsTrigger key={section.id} value={section.id}>
-              <section.icon className="h-4 w-4 mr-2" />
-              {section.label}
-            </TabsTrigger>
-          ))}
-        </TabsList>
+        <div className="border-b">
+          <nav className="flex space-x-8 px-1">
+            <button
+              onClick={() => setActiveTab('overview')}
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                activeTab === 'overview'
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-muted-foreground'
+              }`}
+            >
+              Overview
+            </button>
+            {settingsSections.map((section) => {
+              const Icon = section.icon
+              return (
+                <button
+                  key={section.id}
+                  onClick={() => setActiveTab(section.id)}
+                  className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors flex items-center gap-2 ${
+                    activeTab === section.id
+                      ? 'border-primary text-primary'
+                      : 'border-transparent text-muted-foreground hover:text-foreground hover:border-muted-foreground'
+                  }`}
+                >
+                  <Icon className="h-4 w-4" />
+                  {section.label}
+                </button>
+              )
+            })}
+          </nav>
+        </div>
 
-        <TabsContent value={activeTab} className="mt-6">
+        <div className="mt-8">
           {renderSettingsContent()}
-        </TabsContent>
+        </div>
       </Tabs>
     </div>
   )

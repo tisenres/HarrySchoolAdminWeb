@@ -1,4 +1,5 @@
 import { BaseService } from './base-service'
+import { getSupabaseClient } from '@/lib/supabase-client'
 import type { 
   NotificationWithRelations, 
   CreateNotificationRequest, 
@@ -11,7 +12,7 @@ import type { Tables, TablesInsert, TablesUpdate } from '@/types/database'
 
 export class NotificationService extends BaseService {
   constructor() {
-    super('notifications')
+    super('notifications', async () => getSupabaseClient())
   }
 
   /**

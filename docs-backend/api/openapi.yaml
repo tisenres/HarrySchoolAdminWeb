@@ -1,0 +1,1509 @@
+openapi: 3.0.3
+info:
+  title: Harry School CRM API
+  description: |
+    Comprehensive REST API for managing educational institution data including teachers, students, groups, and financial information.
+    
+    ## Authentication
+    All endpoints require JWT authentication with role-based access control.
+    
+    ## Multi-tenancy
+    The API implements organization-based multi-tenancy with complete data isolation.
+    
+    ## Rate Limiting
+    - Standard endpoints: 100 requests per minute per user
+    - Authentication endpoints: 10 requests per minute per IP
+    - Bulk operations: 10 requests per minute per user
+  version: 1.0.0
+  contact:
+    name: Harry School CRM API Support
+    email: support@harryschool.example.com
+  license:
+    name: Private License
+    url: https://harryschool.example.com/license
+
+servers:
+  - url: http://localhost:3000/api
+    description: Development server
+  - url: https://your-domain.vercel.app/api
+    description: Production server
+
+security:
+  - BearerAuth: []
+
+tags:
+  - name: Authentication
+    description: User authentication and session management
+  - name: Profile
+    description: User profile management
+  - name: Teachers
+    description: Teacher profile and assignment management
+  - name: Students
+    description: Student profile and enrollment management
+  - name: Groups
+    description: Learning group and class management
+  - name: Finance
+    description: Financial operations and reporting
+  - name: Settings
+    description: System and organization settings
+
+paths:
+  # Authentication Endpoints
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: User login
+      description: Authenticate user and return JWT token
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: admin@example.com
+                password:
+                  type: string
+                  format: password
+                  example: password123
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # Profile Endpoints
+  /profile:
+    get:
+      tags:
+        - Profile
+      summary: Get current user profile
+      responses:
+        '200':
+          description: Profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Profile'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    patch:
+      tags:
+        - Profile
+      summary: Update current user profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfileUpdateRequest'
+      responses:
+        '200':
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Profile'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # Teachers Endpoints
+  /teachers:
+    get:
+      tags:
+        - Teachers
+      summary: List teachers
+      description: Retrieve a paginated list of teachers with optional filtering
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/SortBy'
+        - $ref: '#/components/parameters/SortOrder'
+        - name: query
+          in: query
+          description: Search across name, email, phone
+          schema:
+            type: string
+            example: john
+        - name: employment_status
+          in: query
+          description: Filter by employment status
+          schema:
+            type: string
+            enum: [active, inactive, on_leave, terminated]
+        - name: specializations
+          in: query
+          description: Comma-separated specializations
+          schema:
+            type: string
+            example: English,Mathematics
+        - name: hire_date_from
+          in: query
+          description: Filter by hire date from
+          schema:
+            type: string
+            format: date
+            example: "2023-01-01"
+        - name: hire_date_to
+          in: query
+          description: Filter by hire date to
+          schema:
+            type: string
+            format: date
+            example: "2023-12-31"
+        - name: is_active
+          in: query
+          description: Filter by active status
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Teachers retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Teacher'
+                      pagination:
+                        $ref: '#/components/schemas/PaginationResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+    post:
+      tags:
+        - Teachers
+      summary: Create teacher
+      description: Create a new teacher profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTeacherRequest'
+      responses:
+        '201':
+          description: Teacher created successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Teacher'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /teachers/{id}:
+    get:
+      tags:
+        - Teachers
+      summary: Get teacher by ID
+      parameters:
+        - $ref: '#/components/parameters/TeacherId'
+      responses:
+        '200':
+          description: Teacher retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Teacher'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      tags:
+        - Teachers
+      summary: Update teacher (full replacement)
+      parameters:
+        - $ref: '#/components/parameters/TeacherId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTeacherRequest'
+      responses:
+        '200':
+          description: Teacher updated successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Teacher'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    patch:
+      tags:
+        - Teachers
+      summary: Update teacher (partial)
+      parameters:
+        - $ref: '#/components/parameters/TeacherId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PartialUpdateTeacherRequest'
+      responses:
+        '200':
+          description: Teacher updated successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Teacher'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags:
+        - Teachers
+      summary: Delete teacher (soft delete)
+      parameters:
+        - $ref: '#/components/parameters/TeacherId'
+      responses:
+        '200':
+          description: Teacher deleted successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Teacher'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # Students Endpoints
+  /students:
+    get:
+      tags:
+        - Students
+      summary: List students
+      description: Retrieve a paginated list of students with optional filtering
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/SortBy'
+        - $ref: '#/components/parameters/SortOrder'
+        - name: query
+          in: query
+          description: Search across name, phone, email, student ID
+          schema:
+            type: string
+        - name: status
+          in: query
+          description: Filter by enrollment status
+          schema:
+            type: string
+            enum: [active, inactive, graduated, transferred, expelled, on_hold]
+        - name: grade_level
+          in: query
+          description: Filter by grade level
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Students retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Student'
+                      pagination:
+                        $ref: '#/components/schemas/PaginationResponse'
+
+    post:
+      tags:
+        - Students
+      summary: Create student
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateStudentRequest'
+      responses:
+        '201':
+          description: Student created successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Student'
+
+  /students/{id}:
+    get:
+      tags:
+        - Students
+      summary: Get student by ID
+      parameters:
+        - $ref: '#/components/parameters/StudentId'
+      responses:
+        '200':
+          description: Student retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Student'
+
+    put:
+      tags:
+        - Students
+      summary: Update student
+      parameters:
+        - $ref: '#/components/parameters/StudentId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateStudentRequest'
+      responses:
+        '200':
+          description: Student updated successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Student'
+
+    delete:
+      tags:
+        - Students
+      summary: Delete student (soft delete)
+      parameters:
+        - $ref: '#/components/parameters/StudentId'
+      responses:
+        '200':
+          description: Student deleted successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Student'
+
+  # Groups Endpoints
+  /groups:
+    get:
+      tags:
+        - Groups
+      summary: List groups
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/SortBy'
+        - $ref: '#/components/parameters/SortOrder'
+        - name: query
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, inactive, completed, cancelled, on_hold]
+        - name: subject
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Groups retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Group'
+                      pagination:
+                        $ref: '#/components/schemas/PaginationResponse'
+
+    post:
+      tags:
+        - Groups
+      summary: Create group
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateGroupRequest'
+      responses:
+        '201':
+          description: Group created successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Group'
+
+  /groups/{id}:
+    get:
+      tags:
+        - Groups
+      summary: Get group by ID
+      parameters:
+        - $ref: '#/components/parameters/GroupId'
+      responses:
+        '200':
+          description: Group retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Group'
+
+    patch:
+      tags:
+        - Groups
+      summary: Update group
+      parameters:
+        - $ref: '#/components/parameters/GroupId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateGroupRequest'
+      responses:
+        '200':
+          description: Group updated successfully
+
+    delete:
+      tags:
+        - Groups
+      summary: Delete group
+      parameters:
+        - $ref: '#/components/parameters/GroupId'
+      responses:
+        '200':
+          description: Group deleted successfully
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token obtained from Supabase Auth
+
+  parameters:
+    Page:
+      name: page
+      in: query
+      description: Page number for pagination
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    
+    Limit:
+      name: limit
+      in: query
+      description: Number of items per page
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+    
+    SortBy:
+      name: sort_by
+      in: query
+      description: Field to sort by
+      schema:
+        type: string
+        default: created_at
+    
+    SortOrder:
+      name: sort_order
+      in: query
+      description: Sort order
+      schema:
+        type: string
+        enum: [asc, desc]
+        default: desc
+    
+    TeacherId:
+      name: id
+      in: path
+      required: true
+      description: Teacher UUID
+      schema:
+        type: string
+        format: uuid
+    
+    StudentId:
+      name: id
+      in: path
+      required: true
+      description: Student UUID
+      schema:
+        type: string
+        format: uuid
+    
+    GroupId:
+      name: id
+      in: path
+      required: true
+      description: Group UUID
+      schema:
+        type: string
+        format: uuid
+
+  schemas:
+    # Base Response Schemas
+    SuccessResponse:
+      type: object
+      required:
+        - success
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Operation completed successfully
+
+    ErrorResponse:
+      type: object
+      required:
+        - success
+        - error
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: string
+          example: Error message
+        details:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+              message:
+                type: string
+
+    PaginationResponse:
+      type: object
+      required:
+        - page
+        - limit
+        - total
+        - total_pages
+      properties:
+        page:
+          type: integer
+          example: 1
+        limit:
+          type: integer
+          example: 20
+        total:
+          type: integer
+          example: 150
+        total_pages:
+          type: integer
+          example: 8
+
+    # Authentication Schemas
+    AuthResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+        token_type:
+          type: string
+          example: Bearer
+        expires_in:
+          type: integer
+        refresh_token:
+          type: string
+        user:
+          $ref: '#/components/schemas/User'
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        created_at:
+          type: string
+          format: date-time
+
+    # Profile Schemas
+    Profile:
+      type: object
+      required:
+        - id
+        - organization_id
+        - email
+        - full_name
+        - role
+      properties:
+        id:
+          type: string
+          format: uuid
+        organization_id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        full_name:
+          type: string
+        avatar_url:
+          type: string
+          format: uri
+        phone:
+          type: string
+        role:
+          type: string
+          enum: [superadmin, admin, viewer]
+        language_preference:
+          type: string
+          enum: [en, ru, uz]
+          default: en
+        timezone:
+          type: string
+          default: Asia/Tashkent
+        notification_preferences:
+          type: object
+        last_login_at:
+          type: string
+          format: date-time
+        login_count:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    ProfileUpdateRequest:
+      type: object
+      properties:
+        full_name:
+          type: string
+          minLength: 2
+          maxLength: 100
+        phone:
+          type: string
+          pattern: '^\+998\d{9}$'
+        timezone:
+          type: string
+        language_preference:
+          type: string
+          enum: [en, ru, uz]
+
+    # Teacher Schemas
+    Teacher:
+      type: object
+      required:
+        - id
+        - organization_id
+        - first_name
+        - last_name
+        - phone
+        - hire_date
+      properties:
+        id:
+          type: string
+          format: uuid
+        organization_id:
+          type: string
+          format: uuid
+        first_name:
+          type: string
+        last_name:
+          type: string
+        full_name:
+          type: string
+          readOnly: true
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+          pattern: '^\+998\d{9}$'
+        date_of_birth:
+          type: string
+          format: date
+        gender:
+          type: string
+          enum: [male, female, other]
+        employee_id:
+          type: string
+        hire_date:
+          type: string
+          format: date
+        employment_status:
+          type: string
+          enum: [active, inactive, on_leave, terminated]
+          default: active
+        contract_type:
+          type: string
+          enum: [full_time, part_time, contract, substitute]
+        salary_amount:
+          type: number
+          multipleOf: 0.01
+        salary_currency:
+          type: string
+          default: UZS
+        qualifications:
+          type: array
+          items:
+            $ref: '#/components/schemas/Qualification'
+        specializations:
+          type: array
+          items:
+            type: string
+        certifications:
+          type: array
+          items:
+            $ref: '#/components/schemas/Certification'
+        languages_spoken:
+          type: array
+          items:
+            type: string
+        address:
+          $ref: '#/components/schemas/Address'
+        emergency_contact:
+          $ref: '#/components/schemas/EmergencyContact'
+        notes:
+          type: string
+          maxLength: 2000
+        profile_image_url:
+          type: string
+          format: uri
+        is_active:
+          type: boolean
+          default: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        created_by:
+          type: string
+          format: uuid
+        updated_by:
+          type: string
+          format: uuid
+        deleted_at:
+          type: string
+          format: date-time
+        deleted_by:
+          type: string
+          format: uuid
+
+    CreateTeacherRequest:
+      type: object
+      required:
+        - first_name
+        - last_name
+        - phone
+        - hire_date
+      properties:
+        first_name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          pattern: '^[a-zA-Zа-яёА-ЯЁ\s]+$'
+        last_name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          pattern: '^[a-zA-Zа-яёА-ЯЁ\s]+$'
+        email:
+          type: string
+          format: email
+          maxLength: 255
+        phone:
+          type: string
+          pattern: '^\+998\d{9}$'
+        date_of_birth:
+          type: string
+          format: date
+        gender:
+          type: string
+          enum: [male, female, other]
+        employee_id:
+          type: string
+          maxLength: 50
+        hire_date:
+          type: string
+          format: date
+        employment_status:
+          type: string
+          enum: [active, inactive, on_leave, terminated]
+          default: active
+        contract_type:
+          type: string
+          enum: [full_time, part_time, contract, substitute]
+        salary_amount:
+          type: number
+          minimum: 0
+          maximum: 999999999.99
+        salary_currency:
+          type: string
+          default: UZS
+        qualifications:
+          type: array
+          items:
+            $ref: '#/components/schemas/QualificationInput'
+        specializations:
+          type: array
+          items:
+            type: string
+        certifications:
+          type: array
+          items:
+            $ref: '#/components/schemas/CertificationInput'
+        languages_spoken:
+          type: array
+          items:
+            type: string
+        address:
+          $ref: '#/components/schemas/AddressInput'
+        emergency_contact:
+          $ref: '#/components/schemas/EmergencyContactInput'
+        notes:
+          type: string
+          maxLength: 2000
+        is_active:
+          type: boolean
+          default: true
+
+    UpdateTeacherRequest:
+      allOf:
+        - $ref: '#/components/schemas/CreateTeacherRequest'
+
+    PartialUpdateTeacherRequest:
+      type: object
+      properties:
+        employment_status:
+          type: string
+          enum: [active, inactive, on_leave, terminated]
+        notes:
+          type: string
+          maxLength: 2000
+        specializations:
+          type: array
+          items:
+            type: string
+        is_active:
+          type: boolean
+
+    # Student Schemas
+    Student:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        organization_id:
+          type: string
+          format: uuid
+        first_name:
+          type: string
+        last_name:
+          type: string
+        full_name:
+          type: string
+          readOnly: true
+        date_of_birth:
+          type: string
+          format: date
+        gender:
+          type: string
+          enum: [male, female, other]
+        student_id:
+          type: string
+        enrollment_date:
+          type: string
+          format: date
+        enrollment_status:
+          type: string
+          enum: [active, inactive, graduated, transferred, expelled, on_hold]
+        grade_level:
+          type: string
+        primary_phone:
+          type: string
+          pattern: '^\+998\d{9}$'
+        secondary_phone:
+          type: string
+          pattern: '^\+998\d{9}$'
+        email:
+          type: string
+          format: email
+        address:
+          $ref: '#/components/schemas/Address'
+        parent_guardian_info:
+          type: array
+          items:
+            $ref: '#/components/schemas/ParentGuardian'
+        emergency_contacts:
+          type: array
+          items:
+            $ref: '#/components/schemas/EmergencyContact'
+        payment_plan:
+          type: string
+          enum: [monthly, quarterly, annual, custom]
+        tuition_fee:
+          type: number
+          multipleOf: 0.01
+        payment_status:
+          type: string
+          enum: [current, overdue, paid_ahead, partial, suspended]
+        profile_image_url:
+          type: string
+          format: uri
+        notes:
+          type: string
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    CreateStudentRequest:
+      type: object
+      required:
+        - first_name
+        - last_name
+        - date_of_birth
+        - phone
+        - enrollment_date
+        - current_level
+        - preferred_subjects
+      properties:
+        first_name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        last_name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        date_of_birth:
+          type: string
+          format: date
+        gender:
+          type: string
+          enum: [male, female, other]
+          default: male
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+          pattern: '^\+998\d{9}$'
+        parent_name:
+          type: string
+          maxLength: 200
+        parent_phone:
+          type: string
+          pattern: '^\+998\d{9}$'
+        parent_email:
+          type: string
+          format: email
+        enrollment_date:
+          type: string
+          format: date
+        status:
+          type: string
+          enum: [active, inactive, graduated, suspended, dropped]
+          default: active
+        current_level:
+          type: string
+          minLength: 1
+          maxLength: 50
+        preferred_subjects:
+          type: array
+          items:
+            type: string
+          minItems: 1
+        medical_notes:
+          type: string
+          maxLength: 1000
+        payment_status:
+          type: string
+          enum: [paid, pending, overdue, partial]
+          default: pending
+        tuition_fee:
+          type: number
+          minimum: 0
+        notes:
+          type: string
+          maxLength: 2000
+        is_active:
+          type: boolean
+          default: true
+
+    UpdateStudentRequest:
+      allOf:
+        - $ref: '#/components/schemas/CreateStudentRequest'
+
+    # Group Schemas
+    Group:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        organization_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        group_code:
+          type: string
+        subject:
+          type: string
+        level:
+          type: string
+        schedule:
+          type: object
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        max_students:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 15
+        current_enrollment:
+          type: integer
+          default: 0
+        status:
+          type: string
+          enum: [active, inactive, completed, cancelled, on_hold]
+          default: active
+        group_type:
+          type: string
+          enum: [regular, intensive, private, online, hybrid]
+        price_per_student:
+          type: number
+          multipleOf: 0.01
+        currency:
+          type: string
+          default: UZS
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    CreateGroupRequest:
+      type: object
+      required:
+        - name
+        - subject
+        - schedule
+        - start_date
+      properties:
+        name:
+          type: string
+          minLength: 1
+        description:
+          type: string
+        group_code:
+          type: string
+        subject:
+          type: string
+          minLength: 1
+        level:
+          type: string
+        schedule:
+          type: object
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        max_students:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 15
+        group_type:
+          type: string
+          enum: [regular, intensive, private, online, hybrid]
+        price_per_student:
+          type: number
+          minimum: 0
+
+    UpdateGroupRequest:
+      allOf:
+        - $ref: '#/components/schemas/CreateGroupRequest'
+
+    # Supporting Schemas
+    Address:
+      type: object
+      properties:
+        street:
+          type: string
+        city:
+          type: string
+        region:
+          type: string
+        postal_code:
+          type: string
+        country:
+          type: string
+
+    AddressInput:
+      type: object
+      properties:
+        street:
+          type: string
+        city:
+          type: string
+        region:
+          type: string
+        postal_code:
+          type: string
+        country:
+          type: string
+
+    EmergencyContact:
+      type: object
+      properties:
+        name:
+          type: string
+        relationship:
+          type: string
+        phone:
+          type: string
+          pattern: '^\+998\d{9}$'
+        email:
+          type: string
+          format: email
+        address:
+          $ref: '#/components/schemas/Address'
+
+    EmergencyContactInput:
+      type: object
+      required:
+        - name
+        - relationship
+        - phone
+      properties:
+        name:
+          type: string
+          minLength: 1
+        relationship:
+          type: string
+          minLength: 1
+        phone:
+          type: string
+          pattern: '^\+998\d{9}$'
+        email:
+          type: string
+          format: email
+        address:
+          $ref: '#/components/schemas/AddressInput'
+
+    Qualification:
+      type: object
+      properties:
+        id:
+          type: string
+        degree:
+          type: string
+        institution:
+          type: string
+        year:
+          type: integer
+        field_of_study:
+          type: string
+        gpa:
+          type: number
+          minimum: 0
+          maximum: 4
+        country:
+          type: string
+
+    QualificationInput:
+      type: object
+      required:
+        - degree
+        - institution
+        - year
+      properties:
+        degree:
+          type: string
+          minLength: 1
+        institution:
+          type: string
+          minLength: 1
+        year:
+          type: integer
+          minimum: 1950
+          maximum: 2024
+        field_of_study:
+          type: string
+        gpa:
+          type: number
+          minimum: 0
+          maximum: 4
+        country:
+          type: string
+
+    Certification:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        institution:
+          type: string
+        issue_date:
+          type: string
+          format: date
+        expiry_date:
+          type: string
+          format: date
+        credential_id:
+          type: string
+        verification_url:
+          type: string
+          format: uri
+
+    CertificationInput:
+      type: object
+      required:
+        - name
+        - institution
+        - issue_date
+      properties:
+        name:
+          type: string
+          minLength: 1
+        institution:
+          type: string
+          minLength: 1
+        issue_date:
+          type: string
+          format: date
+        expiry_date:
+          type: string
+          format: date
+        credential_id:
+          type: string
+        verification_url:
+          type: string
+          format: uri
+
+    ParentGuardian:
+      type: object
+      properties:
+        name:
+          type: string
+        relationship:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+          format: email
+        is_primary_contact:
+          type: boolean
+
+  responses:
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/ErrorResponse'
+              - type: object
+                properties:
+                  error:
+                    example: Authentication required
+
+    Forbidden:
+      description: Insufficient permissions
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/ErrorResponse'
+              - type: object
+                properties:
+                  error:
+                    example: Insufficient permissions
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/ErrorResponse'
+              - type: object
+                properties:
+                  error:
+                    example: Resource not found
+
+    ValidationError:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/ErrorResponse'
+              - type: object
+                properties:
+                  error:
+                    example: Validation error
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        field:
+                          type: string
+                          example: first_name
+                        message:
+                          type: string
+                          example: First name is required

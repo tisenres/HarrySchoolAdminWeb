@@ -4,33 +4,138 @@ import { createServerClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 
 const systemSettingsSchema = z.object({
-  // Maintenance mode
   maintenance_mode: z.boolean().optional(),
   maintenance_message: z.string().max(500).optional(),
-  maintenance_scheduled_at: z.string().datetime().optional(),
-  maintenance_estimated_duration: z.number().min(5).max(1440).optional(),
-  
-  // Feature flags
-  features_enabled: z.array(z.string()).optional(),
-  beta_features_enabled: z.boolean().optional(),
-  debug_mode: z.boolean().optional(),
-  
-  // System limits
-  max_students_per_org: z.number().min(50).max(10000).optional(),
-  max_teachers_per_org: z.number().min(5).max(500).optional(),
-  max_groups_per_org: z.number().min(5).max(1000).optional(),
-  storage_limit_gb: z.number().min(1).max(1000).optional(),
-  
-  // Performance settings
-  enable_caching: z.boolean().optional(),
-  cache_ttl_minutes: z.number().min(1).max(1440).optional(),
-  rate_limit_per_minute: z.number().min(10).max(1000).optional(),
-  
-  // Monitoring
-  error_tracking_enabled: z.boolean().optional(),
-  performance_monitoring: z.boolean().optional(),
-  audit_log_retention_days: z.number().min(30).max(2555).optional()
+  backup_schedule: z.object({
+    enabled: z.boolean(),
+    frequency: z.enum(['daily', 'weekly', 'monthly']),
+    time: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/)
+  }).optional(),
+  feature_flags: z.object({
+    advanced_reporting: z.boolean(),
+    bulk_operations: z.boolean(),
+    api_access: z.boolean()
+  }).optional()
 })
+
+type SystemSettingsFormValues = z.infer<typeof systemSettingsSchema>
+
+// Helper function to get settings from key-value structure
+async function getSystemSettings(supabase: any, orgId: string) {
+  const { data: settings, error } = await supabase
+    .from('system_settings')
+    .select('key, value, category')
+    .eq('organization_id', orgId)
+    .eq('category', 'system')
+
+  if (error && error.code !== 'PGRST116') {
+    throw error
+  }
+
+  // Convert key-value pairs to structured object
+  const settingsMap: Record<string, any> = {}
+  
+  if (settings && settings.length > 0) {
+    settings.forEach((setting: any) => {
+      settingsMap[setting.key] = setting.value
+    })
+  }
+
+  // Return structured settings with defaults
+  return {
+    maintenance_mode: settingsMap.maintenance_mode || false,
+    maintenance_message: settingsMap.maintenance_message || 'System is under maintenance. We\'ll be back shortly...',
+    backup_schedule: settingsMap.backup_schedule || {
+      enabled: true,
+      frequency: 'daily',
+      time: '02:00'
+    },
+    feature_flags: settingsMap.feature_flags || {
+      advanced_reporting: true,
+      bulk_operations: true,
+      api_access: false
+    }
+  }
+}
+
+// Helper function to save settings in key-value structure
+async function saveSystemSettings(supabase: any, orgId: string, userId: string, settings: SystemSettingsFormValues) {
+  const updates = []
+  const now = new Date().toISOString()
+
+  // Prepare upsert operations for each setting
+  if (settings.maintenance_mode !== undefined) {
+    updates.push({
+      organization_id: orgId,
+      category: 'system',
+      key: 'maintenance_mode',
+      value: settings.maintenance_mode,
+      data_type: 'boolean',
+      description: 'Enable/disable maintenance mode',
+      is_public: false,
+      created_by: userId,
+      updated_by: userId
+    })
+  }
+
+  if (settings.maintenance_message !== undefined) {
+    updates.push({
+      organization_id: orgId,
+      category: 'system',
+      key: 'maintenance_message',
+      value: settings.maintenance_message,
+      data_type: 'string',
+      description: 'Message shown during maintenance',
+      is_public: false,
+      created_by: userId,
+      updated_by: userId
+    })
+  }
+
+  if (settings.backup_schedule) {
+    updates.push({
+      organization_id: orgId,
+      category: 'system',
+      key: 'backup_schedule',
+      value: settings.backup_schedule,
+      data_type: 'object',
+      description: 'Automated backup configuration',
+      is_public: false,
+      created_by: userId,
+      updated_by: userId
+    })
+  }
+
+  if (settings.feature_flags) {
+    updates.push({
+      organization_id: orgId,
+      category: 'system',
+      key: 'feature_flags',
+      value: settings.feature_flags,
+      data_type: 'object',
+      description: 'Feature flags configuration',
+      is_public: false,
+      created_by: userId,
+      updated_by: userId
+    })
+  }
+
+  // Perform upserts
+  for (const update of updates) {
+    const { error } = await supabase
+      .from('system_settings')
+      .upsert(update, {
+        onConflict: 'organization_id,category,key',
+        ignoreDuplicates: false
+      })
+
+    if (error) {
+      throw error
+    }
+  }
+
+  return await getSystemSettings(supabase, orgId)
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -47,61 +152,12 @@ export async function GET(request: NextRequest) {
     }
 
     const supabase = await createServerClient()
-    
-    const { data: settings, error } = await supabase
-      .from('system_settings')
-      .select(`
-        maintenance_mode,
-        maintenance_message,
-        maintenance_scheduled_at,
-        maintenance_estimated_duration,
-        features_enabled,
-        beta_features_enabled,
-        debug_mode,
-        max_students_per_org,
-        max_teachers_per_org,
-        max_groups_per_org,
-        storage_limit_gb,
-        enable_caching,
-        cache_ttl_minutes,
-        rate_limit_per_minute,
-        error_tracking_enabled,
-        performance_monitoring,
-        audit_log_retention_days,
-        created_at,
-        updated_at
-      `)
-      .eq('organization_id', profile.organization_id)
-      .single()
+    const settings = await getSystemSettings(supabase, profile.organization_id)
 
-    if (error) {
-      // If no settings exist, return defaults
-      if (error.code === 'PGRST116') {
-        const defaultSettings = {
-          maintenance_mode: false,
-          maintenance_message: 'System is under maintenance. Please try again later.',
-          maintenance_scheduled_at: null,
-          maintenance_estimated_duration: 60,
-          features_enabled: ['teachers', 'students', 'groups', 'reports'],
-          beta_features_enabled: false,
-          debug_mode: false,
-          max_students_per_org: 1000,
-          max_teachers_per_org: 50,
-          max_groups_per_org: 100,
-          storage_limit_gb: 10,
-          enable_caching: true,
-          cache_ttl_minutes: 60,
-          rate_limit_per_minute: 100,
-          error_tracking_enabled: true,
-          performance_monitoring: true,
-          audit_log_retention_days: 365
-        }
-        return NextResponse.json(defaultSettings)
-      }
-      throw error
-    }
-
-    return NextResponse.json(settings)
+    return NextResponse.json({ 
+      success: true,
+      data: settings 
+    })
   } catch (error) {
     console.error('Error fetching system settings:', error)
     return NextResponse.json(
@@ -142,102 +198,33 @@ export async function PUT(request: NextRequest) {
     const updateData = validationResult.data
     const supabase = await createServerClient()
 
-    // Check if system settings exist
-    const { data: existingSettings } = await supabase
-      .from('system_settings')
-      .select('id')
-      .eq('organization_id', profile.organization_id)
-      .single()
+    // Save settings
+    const settings = await saveSystemSettings(supabase, profile.organization_id, user.id, updateData)
 
-    let settings
-    let operation
-
-    if (existingSettings) {
-      // Update existing settings
-      const { data, error } = await supabase
-        .from('system_settings')
-        .update({
-          ...updateData,
-          updated_by: user.id,
-          updated_at: new Date().toISOString()
+    // Log security event for maintenance mode changes
+    if (updateData.maintenance_mode !== undefined) {
+      try {
+        await supabase.rpc('log_security_event', {
+          event_type: 'maintenance_mode_changed',
+          event_details: {
+            maintenance_mode: updateData.maintenance_mode,
+            organization_id: profile.organization_id,
+            changed_by: user.id,
+            timestamp: new Date().toISOString()
+          },
+          event_severity: updateData.maintenance_mode ? 'high' : 'info'
         })
-        .eq('organization_id', profile.organization_id)
-        .select(`
-          maintenance_mode,
-          maintenance_message,
-          maintenance_scheduled_at,
-          maintenance_estimated_duration,
-          features_enabled,
-          beta_features_enabled,
-          debug_mode,
-          max_students_per_org,
-          max_teachers_per_org,
-          max_groups_per_org,
-          storage_limit_gb,
-          enable_caching,
-          cache_ttl_minutes,
-          rate_limit_per_minute,
-          error_tracking_enabled,
-          performance_monitoring,
-          audit_log_retention_days,
-          updated_at
-        `)
-        .single()
-
-      if (error) throw error
-      settings = data
-      operation = 'updated'
-    } else {
-      // Create new settings
-      const { data, error } = await supabase
-        .from('system_settings')
-        .insert([{
-          organization_id: profile.organization_id,
-          created_by: user.id,
-          updated_by: user.id,
-          ...updateData
-        }])
-        .select(`
-          maintenance_mode,
-          maintenance_message,
-          maintenance_scheduled_at,
-          maintenance_estimated_duration,
-          features_enabled,
-          beta_features_enabled,
-          debug_mode,
-          max_students_per_org,
-          max_teachers_per_org,
-          max_groups_per_org,
-          storage_limit_gb,
-          enable_caching,
-          cache_ttl_minutes,
-          rate_limit_per_minute,
-          error_tracking_enabled,
-          performance_monitoring,
-          audit_log_retention_days,
-          created_at,
-          updated_at
-        `)
-        .single()
-
-      if (error) throw error
-      settings = data
-      operation = 'created'
+      } catch (logError) {
+        // Don't fail the update if logging fails
+        console.warn('Failed to log security event:', logError)
+      }
     }
 
-    // Log the system settings change
-    await supabase.rpc('log_security_event', {
-      event_type: `system_settings_${operation}`,
-      event_details: {
-        changed_fields: Object.keys(updateData),
-        organization_id: profile.organization_id,
-        changed_by: user.id,
-        maintenance_mode_enabled: updateData.maintenance_mode
-      },
-      event_severity: updateData.maintenance_mode ? 'high' : 'info'
+    return NextResponse.json({
+      success: true,
+      data: settings,
+      message: 'System settings updated successfully'
     })
-
-    return NextResponse.json(settings)
   } catch (error) {
     console.error('Error updating system settings:', error)
     return NextResponse.json(

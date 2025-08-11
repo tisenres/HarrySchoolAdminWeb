@@ -31,19 +31,17 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { Separator } from '@/components/ui/separator'
-import { toast } from '@/components/ui/use-toast'
+import { toast } from 'sonner'
 import {
   Loader2,
   Settings,
-  Shield,
   Database,
-  Bell,
   Wrench,
   AlertTriangle,
   Clock,
-  Key
+  Shield
 } from 'lucide-react'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 
 const systemSettingsSchema = z.object({
   maintenance_mode: z.boolean(),
@@ -52,23 +50,6 @@ const systemSettingsSchema = z.object({
     enabled: z.boolean(),
     frequency: z.enum(['daily', 'weekly', 'monthly']),
     time: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/)
-  }),
-  notification_settings: z.object({
-    email_enabled: z.boolean(),
-    push_enabled: z.boolean(),
-    sms_enabled: z.boolean(),
-    admin_notifications: z.boolean()
-  }),
-  security_settings: z.object({
-    password_policy: z.object({
-      min_length: z.number().min(6).max(32),
-      require_uppercase: z.boolean(),
-      require_lowercase: z.boolean(),
-      require_numbers: z.boolean(),
-      require_symbols: z.boolean()
-    }),
-    session_timeout: z.number().min(15).max(1440),
-    max_login_attempts: z.number().min(3).max(10)
   }),
   feature_flags: z.object({
     advanced_reporting: z.boolean(),
@@ -93,23 +74,6 @@ export function SystemSettings() {
         frequency: 'daily',
         time: '02:00'
       },
-      notification_settings: {
-        email_enabled: true,
-        push_enabled: true,
-        sms_enabled: false,
-        admin_notifications: true
-      },
-      security_settings: {
-        password_policy: {
-          min_length: 8,
-          require_uppercase: true,
-          require_lowercase: true,
-          require_numbers: true,
-          require_symbols: false
-        },
-        session_timeout: 480,
-        max_login_attempts: 5
-      },
       feature_flags: {
         advanced_reporting: true,
         bulk_operations: true,
@@ -127,16 +91,19 @@ export function SystemSettings() {
     try {
       const response = await fetch('/api/settings/system')
       if (response.ok) {
-        const data = await response.json()
-        form.reset(data.data)
+        const result = await response.json()
+        if (result.success && result.data) {
+          form.reset(result.data)
+        } else {
+          throw new Error(result.error || 'Failed to load settings')
+        }
+      } else {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to load settings')
       }
     } catch (error) {
       console.error('Error fetching system settings:', error)
-      toast({
-        title: 'Error',
-        description: 'Failed to load system settings',
-        variant: 'destructive',
-      })
+      toast.error(error instanceof Error ? error.message : 'Failed to load system settings')
     } finally {
       setIsLoading(false)
     }
@@ -151,19 +118,24 @@ export function SystemSettings() {
         body: JSON.stringify(data),
       })
 
-      if (!response.ok) throw new Error('Failed to update system settings')
+      const result = await response.json()
 
-      toast({
-        title: 'Success',
-        description: 'System settings updated successfully',
-      })
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to update system settings')
+      }
+
+      if (result.success) {
+        toast.success(result.message || 'System settings updated successfully')
+        // Refresh the form with the updated data
+        if (result.data) {
+          form.reset(result.data)
+        }
+      } else {
+        throw new Error(result.error || 'Failed to update system settings')
+      }
     } catch (error) {
       console.error('Error updating system settings:', error)
-      toast({
-        title: 'Error',
-        description: 'Failed to update system settings',
-        variant: 'destructive',
-      })
+      toast.error(error instanceof Error ? error.message : 'Failed to update system settings')
     } finally {
       setIsSaving(false)
     }
@@ -185,6 +157,17 @@ export function SystemSettings() {
           Configure system-wide settings, maintenance mode, and advanced features.
         </p>
       </div>
+
+      {form.watch('maintenance_mode') && (
+        <Alert className="border-yellow-200 bg-yellow-50 dark:border-yellow-800 dark:bg-yellow-950">
+          <AlertTriangle className="h-4 w-4 text-yellow-600 dark:text-yellow-500" />
+          <AlertTitle className="text-yellow-800 dark:text-yellow-200">Maintenance Mode Active</AlertTitle>
+          <AlertDescription className="text-yellow-700 dark:text-yellow-300">
+            The system is currently in maintenance mode. Only superadmins can access the application.
+            Regular users will see the maintenance message until this mode is disabled.
+          </AlertDescription>
+        </Alert>
+      )}
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -320,252 +303,6 @@ export function SystemSettings() {
                       </FormControl>
                       <FormDescription>
                         Time to run automated backups (24-hour format)
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Notification Settings */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Bell className="h-5 w-5" />
-                System Notifications
-              </CardTitle>
-              <CardDescription>
-                Configure system-wide notification channels
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <FormField
-                control={form.control}
-                name="notification_settings.email_enabled"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                    <div className="space-y-0.5">
-                      <FormLabel className="text-base">Email Notifications</FormLabel>
-                      <FormDescription>
-                        Send notifications via email
-                      </FormDescription>
-                    </div>
-                    <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="notification_settings.push_enabled"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                    <div className="space-y-0.5">
-                      <FormLabel className="text-base">Push Notifications</FormLabel>
-                      <FormDescription>
-                        Send browser push notifications
-                      </FormDescription>
-                    </div>
-                    <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="notification_settings.admin_notifications"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                    <div className="space-y-0.5">
-                      <FormLabel className="text-base">Admin Notifications</FormLabel>
-                      <FormDescription>
-                        Notify admins of system events and alerts
-                      </FormDescription>
-                    </div>
-                    <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-            </CardContent>
-          </Card>
-
-          {/* Security Settings */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Shield className="h-5 w-5" />
-                Security Settings
-              </CardTitle>
-              <CardDescription>
-                Configure password policies and security parameters
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div>
-                <h4 className="text-sm font-medium mb-4 flex items-center gap-2">
-                  <Key className="h-4 w-4" />
-                  Password Policy
-                </h4>
-                <div className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="security_settings.password_policy.min_length"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Minimum Password Length</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            min={6}
-                            max={32}
-                            value={field.value}
-                            onChange={(e) => field.onChange(parseInt(e.target.value))}
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          Minimum number of characters required (6-32)
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <FormField
-                      control={form.control}
-                      name="security_settings.password_policy.require_uppercase"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-                          <div className="space-y-0.5">
-                            <FormLabel className="text-sm">Require Uppercase</FormLabel>
-                          </div>
-                          <FormControl>
-                            <Switch
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="security_settings.password_policy.require_lowercase"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-                          <div className="space-y-0.5">
-                            <FormLabel className="text-sm">Require Lowercase</FormLabel>
-                          </div>
-                          <FormControl>
-                            <Switch
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="security_settings.password_policy.require_numbers"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-                          <div className="space-y-0.5">
-                            <FormLabel className="text-sm">Require Numbers</FormLabel>
-                          </div>
-                          <FormControl>
-                            <Switch
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="security_settings.password_policy.require_symbols"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-                          <div className="space-y-0.5">
-                            <FormLabel className="text-sm">Require Symbols</FormLabel>
-                          </div>
-                          <FormControl>
-                            <Switch
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <Separator />
-
-              <div className="grid gap-4 md:grid-cols-2">
-                <FormField
-                  control={form.control}
-                  name="security_settings.session_timeout"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Session Timeout (minutes)</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          min={15}
-                          max={1440}
-                          value={field.value}
-                          onChange={(e) => field.onChange(parseInt(e.target.value))}
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        Auto-logout after inactivity (15-1440 minutes)
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="security_settings.max_login_attempts"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Max Login Attempts</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          min={3}
-                          max={10}
-                          value={field.value}
-                          onChange={(e) => field.onChange(parseInt(e.target.value))}
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        Lock account after failed attempts (3-10)
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
