@@ -21,7 +21,8 @@
     "active": "Faol",
     "inactive": "Faol emas",
     "pending": "Kutilmoqda",
-    "overdue": "Muddati o'tgan"
+    "overdue": "Muddati o'tgan",
+    "actions": "Amallar"
   },
   "finance": {
     "title": "Moliya boshqaruvi",
@@ -142,9 +143,16 @@
   },
   "dashboard": {
     "title": "Boshqaruv paneli",
+    "welcomeMessage": "Harry School CRM administrator paneliga xush kelibsiz",
     "totalStudents": "Jami talabalar",
     "activeGroups": "Faol guruhlar",
+    "totalGroups": "jami guruhlar",
     "totalTeachers": "O'qituvchilar",
+    "monthlyRevenue": "Oylik daromad",
+    "outstanding": "yig'ilishi kerak",
+    "manageTeachers": "O'qituvchilarni boshqarish",
+    "viewGroups": "Guruhlarni ko'rish",
+    "manageStudents": "Talabalarni boshqarish",
     "settings": "Sozlamalar",
     "settingsReady": "Tayyor",
     "recentActivity": "So'nggi harakatlar",
@@ -676,11 +684,125 @@
     "unknown": "Noma'lum"
   },
   "notifications": {
-    "noUnreadNotifications": "O'qilmagan bildirishnomalar yo'q",
-    "message": "Xabar",
-    "additionalDetails": "Qo'shimcha tafsilotlar",
-    "deliveryInformation": "Yetkazib berish ma'lumotlari",
-    "targetRoles": "Maqsadli rollar"
+    "title": "Bildirishnomalar",
+    "bell": {
+      "label": "Bildirishnomalar",
+      "newNotification": "Yangi bildirishnoma",
+      "openNotifications": "Bildirishnomalarni ochish"
+    },
+    "dropdown": {
+      "markAllAsRead": "Barchasini o'qilgan deb belgilash",
+      "viewAll": "Barcha bildirishnomalarni ko'rish",
+      "settings": "Bildirishnoma sozlamalari",
+      "clear": "Bildirishnomalarni tozalash",
+      "noNotifications": "Bildirishnomalar yo'q",
+      "noUnreadNotifications": "O'qilmagan bildirishnomalar yo'q",
+      "allCaughtUp": "Hammasi o'qildi!",
+      "refresh": "Yangilash"
+    },
+    "types": {
+      "system": "Tizim",
+      "student": "Talaba",
+      "teacher": "O'qituvchi",
+      "group": "Guruh",
+      "payment": "To'lov",
+      "enrollment": "Ro'yxatga olish",
+      "reminder": "Eslatma",
+      "security": "Xavfsizlik",
+      "backup": "Zaxira nusxa",
+      "maintenance": "Texnik xizmat"
+    },
+    "status": {
+      "read": "O'qilgan",
+      "unread": "O'qilmagan",
+      "archived": "Arxivlangan"
+    },
+    "actions": {
+      "markAsRead": "O'qilgan deb belgilash",
+      "markAsUnread": "O'qilmagan deb belgilash",
+      "archive": "Arxivlash",
+      "delete": "O'chirish",
+      "viewDetails": "Tafsilotlarni ko'rish"
+    },
+    "filters": {
+      "all": "Barcha bildirishnomalar",
+      "unread": "O'qilmaganlar",
+      "read": "O'qilganlar",
+      "today": "Bugun",
+      "thisWeek": "Shu hafta",
+      "thisMonth": "Shu oy",
+      "archived": "Arxivlangan"
+    },
+    "settings": {
+      "title": "Bildirishnoma sozlamalari",
+      "subtitle": "Bildirishnoma afzalliklaringizni sozlang",
+      "emailNotifications": "Email bildirishnomalar",
+      "pushNotifications": "Push bildirishnomalar",
+      "smsNotifications": "SMS bildirishnomalar",
+      "browserNotifications": "Brauzer bildirishnomalari",
+      "enable": "Yoqish",
+      "disable": "O'chirish",
+      "frequency": "Chastota",
+      "immediate": "Darhol",
+      "hourly": "Soatlik xulosalar",
+      "daily": "Kunlik xulosalar",
+      "weekly": "Haftalik xulosalar",
+      "quietHours": "Tinch soatlar",
+      "quietHoursFrom": "Dan",
+      "quietHoursTo": "Gacha",
+      "quietHoursDesc": "Ushbu soatlarda bildirishnoma yubormaslik",
+      "categories": {
+        "title": "Bildirishnoma toifalari",
+        "systemAlerts": "Tizim ogohlantirishlari",
+        "systemAlertsDesc": "Muhim tizim yangilanishlari va texnik xizmat bildirishnomalari",
+        "studentUpdates": "Talaba yangilanishlari",
+        "studentUpdatesDesc": "Yangi ro'yxatga olishlar, holat o'zgarishlari va talaba faoliyati",
+        "teacherUpdates": "O'qituvchi yangilanishlari",
+        "teacherUpdatesDesc": "O'qituvchi tayinlashlari, jadval o'zgarishlari va yangilanishlar",
+        "groupActivities": "Guruh faoliyatlari",
+        "groupActivitiesDesc": "Yangi guruhlar, jadval o'zgarishlari va guruh yangilanishlari",
+        "paymentReminders": "To'lov eslatmalari",
+        "paymentRemindersDesc": "To'lanmagan to'lovlar va to'lov tasdiqlamalari",
+        "securityAlerts": "Xavfsizlik ogohlantirishlari",
+        "securityAlertsDesc": "Kirish urinishlari, xavfsizlik muammolari va siyosat o'zgarishlari",
+        "backupReports": "Zaxira nusxa hisobotlari",
+        "backupReportsDesc": "Zaxira nusxa holati, muvaffaqiyatli va muvaffaqiyatsiz bildirishnomalar"
+      },
+      "save": "Sozlamalarni saqlash",
+      "reset": "Standartga qaytarish",
+      "testNotification": "Test bildirishnoma yuborish"
+    },
+    "messages": {
+      "message": "Xabar",
+      "additionalDetails": "Qo'shimcha tafsilotlar",
+      "deliveryInformation": "Yetkazib berish ma'lumotlari",
+      "targetRoles": "Maqsadli rollar",
+      "sentAt": "Yuborilgan vaqt",
+      "readAt": "O'qilgan vaqt",
+      "priority": "Muhimlik",
+      "high": "Yuqori",
+      "medium": "O'rta",
+      "low": "Past"
+    },
+    "empty": {
+      "noNotifications": "Hali bildirishnomalar yo'q",
+      "noNotificationsDesc": "Muhim narsa bo'lganda bu yerda bildirishnomalar paydo bo'ladi",
+      "noUnreadNotifications": "O'qilmagan bildirishnomalar yo'q",
+      "noFilteredNotifications": "Joriy filtringizga mos bildirishnomalar yo'q"
+    },
+    "errors": {
+      "loadFailed": "Bildirishnomalarni yuklash muvaffaqiyatsiz",
+      "markReadFailed": "O'qilgan deb belgilash muvaffaqiyatsiz",
+      "deleteFailed": "Bildirishnomani o'chirish muvaffaqiyatsiz",
+      "settingsSaveFailed": "Bildirishnoma sozlamalarini saqlash muvaffaqiyatsiz"
+    },
+    "success": {
+      "markedAsRead": "O'qilgan deb belgilandi",
+      "markedAsUnread": "O'qilmagan deb belgilandi",
+      "deleted": "Bildirishnoma o'chirildi",
+      "settingsSaved": "Bildirishnoma sozlamalari saqlandi",
+      "testSent": "Test bildirishnoma yuborildi"
+    }
   },
   "loginForm": {
     "harrySchoolAdmin": "Harry School Administrator",

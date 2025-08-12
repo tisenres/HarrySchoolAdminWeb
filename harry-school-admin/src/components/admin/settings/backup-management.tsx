@@ -191,8 +191,25 @@ export function BackupManagement() {
   const createManualBackup = async () => {
     setIsCreatingBackup(true)
     try {
-      const response = await fetch('/api/settings/backup', {
-        method: 'POST'
+      const backupData = {
+        name: `Manual Backup ${new Date().toLocaleDateString()}`,
+        description: 'Manual backup created from settings',
+        options: {
+          includeProfiles: true,
+          includeTeachers: true,
+          includeStudents: true,
+          includeGroups: true,
+          includeOrganizationSettings: true,
+          compression: true
+        }
+      }
+
+      const response = await fetch('/api/settings/backup/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(backupData)
       })
 
       if (!response.ok) {
@@ -201,8 +218,8 @@ export function BackupManagement() {
       }
 
       const data = await response.json()
-      toast.success(`${data.message || 'Manual backup started successfully'} (Demo Mode)`, {
-        description: 'This is a simulated backup for demonstration purposes.'
+      toast.success(data.message || 'Backup started successfully', {
+        description: 'Real database backup in progress. This will export all your organization data.'
       })
 
       // Start polling for backup updates
@@ -245,6 +262,39 @@ export function BackupManagement() {
     }, 2000)
 
     setRefreshInterval(interval)
+  }
+
+  const downloadBackup = async (backupId: string, backupName: string) => {
+    try {
+      const response = await fetch(`/api/settings/backup/download/${backupId}`)
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to download backup')
+      }
+
+      // Create a blob from the response
+      const blob = await response.blob()
+      
+      // Create a temporary URL for the blob
+      const url = window.URL.createObjectURL(blob)
+      
+      // Create a temporary anchor element and trigger download
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `${backupName}.zip`
+      document.body.appendChild(a)
+      a.click()
+      
+      // Clean up
+      document.body.removeChild(a)
+      window.URL.revokeObjectURL(url)
+      
+      toast.success('Backup downloaded successfully')
+    } catch (error: any) {
+      console.error('Error downloading backup:', error)
+      toast.error(error.message || 'Failed to download backup')
+    }
   }
 
   const deleteBackupRecord = async (backupId: string) => {
@@ -315,19 +365,6 @@ export function BackupManagement() {
 
   return (
     <div className="space-y-6">
-      {/* Demo Notice */}
-      <Card className="border-blue-200 bg-blue-50/50">
-        <CardContent className="p-4">
-          <div className="flex items-center gap-2 text-blue-800">
-            <AlertTriangle className="h-4 w-4" />
-            <p className="text-sm font-medium">Demo Mode</p>
-          </div>
-          <p className="text-sm text-blue-700 mt-1">
-            This backup system is running in demonstration mode. Backups are simulated and no actual files are created. 
-            In production, this would perform real database backups with proper file generation and storage.
-          </p>
-        </CardContent>
-      </Card>
 
       {/* Statistics Cards */}
       {statistics && (
@@ -342,7 +379,6 @@ export function BackupManagement() {
                     <p className="text-2xl font-bold">{statistics.total_backups}</p>
                   </div>
                 </div>
-                <Badge variant="outline" className="text-xs">Demo</Badge>
               </div>
             </CardContent>
           </Card>
@@ -357,7 +393,6 @@ export function BackupManagement() {
                     <p className="text-2xl font-bold">{statistics.completed_backups}</p>
                   </div>
                 </div>
-                <Badge variant="outline" className="text-xs">Demo</Badge>
               </div>
             </CardContent>
           </Card>
@@ -372,7 +407,6 @@ export function BackupManagement() {
                     <p className="text-2xl font-bold">{formatFileSize(statistics.total_size_bytes)}</p>
                   </div>
                 </div>
-                <Badge variant="outline" className="text-xs">Demo</Badge>
               </div>
             </CardContent>
           </Card>
@@ -392,7 +426,6 @@ export function BackupManagement() {
                     </p>
                   </div>
                 </div>
-                <Badge variant="outline" className="text-xs">Demo</Badge>
               </div>
             </CardContent>
           </Card>
@@ -622,7 +655,6 @@ export function BackupManagement() {
                 Recent backup operations and their status
               </CardDescription>
             </div>
-            <Badge variant="outline" className="text-xs">Demo Data</Badge>
           </div>
         </CardHeader>
         <CardContent>
@@ -683,6 +715,16 @@ export function BackupManagement() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center gap-1">
+                        {backup.status === 'completed' && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => downloadBackup(backup.id, backup.name)}
+                            title="Download backup"
+                          >
+                            <Download className="h-4 w-4" />
+                          </Button>
+                        )}
                         {backup.status === 'failed' && (
                           <Button
                             variant="ghost"

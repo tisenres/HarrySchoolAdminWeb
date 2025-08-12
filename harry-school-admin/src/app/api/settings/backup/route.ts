@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser, getCurrentProfile } from '@/lib/auth'
 import { createServerClient } from '@/lib/supabase/server'
+import { backupService } from '@/lib/services/backup-service'
 import { z } from 'zod'
 
 const backupSettingsSchema = z.object({

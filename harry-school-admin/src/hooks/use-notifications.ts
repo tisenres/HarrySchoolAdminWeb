@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { getSupabaseClient } from '@/lib/supabase'
 import { NotificationService } from '@/lib/services/notification-service'
+import { mockNotificationService } from '@/lib/services/mock-notification-service'
 import type { 
   NotificationWithRelations,
   NotificationFilters,

@@ -41,20 +41,19 @@ export async function GET(request: NextRequest) {
     const archiveData = []
 
     for (const tableName of tables) {
+      // Build select query based on table
+      let selectQuery = 'id, deleted_at, deleted_by'
+      if (tableName === 'teachers') {
+        selectQuery += ', full_name, specialization, phone, email'
+      } else if (tableName === 'students') {
+        selectQuery += ', full_name, date_of_birth, phone, parent_phone, status'
+      } else if (tableName === 'groups') {
+        selectQuery += ', name, description, max_capacity, schedule'
+      }
+
       let query = supabase
         .from(tableName)
-        .select(`
-          id,
-          ${tableName === 'teachers' ? 'full_name, specialization, phone, email' : ''}
-          ${tableName === 'students' ? 'full_name, date_of_birth, phone, parent_phone, status' : ''}
-          ${tableName === 'groups' ? 'name, description, max_capacity, schedule' : ''}
-          deleted_at,
-          deleted_by,
-          profiles!${tableName}_deleted_by_fkey (
-            full_name,
-            email
-          )
-        `)
+        .select(selectQuery)
         .eq('organization_id', profile.organization_id)
         .not('deleted_at', 'is', null)
         .order('deleted_at', { ascending: false })
@@ -68,10 +67,13 @@ export async function GET(request: NextRequest) {
       if (error) throw error
 
       // Format the data with table information
+      // Also handle missing profile data for deleted_by
       const formattedData = data?.map(item => ({
         ...item,
         table: tableName,
-        type: tableName.slice(0, -1) // Remove 's' from plural
+        type: tableName.slice(0, -1), // Remove 's' from plural
+        // Add a placeholder for deleted_by user if not available
+        deleted_by_user: item.profiles || { full_name: 'System', email: 'system@harryschool.uz' }
       })) || []
 
       archiveData.push(...formattedData)

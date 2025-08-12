@@ -21,7 +21,8 @@
     "active": "Активный",
     "inactive": "Неактивный",
     "pending": "В ожидании",
-    "overdue": "Просрочен"
+    "overdue": "Просрочен",
+    "actions": "Действия"
   },
   "finance": {
     "title": "Управление финансами",
@@ -142,9 +143,16 @@
   },
   "dashboard": {
     "title": "Панель управления",
+    "welcomeMessage": "Добро пожаловать в административную панель Harry School CRM",
     "totalStudents": "Всего студентов",
     "activeGroups": "Активные группы",
+    "totalGroups": "всего групп",
     "totalTeachers": "Преподаватели",
+    "monthlyRevenue": "Месячный доход",
+    "outstanding": "к сбору",
+    "manageTeachers": "Управление преподавателями",
+    "viewGroups": "Просмотр групп", 
+    "manageStudents": "Управление студентами",
     "settings": "Настройки",
     "settingsReady": "Готово",
     "recentActivity": "Последние действия",
@@ -676,11 +684,125 @@
     "unknown": "Неизвестно"
   },
   "notifications": {
-    "noUnreadNotifications": "Нет непрочитанных уведомлений",
-    "message": "Сообщение",
-    "additionalDetails": "Дополнительные детали",
-    "deliveryInformation": "Информация о доставке",
-    "targetRoles": "Целевые роли"
+    "title": "Уведомления",
+    "bell": {
+      "label": "Уведомления",
+      "newNotification": "Новое уведомление",
+      "openNotifications": "Открыть уведомления"
+    },
+    "dropdown": {
+      "markAllAsRead": "Отметить все как прочитанные",
+      "viewAll": "Просмотреть все уведомления",
+      "settings": "Настройки уведомлений",
+      "clear": "Очистить уведомления",
+      "noNotifications": "Нет уведомлений",
+      "noUnreadNotifications": "Нет непрочитанных уведомлений",
+      "allCaughtUp": "Все прочитано!",
+      "refresh": "Обновить"
+    },
+    "types": {
+      "system": "Система",
+      "student": "Студент",
+      "teacher": "Преподаватель",
+      "group": "Группа",
+      "payment": "Платеж",
+      "enrollment": "Зачисление",
+      "reminder": "Напоминание",
+      "security": "Безопасность",
+      "backup": "Резервная копия",
+      "maintenance": "Обслуживание"
+    },
+    "status": {
+      "read": "Прочитано",
+      "unread": "Не прочитано",
+      "archived": "В архиве"
+    },
+    "actions": {
+      "markAsRead": "Отметить как прочитанное",
+      "markAsUnread": "Отметить как непрочитанное",
+      "archive": "Архивировать",
+      "delete": "Удалить",
+      "viewDetails": "Просмотреть детали"
+    },
+    "filters": {
+      "all": "Все уведомления",
+      "unread": "Непрочитанные",
+      "read": "Прочитанные",
+      "today": "Сегодня",
+      "thisWeek": "На этой неделе",
+      "thisMonth": "В этом месяце",
+      "archived": "В архиве"
+    },
+    "settings": {
+      "title": "Настройки уведомлений",
+      "subtitle": "Настройте ваши предпочтения уведомлений",
+      "emailNotifications": "Email уведомления",
+      "pushNotifications": "Push уведомления",
+      "smsNotifications": "SMS уведомления",
+      "browserNotifications": "Уведомления браузера",
+      "enable": "Включить",
+      "disable": "Отключить",
+      "frequency": "Частота",
+      "immediate": "Немедленно",
+      "hourly": "Часовая сводка",
+      "daily": "Ежедневная сводка",
+      "weekly": "Еженедельная сводка",
+      "quietHours": "Тихие часы",
+      "quietHoursFrom": "С",
+      "quietHoursTo": "До",
+      "quietHoursDesc": "Не отправлять уведомления в эти часы",
+      "categories": {
+        "title": "Категории уведомлений",
+        "systemAlerts": "Системные оповещения",
+        "systemAlertsDesc": "Важные системные обновления и уведомления об обслуживании",
+        "studentUpdates": "Обновления студентов",
+        "studentUpdatesDesc": "Новые зачисления, изменения статуса и активность студентов",
+        "teacherUpdates": "Обновления преподавателей",
+        "teacherUpdatesDesc": "Назначения преподавателей, изменения расписания и обновления",
+        "groupActivities": "Активность групп",
+        "groupActivitiesDesc": "Новые группы, изменения расписания и обновления групп",
+        "paymentReminders": "Напоминания о платежах",
+        "paymentRemindersDesc": "Непогашенные платежи и подтверждения платежей",
+        "securityAlerts": "Оповещения безопасности",
+        "securityAlertsDesc": "Попытки входа, проблемы безопасности и изменения политик",
+        "backupReports": "Отчеты резервного копирования",
+        "backupReportsDesc": "Статус резервного копирования, успешные и неудачные уведомления"
+      },
+      "save": "Сохранить настройки",
+      "reset": "Сбросить к умолчанию",
+      "testNotification": "Отправить тестовое уведомление"
+    },
+    "messages": {
+      "message": "Сообщение",
+      "additionalDetails": "Дополнительные детали",
+      "deliveryInformation": "Информация о доставке",
+      "targetRoles": "Целевые роли",
+      "sentAt": "Отправлено в",
+      "readAt": "Прочитано в",
+      "priority": "Приоритет",
+      "high": "Высокий",
+      "medium": "Средний",
+      "low": "Низкий"
+    },
+    "empty": {
+      "noNotifications": "Пока нет уведомлений",
+      "noNotificationsDesc": "Здесь будут появляться уведомления, когда будет что-то важное",
+      "noUnreadNotifications": "Нет непрочитанных уведомлений",
+      "noFilteredNotifications": "Нет уведомлений, соответствующих вашему фильтру"
+    },
+    "errors": {
+      "loadFailed": "Не удалось загрузить уведомления",
+      "markReadFailed": "Не удалось отметить как прочитанное",
+      "deleteFailed": "Не удалось удалить уведомление",
+      "settingsSaveFailed": "Не удалось сохранить настройки уведомлений"
+    },
+    "success": {
+      "markedAsRead": "Отмечено как прочитанное",
+      "markedAsUnread": "Отмечено как непрочитанное",
+      "deleted": "Уведомление удалено",
+      "settingsSaved": "Настройки уведомлений сохранены",
+      "testSent": "Тестовое уведомление отправлено"
+    }
   },
   "loginForm": {
     "harrySchoolAdmin": "Администратор Harry School",

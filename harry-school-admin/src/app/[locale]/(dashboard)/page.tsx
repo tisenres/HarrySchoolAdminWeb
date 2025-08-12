@@ -5,26 +5,71 @@ import { Button } from '@/components/ui/button'
 import { Users, UserCheck, TrendingUp, DollarSign, Calendar, BookOpen, Activity } from 'lucide-react'
 import Link from 'next/link'
 import { StatsCard } from '@/components/admin/dashboard/stats-card'
+import { ActivityFeed } from '@/components/admin/dashboard/activity-feed'
 import { useTranslations } from 'next-intl'
+import { useEffect, useState } from 'react'
+import { getRecentActivities, getDashboardStats } from '@/lib/services/activity-service'
+
+interface DashboardStats {
+  totalStudents: number
+  activeStudents: number
+  totalGroups: number
+  activeGroups: number
+  totalTeachers: number
+  activeTeachers: number
+  recentEnrollments: number
+  upcomingClasses: number
+  outstandingBalance: number
+  monthlyRevenue: number
+}
+
+interface Activity {
+  id: string
+  type: 'enrollment' | 'payment' | 'group_creation' | 'teacher_assignment' | 'student_update' | 'other'
+  description: string
+  timestamp: string
+  metadata?: Record<string, any>
+}
 
 export default function DashboardPage() {
   const t = useTranslations('dashboard')
   const tCommon = useTranslations('common')
   const tQuickActions = useTranslations('quickActions')
   
-  // Mock data to avoid server imports
-  const statistics = {
-    totalStudents: 150,
-    activeStudents: 145,
-    totalTeachers: 25,
-    activeTeachers: 23,
-    totalGroups: 12,
-    activeGroups: 10,
-    recentEnrollments: 8,
-    monthlyRevenue: 45000,
-    outstandingPayments: 8500,
-    upcomingClasses: 15,
-  }
+  const [statistics, setStatistics] = useState<DashboardStats>({
+    totalStudents: 0,
+    activeStudents: 0,
+    totalGroups: 0,
+    activeGroups: 0,
+    totalTeachers: 0,
+    activeTeachers: 0,
+    recentEnrollments: 0,
+    upcomingClasses: 0,
+    outstandingBalance: 0,
+    monthlyRevenue: 0,
+  })
+  const [activities, setActivities] = useState<Activity[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const loadDashboardData = async () => {
+      try {
+        const [statsData, activitiesData] = await Promise.all([
+          getDashboardStats(),
+          getRecentActivities(5)
+        ])
+        
+        setStatistics(statsData)
+        setActivities(activitiesData)
+      } catch (error) {
+        console.error('Error loading dashboard data:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadDashboardData()
+  }, [])
 
   const studentGrowth = 12.5
   const groupGrowth = 8.3
@@ -81,7 +126,7 @@ export default function DashboardPage() {
         <StatsCard
           title={t('monthlyRevenue')}
           value={`$${statistics.monthlyRevenue.toLocaleString()}`}
-          subtitle={`$${statistics.outstandingPayments.toLocaleString()} ${t('outstanding')}`}
+          subtitle={`$${statistics.outstandingBalance.toLocaleString()} ${t('outstanding')}`}
           icon="DollarSign"
           color="green"
           {...(revenueGrowth > 0 && { trend: { value: revenueGrowth, isPositive: true } })}
@@ -123,7 +168,7 @@ export default function DashboardPage() {
                 {t('outstandingBalance')}
               </p>
               <p className="text-2xl font-bold text-red-600">
-                ${statistics.outstandingPayments.toLocaleString()}
+                ${statistics.outstandingBalance.toLocaleString()}
               </p>
               <p className="text-xs text-muted-foreground">{t('toBeCollected')}</p>
             </div>
@@ -164,32 +209,12 @@ export default function DashboardPage() {
           </div>
         </Card>
 
-        <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-4">{t('recentActivity')}</h3>
-          <div className="space-y-4">
-            <div className="flex items-start space-x-3">
-              <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
-              <div className="space-y-1">
-                <p className="text-sm font-medium">{t('activity.newStudentEnrolled')}</p>
-                <p className="text-xs text-muted-foreground">{t('activity.hoursAgo2')}</p>
-              </div>
-            </div>
-            <div className="flex items-start space-x-3">
-              <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
-              <div className="space-y-1">
-                <p className="text-sm font-medium">{t('activity.paymentReceived')}</p>
-                <p className="text-xs text-muted-foreground">{t('activity.hoursAgo4')}</p>
-              </div>
-            </div>
-            <div className="flex items-start space-x-3">
-              <div className="w-2 h-2 bg-purple-500 rounded-full mt-2"></div>
-              <div className="space-y-1">
-                <p className="text-sm font-medium">{t('activity.newGroupCreated')}</p>
-                <p className="text-xs text-muted-foreground">{t('activity.hoursAgo6')}</p>
-              </div>
-            </div>
-          </div>
-        </Card>
+        <ActivityFeed 
+          activities={activities}
+          title={t('recentActivity')}
+          description="Latest updates from your school"
+          limit={5}
+        />
       </div>
     </div>
   )

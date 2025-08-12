@@ -145,10 +145,10 @@ export function OrganizationSettings() {
                 <FormItem>
                   <FormLabel className="text-base font-medium">Organization Name</FormLabel>
                   <FormControl>
-                    <Input 
-                      placeholder="Harry School" 
-                      className="h-11" 
-                      {...field} 
+                    <Input
+                      placeholder="Harry School"
+                      className="h-11"
+                      {...field}
                     />
                   </FormControl>
                   <FormMessage />
@@ -163,11 +163,11 @@ export function OrganizationSettings() {
                 <FormItem>
                   <FormLabel className="text-base font-medium">Email</FormLabel>
                   <FormControl>
-                    <Input 
-                      type="email" 
-                      placeholder="info@harryschool.uz" 
-                      className="h-11" 
-                      {...field} 
+                    <Input
+                      type="email"
+                      placeholder="info@harryschool.uz"
+                      className="h-11"
+                      {...field}
                     />
                   </FormControl>
                   <FormMessage />
@@ -184,10 +184,10 @@ export function OrganizationSettings() {
                 <FormItem>
                   <FormLabel className="text-base font-medium">Phone</FormLabel>
                   <FormControl>
-                    <Input 
-                      placeholder="+998 90 123 45 67" 
-                      className="h-11" 
-                      {...field} 
+                    <Input
+                      placeholder="+998 90 123 45 67"
+                      className="h-11"
+                      {...field}
                     />
                   </FormControl>
                   <FormMessage />
@@ -202,10 +202,10 @@ export function OrganizationSettings() {
                 <FormItem>
                   <FormLabel className="text-base font-medium">Website</FormLabel>
                   <FormControl>
-                    <Input 
-                      placeholder="https://harryschool.uz" 
-                      className="h-11" 
-                      {...field} 
+                    <Input
+                      placeholder="https://harryschool.uz"
+                      className="h-11"
+                      {...field}
                     />
                   </FormControl>
                   <FormMessage />
@@ -221,10 +221,10 @@ export function OrganizationSettings() {
               <FormItem>
                 <FormLabel className="text-base font-medium">Address</FormLabel>
                 <FormControl>
-                  <Input 
-                    placeholder="123 Main Street" 
-                    className="h-11" 
-                    {...field} 
+                  <Input
+                    placeholder="123 Main Street"
+                    className="h-11"
+                    {...field}
                   />
                 </FormControl>
                 <FormMessage />
@@ -325,14 +325,15 @@ export function OrganizationSettings() {
           </div>
 
           <div className="pt-4">
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               disabled={isSaving}
-              className="bg-green-600 hover:bg-green-700 h-11 px-8"
+              className="bg-[#1d7452] hover:bg-[#186142] h-11 px-8"
             >
               {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Save Changes
             </Button>
+
           </div>
         </form>
       </Form>

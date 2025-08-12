@@ -45,55 +45,46 @@ export async function GET(request: NextRequest) {
 
     const supabase = await createServerClient()
     
-    const { data: settings, error } = await supabase
+    // Get security settings from key-value pairs
+    const { data: settingsData, error } = await supabase
       .from('system_settings')
-      .select(`
-        password_min_length,
-        password_require_uppercase,
-        password_require_lowercase,
-        password_require_numbers,
-        password_require_symbols,
-        password_expiry_days,
-        password_history_count,
-        session_timeout_minutes,
-        max_login_attempts,
-        lockout_duration_minutes,
-        require_captcha_after_attempts,
-        require_2fa,
-        allow_backup_codes,
-        backup_codes_count,
-        ip_whitelist_enabled,
-        allowed_ips,
-        created_at,
-        updated_at
-      `)
+      .select('key, value')
       .eq('organization_id', profile.organization_id)
-      .single()
+      .eq('category', 'security')
 
-    if (error) {
-      // If no settings exist, return defaults
-      if (error.code === 'PGRST116') {
-        const defaultSettings = {
-          password_min_length: 8,
-          password_require_uppercase: true,
-          password_require_lowercase: true,
-          password_require_numbers: true,
-          password_require_symbols: false,
-          password_expiry_days: 90,
-          password_history_count: 3,
-          session_timeout_minutes: 480,
-          max_login_attempts: 5,
-          lockout_duration_minutes: 30,
-          require_captcha_after_attempts: 3,
-          require_2fa: false,
-          allow_backup_codes: true,
-          backup_codes_count: 10,
-          ip_whitelist_enabled: false,
-          allowed_ips: []
-        }
-        return NextResponse.json(defaultSettings)
-      }
+    // Define default security settings
+    const defaultSettings = {
+      password_min_length: 8,
+      password_require_uppercase: true,
+      password_require_lowercase: true,
+      password_require_numbers: true,
+      password_require_symbols: false,
+      password_expiry_days: 90,
+      password_history_count: 3,
+      session_timeout_minutes: 480,
+      max_login_attempts: 5,
+      lockout_duration_minutes: 30,
+      require_captcha_after_attempts: 3,
+      require_2fa: false,
+      allow_backup_codes: true,
+      backup_codes_count: 10,
+      ip_whitelist_enabled: false,
+      allowed_ips: []
+    }
+
+    if (error && error.code !== 'PGRST116') {
       throw error
+    }
+
+    // Merge database values with defaults
+    let settings = { ...defaultSettings }
+
+    if (settingsData && settingsData.length > 0) {
+      settingsData.forEach(setting => {
+        if (setting.key in defaultSettings) {
+          settings[setting.key as keyof typeof defaultSettings] = setting.value
+        }
+      })
     }
 
     return NextResponse.json(settings)
@@ -137,90 +128,55 @@ export async function PUT(request: NextRequest) {
     const updateData = validationResult.data
     const supabase = await createServerClient()
 
-    // Check if system settings exist
-    const { data: existingSettings } = await supabase
+    // Update or create security settings as key-value pairs
+    const settingsToSave = []
+    const currentTime = new Date().toISOString()
+
+    for (const [key, value] of Object.entries(updateData)) {
+      settingsToSave.push({
+        organization_id: profile.organization_id,
+        category: 'security',
+        key,
+        value,
+        description: getSecuritySettingDescription(key),
+        data_type: typeof value,
+        is_encrypted: false,
+        is_public: false,
+        created_by: user.id,
+        updated_by: user.id,
+        created_at: currentTime,
+        updated_at: currentTime
+      })
+    }
+
+    // Use upsert to handle both create and update
+    const { error: upsertError } = await supabase
       .from('system_settings')
-      .select('id')
+      .upsert(settingsToSave, {
+        onConflict: 'organization_id,key',
+        ignoreDuplicates: false
+      })
+
+    if (upsertError) throw upsertError
+
+    // Get the updated settings to return
+    const { data: updatedSettingsData } = await supabase
+      .from('system_settings')
+      .select('key, value')
       .eq('organization_id', profile.organization_id)
-      .single()
+      .eq('category', 'security')
 
-    let settings
-    let operation
-
-    if (existingSettings) {
-      // Update existing settings
-      const { data, error } = await supabase
-        .from('system_settings')
-        .update({
-          ...updateData,
-          updated_by: user.id,
-          updated_at: new Date().toISOString()
-        })
-        .eq('organization_id', profile.organization_id)
-        .select(`
-          password_min_length,
-          password_require_uppercase,
-          password_require_lowercase,
-          password_require_numbers,
-          password_require_symbols,
-          password_expiry_days,
-          password_history_count,
-          session_timeout_minutes,
-          max_login_attempts,
-          lockout_duration_minutes,
-          require_captcha_after_attempts,
-          require_2fa,
-          allow_backup_codes,
-          backup_codes_count,
-          ip_whitelist_enabled,
-          allowed_ips,
-          updated_at
-        `)
-        .single()
-
-      if (error) throw error
-      settings = data
-      operation = 'updated'
-    } else {
-      // Create new settings
-      const { data, error } = await supabase
-        .from('system_settings')
-        .insert([{
-          organization_id: profile.organization_id,
-          created_by: user.id,
-          updated_by: user.id,
-          ...updateData
-        }])
-        .select(`
-          password_min_length,
-          password_require_uppercase,
-          password_require_lowercase,
-          password_require_numbers,
-          password_require_symbols,
-          password_expiry_days,
-          password_history_count,
-          session_timeout_minutes,
-          max_login_attempts,
-          lockout_duration_minutes,
-          require_captcha_after_attempts,
-          require_2fa,
-          allow_backup_codes,
-          backup_codes_count,
-          ip_whitelist_enabled,
-          allowed_ips,
-          created_at,
-          updated_at
-        `)
-        .single()
-
-      if (error) throw error
-      settings = data
-      operation = 'created'
+    // Convert back to flat object
+    let settings = {}
+    if (updatedSettingsData) {
+      updatedSettingsData.forEach(setting => {
+        settings[setting.key] = setting.value
+      })
     }
 
     // Log the security settings change
     await supabase.rpc('log_security_event', {
-      event_type: `security_settings_${operation}`,
+      event_type: 'security_settings_updated',
       event_details: {
         changed_fields: Object.keys(updateData),
         organization_id: profile.organization_id,
@@ -237,4 +193,26 @@ export async function PUT(request: NextRequest) {
       { status: 500 }
     )
   }
+}
+
+function getSecuritySettingDescription(key: string): string {
+  const descriptions: Record<string, string> = {
+    password_min_length: 'Minimum password length requirement',
+    password_require_uppercase: 'Require uppercase letters in passwords',
+    password_require_lowercase: 'Require lowercase letters in passwords',
+    password_require_numbers: 'Require numbers in passwords',
+    password_require_symbols: 'Require special symbols in passwords',
+    password_expiry_days: 'Password expiration period in days',
+    password_history_count: 'Number of previous passwords to remember',
+    session_timeout_minutes: 'Session timeout in minutes',
+    max_login_attempts: 'Maximum allowed login attempts',
+    lockout_duration_minutes: 'Account lockout duration in minutes',
+    require_captcha_after_attempts: 'Require CAPTCHA after failed attempts',
+    require_2fa: 'Require two-factor authentication',
+    allow_backup_codes: 'Allow backup codes for 2FA',
+    backup_codes_count: 'Number of backup codes to generate',
+    ip_whitelist_enabled: 'Enable IP address whitelist',
+    allowed_ips: 'List of allowed IP addresses'
+  }
+  return descriptions[key] || `Security setting: ${key}`
 }

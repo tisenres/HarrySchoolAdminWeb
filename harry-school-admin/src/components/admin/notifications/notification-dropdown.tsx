@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { ChevronDown, CheckCheck, Settings, RefreshCw, Filter, Search } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -50,22 +51,7 @@ interface NotificationDropdownProps {
   className?: string
 }
 
-const NOTIFICATION_TYPES: { value: NotificationType; label: string }[] = [
-  { value: 'system', label: 'System' },
-  { value: 'enrollment', label: 'Enrollment' },
-  { value: 'payment', label: 'Payment' },
-  { value: 'schedule', label: 'Schedule' },
-  { value: 'achievement', label: 'Achievement' },
-  { value: 'reminder', label: 'Reminder' },
-  { value: 'alert', label: 'Alert' }
-]
-
-const NOTIFICATION_PRIORITIES: { value: NotificationPriority; label: string }[] = [
-  { value: 'low', label: 'Low' },
-  { value: 'normal', label: 'Normal' },
-  { value: 'high', label: 'High' },
-  { value: 'urgent', label: 'Urgent' }
-]
+// Move these inside the component to access translations
 
 export function NotificationDropdown({
   notifications,
@@ -84,9 +70,27 @@ export function NotificationDropdown({
   onLoadMore,
   className
 }: NotificationDropdownProps) {
+  const t = useTranslations('notifications')
   const [searchQuery, setSearchQuery] = useState('')
   const [activeTab, setActiveTab] = useState<'all' | 'unread'>('all')
   const [showFilters, setShowFilters] = useState(false)
+
+  const NOTIFICATION_TYPES: { value: NotificationType; label: string }[] = [
+    { value: 'system', label: t('types.system') },
+    { value: 'enrollment', label: t('types.enrollment') },
+    { value: 'payment', label: t('types.payment') },
+    { value: 'schedule', label: 'Schedule' }, // Not in our translations yet
+    { value: 'achievement', label: 'Achievement' }, // Not in our translations yet
+    { value: 'reminder', label: t('types.reminder') },
+    { value: 'alert', label: 'Alert' } // Not in our translations yet
+  ]
+
+  const NOTIFICATION_PRIORITIES: { value: NotificationPriority; label: string }[] = [
+    { value: 'low', label: t('messages.low') },
+    { value: 'normal', label: 'Normal' }, // Need to add to translations
+    { value: 'high', label: t('messages.high') },
+    { value: 'urgent', label: 'Urgent' } // Need to add to translations
+  ]
 
   const filteredNotifications = notifications.filter(notification => {
     if (activeTab === 'unread' && notification.is_read) return false
@@ -127,7 +131,7 @@ export function NotificationDropdown({
       {/* Header */}
       <div className="p-4 border-b">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="font-medium text-gray-900">Notifications</h3>
+          <h3 className="font-medium text-gray-900">{t('title')}</h3>
           <div className="flex items-center gap-2">
             <Button
               variant="ghost"
@@ -162,7 +166,7 @@ export function NotificationDropdown({
                   disabled={unreadCount === 0}
                 >
                   <CheckCheck className="mr-2 h-4 w-4" />
-                  Mark all as read ({unreadCount})
+                  {t('dropdown.markAllAsRead')} ({unreadCount})
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -173,7 +177,7 @@ export function NotificationDropdown({
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           <Input
-            placeholder="Search notifications..."
+            placeholder="Search notifications..." // TODO: Add to translations
             value={searchQuery}
             onChange={(e) => handleSearchChange(e.target.value)}
             className="pl-9 h-9"
@@ -189,9 +193,9 @@ export function NotificationDropdown({
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All</SelectItem>
-                  <SelectItem value="unread">Unread</SelectItem>
-                  <SelectItem value="read">Read</SelectItem>
+                  <SelectItem value="all">{t('filters.all')}</SelectItem>
+                  <SelectItem value="unread">{t('filters.unread')}</SelectItem>
+                  <SelectItem value="read">{t('filters.read')}</SelectItem>
                 </SelectContent>
               </Select>
 
@@ -218,10 +222,10 @@ export function NotificationDropdown({
         <div className="px-4 pt-2">
           <TabsList className="grid w-full grid-cols-2 h-8">
             <TabsTrigger value="all" className="text-xs">
-              All ({totalCount})
+              {t('filters.all')} ({totalCount})
             </TabsTrigger>
             <TabsTrigger value="unread" className="text-xs">
-              Unread ({unreadCount})
+              {t('filters.unread')} ({unreadCount})
               {unreadCount > 0 && (
                 <Badge variant="destructive" className="ml-1 h-4 w-4 p-0 text-xs">
                   {unreadCount > 99 ? '99+' : unreadCount}
@@ -238,11 +242,11 @@ export function NotificationDropdown({
               {filteredNotifications.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
                   <div className="text-sm">
-                    {isLoading ? 'Loading notifications...' : 'No notifications found'}
+                    {isLoading ? t('dropdown.refresh') + '...' : t('empty.noNotifications')}
                   </div>
                   {searchQuery && !isLoading && (
                     <div className="text-xs mt-1">
-                      Try adjusting your search or filters
+                      {t('empty.noFilteredNotifications')}
                     </div>
                   )}
                 </div>
@@ -269,7 +273,7 @@ export function NotificationDropdown({
                         onClick={onLoadMore}
                         className="w-full"
                       >
-                        Load more notifications
+                        {t('dropdown.viewAll')}
                       </Button>
                     </div>
                   )}
@@ -291,9 +295,9 @@ export function NotificationDropdown({
             <div className="p-2">
               {filteredNotifications.filter(n => !n.is_read).length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
-                  <div className="text-sm">No unread notifications</div>
+                  <div className="text-sm">{t('empty.noUnreadNotifications')}</div>
                   <div className="text-xs mt-1">
-                    You're all caught up! 🎉
+                    {t('dropdown.allCaughtUp')}
                   </div>
                 </div>
               ) : (
@@ -324,7 +328,7 @@ export function NotificationDropdown({
           <Separator />
           <div className="p-3 text-center">
             <Button variant="ghost" size="sm" className="text-xs">
-              View all notifications
+              {t('dropdown.viewAll')}
             </Button>
           </div>
         </>

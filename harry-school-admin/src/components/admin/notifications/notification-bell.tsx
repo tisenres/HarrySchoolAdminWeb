@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react'
 import { Bell } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/button'
 import {
   Popover,
@@ -19,6 +20,7 @@ interface NotificationBellProps {
 }
 
 export function NotificationBell({ className }: NotificationBellProps) {
+  const t = useTranslations('notifications')
   const {
     // Data
     notifications,
@@ -84,7 +86,7 @@ export function NotificationBell({ className }: NotificationBellProps) {
               shouldPulse && 'animate-pulse',
               className
             )}
-            aria-label={`Notifications ${unreadCount > 0 ? `(${unreadCount} unread)` : ''}`}
+            aria-label={`${t('bell.label')} ${unreadCount > 0 ? `(${unreadCount} ${t('status.unread')})` : ''}`}
           >
             <Bell 
               className={cn(

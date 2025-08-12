@@ -21,7 +21,8 @@
     "active": "Active",
     "inactive": "Inactive",
     "pending": "Pending",
-    "overdue": "Overdue"
+    "overdue": "Overdue",
+    "actions": "Actions"
   },
   "finance": {
     "title": "Finance Management",
@@ -711,11 +712,130 @@
     "unknown": "Unknown"
   },
   "notifications": {
-    "noUnreadNotifications": "No unread notifications",
-    "message": "Message",
-    "additionalDetails": "Additional Details",
-    "deliveryInformation": "Delivery Information",
-    "targetRoles": "Target Roles"
+    "title": "Notifications",
+    "bell": {
+      "label": "Notifications",
+      "newNotification": "New notification",
+      "openNotifications": "Open notifications"
+    },
+    "dropdown": {
+      "markAllAsRead": "Mark all as read",
+      "viewAll": "View all notifications",
+      "settings": "Notification settings",
+      "clear": "Clear notifications",
+      "noNotifications": "No notifications",
+      "noUnreadNotifications": "No unread notifications",
+      "allCaughtUp": "You're all caught up!",
+      "refresh": "Refresh"
+    },
+    "types": {
+      "system": "System",
+      "student": "Student",
+      "teacher": "Teacher",
+      "group": "Group",
+      "payment": "Payment",
+      "enrollment": "Enrollment",
+      "reminder": "Reminder",
+      "security": "Security",
+      "backup": "Backup",
+      "maintenance": "Maintenance",
+      "schedule": "Schedule",
+      "achievement": "Achievement",
+      "alert": "Alert"
+    },
+    "status": {
+      "read": "Read",
+      "unread": "Unread",
+      "archived": "Archived"
+    },
+    "actions": {
+      "markAsRead": "Mark as read",
+      "markAsUnread": "Mark as unread",
+      "archive": "Archive",
+      "delete": "Delete",
+      "viewDetails": "View details"
+    },
+    "filters": {
+      "all": "All notifications",
+      "unread": "Unread",
+      "read": "Read",
+      "today": "Today",
+      "thisWeek": "This week",
+      "thisMonth": "This month",
+      "archived": "Archived"
+    },
+    "settings": {
+      "title": "Notification Settings",
+      "subtitle": "Configure your notification preferences",
+      "emailNotifications": "Email Notifications",
+      "pushNotifications": "Push Notifications",
+      "smsNotifications": "SMS Notifications",
+      "browserNotifications": "Browser Notifications",
+      "enable": "Enable",
+      "disable": "Disable",
+      "frequency": "Frequency",
+      "immediate": "Immediate",
+      "hourly": "Hourly digest",
+      "daily": "Daily digest",
+      "weekly": "Weekly summary",
+      "quietHours": "Quiet Hours",
+      "quietHoursFrom": "From",
+      "quietHoursTo": "To",
+      "quietHoursDesc": "Don't send notifications during these hours",
+      "categories": {
+        "title": "Notification Categories",
+        "systemAlerts": "System Alerts",
+        "systemAlertsDesc": "Important system updates and maintenance notifications",
+        "studentUpdates": "Student Updates",
+        "studentUpdatesDesc": "New enrollments, status changes, and student activities",
+        "teacherUpdates": "Teacher Updates",
+        "teacherUpdatesDesc": "Teacher assignments, schedule changes, and updates",
+        "groupActivities": "Group Activities",
+        "groupActivitiesDesc": "New groups, schedule changes, and group updates",
+        "paymentReminders": "Payment Reminders",
+        "paymentRemindersDesc": "Outstanding payments and payment confirmations",
+        "securityAlerts": "Security Alerts",
+        "securityAlertsDesc": "Login attempts, security issues, and policy changes",
+        "backupReports": "Backup Reports",
+        "backupReportsDesc": "Backup status, success, and failure notifications"
+      },
+      "save": "Save Settings",
+      "reset": "Reset to Default",
+      "testNotification": "Send Test Notification"
+    },
+    "messages": {
+      "message": "Message",
+      "additionalDetails": "Additional Details",
+      "deliveryInformation": "Delivery Information",
+      "targetRoles": "Target Roles",
+      "sentAt": "Sent at",
+      "readAt": "Read at",
+      "priority": "Priority",
+      "high": "High",
+      "medium": "Medium",
+      "normal": "Normal",
+      "urgent": "Urgent",
+      "low": "Low"
+    },
+    "empty": {
+      "noNotifications": "No notifications yet",
+      "noNotificationsDesc": "You'll see notifications here when there's something important to share",
+      "noUnreadNotifications": "No unread notifications",
+      "noFilteredNotifications": "No notifications match your current filter"
+    },
+    "errors": {
+      "loadFailed": "Failed to load notifications",
+      "markReadFailed": "Failed to mark as read",
+      "deleteFailed": "Failed to delete notification",
+      "settingsSaveFailed": "Failed to save notification settings"
+    },
+    "success": {
+      "marked AsRead": "Marked as read",
+      "markedAsUnread": "Marked as unread",
+      "deleted": "Notification deleted",
+      "settingsSaved": "Notification settings saved",
+      "testSent": "Test notification sent"
+    }
   },
   "loginForm": {
     "harrySchoolAdmin": "Harry School Admin",

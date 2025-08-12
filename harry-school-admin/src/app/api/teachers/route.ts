@@ -2,9 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { TeacherService } from '@/lib/services/teacher-service'
 import { teacherInsertSchema } from '@/lib/validations'
 import { withAuth } from '@/lib/middleware/api-auth'
+import { createServerClient } from '@/lib/supabase-server'
 import { z } from 'zod'
 
-export const GET = withAuth(async (request: NextRequest) => {
+export const GET = withAuth(async (request: NextRequest, context) => {
   const searchParams = request.nextUrl.searchParams
   
   // Parse search parameters
@@ -25,7 +26,9 @@ export const GET = withAuth(async (request: NextRequest) => {
     sort_order: (searchParams.get('sort_order') || 'desc') as 'asc' | 'desc',
   }
   
-  const teacherService = new TeacherService()
+  // Use the authenticated supabase client from withAuth middleware
+  const supabase = await createServerClient()
+  const teacherService = new TeacherService('teachers', () => Promise.resolve(supabase))
   const result = await teacherService.getAll(search, pagination)
   
   return NextResponse.json(result)
@@ -36,7 +39,7 @@ export const POST = withAuth(async (request: NextRequest) => {
   
   try {
     const validatedData = teacherInsertSchema.parse(body)
-    const teacherService = new TeacherService()
+    const teacherService = new TeacherService('teachers', createServerClient)
     const teacher = await teacherService.create(validatedData)
     
     return NextResponse.json(teacher, { status: 201 })
