@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useTranslations } from 'next-intl'
 import Link from 'next/link'
 import {
   Table,
@@ -92,19 +93,19 @@ interface ColumnConfig {
   width?: string
 }
 
-const defaultColumns: ColumnConfig[] = [
+const getDefaultColumns = (t: any): ColumnConfig[] => [
   { key: 'select', label: '', sortable: false, visible: true, width: 'w-12' },
-  { key: 'student_id', label: 'Student ID', sortable: true, visible: true },
-  { key: 'full_name', label: 'Name', sortable: true, visible: true },
-  { key: 'age', label: 'Age', sortable: true, visible: true },
-  { key: 'phone', label: 'Contact', sortable: false, visible: true },
-  { key: 'parent_name', label: 'Parent/Guardian', sortable: true, visible: true },
-  { key: 'status', label: 'Status', sortable: true, visible: true },
-  { key: 'payment_status', label: 'Payment', sortable: true, visible: true },
-  { key: 'current_level', label: 'Level', sortable: true, visible: true },
-  { key: 'enrolled_groups', label: 'Groups', sortable: false, visible: true },
-  { key: 'balance', label: 'Balance', sortable: true, visible: true },
-  { key: 'enrollment_date', label: 'Enrolled', sortable: true, visible: true },
+  { key: 'student_id', label: t('columns.studentId'), sortable: true, visible: true },
+  { key: 'full_name', label: t('columns.name'), sortable: true, visible: true },
+  { key: 'age', label: t('columns.age'), sortable: true, visible: true },
+  { key: 'phone', label: t('columns.contact'), sortable: false, visible: true },
+  { key: 'parent_name', label: t('columns.parentGuardian'), sortable: true, visible: true },
+  { key: 'status', label: t('columns.status'), sortable: true, visible: true },
+  { key: 'payment_status', label: t('columns.payment'), sortable: true, visible: true },
+  { key: 'current_level', label: t('columns.level'), sortable: true, visible: true },
+  { key: 'enrolled_groups', label: t('columns.groups'), sortable: false, visible: true },
+  { key: 'balance', label: t('columns.balance'), sortable: true, visible: true },
+  { key: 'enrollment_date', label: t('columns.enrolled'), sortable: true, visible: true },
   { key: 'actions', label: '', sortable: false, visible: true, width: 'w-12' },
 ]
 
@@ -130,7 +131,8 @@ export function StudentsTable({
   loading = false,
   showArchived = false,
 }: StudentsTableProps) {
-  const [columnConfig, setColumnConfig] = useState<ColumnConfig[]>(defaultColumns)
+  const t = useTranslations('students')
+  const [columnConfig, setColumnConfig] = useState<ColumnConfig[]>(() => getDefaultColumns(t))
   const [tableDensity, setTableDensity] = useState<'comfortable' | 'compact' | 'spacious'>('comfortable')
 
   // Calculate age helper

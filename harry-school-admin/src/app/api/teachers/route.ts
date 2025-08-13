@@ -39,7 +39,8 @@ export const POST = withAuth(async (request: NextRequest) => {
   
   try {
     const validatedData = teacherInsertSchema.parse(body)
-    const teacherService = new TeacherService('teachers', createServerClient)
+    const supabase = await createServerClient()
+    const teacherService = new TeacherService('teachers', () => Promise.resolve(supabase))
     const teacher = await teacherService.create(validatedData)
     
     return NextResponse.json(teacher, { status: 201 })

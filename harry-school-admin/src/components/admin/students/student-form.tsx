@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { useTranslations } from 'next-intl'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { motion } from 'framer-motion'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -87,6 +88,7 @@ export function StudentForm({
   open,
   onOpenChange,
 }: StudentFormProps) {
+  const t = useTranslations('studentForm')
   const [selectedSubjects, setSelectedSubjects] = useState<string[]>(
     student?.preferred_subjects || []
   )
@@ -187,10 +189,10 @@ export function StudentForm({
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
             <User className="h-5 w-5" />
-            <span>{student ? 'Edit Student' : 'Add New Student'}</span>
+            <span>{student ? t('title.edit') : t('title.add')}</span>
           </DialogTitle>
           <DialogDescription>
-            {student ? 'Update student information and enrollment details.' : 'Create a new student profile with complete information.'}
+            {student ? t('description.edit') : t('description.add')}
           </DialogDescription>
         </DialogHeader>
 
@@ -204,11 +206,11 @@ export function StudentForm({
             <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
               <Tabs defaultValue="basic" className="w-full">
                 <TabsList className="grid w-full grid-cols-5">
-                  <TabsTrigger value="basic">Basic Info</TabsTrigger>
-                  <TabsTrigger value="contact">Contact</TabsTrigger>
-                  <TabsTrigger value="academic">Academic</TabsTrigger>
-                  <TabsTrigger value="financial">Financial</TabsTrigger>
-                  <TabsTrigger value="additional">Additional</TabsTrigger>
+                  <TabsTrigger value="basic">{t('tabs.basic')}</TabsTrigger>
+                  <TabsTrigger value="contact">{t('tabs.contact')}</TabsTrigger>
+                  <TabsTrigger value="academic">{t('tabs.academic')}</TabsTrigger>
+                  <TabsTrigger value="financial">{t('tabs.financial')}</TabsTrigger>
+                  <TabsTrigger value="additional">{t('tabs.additional')}</TabsTrigger>
                 </TabsList>
 
                 {/* Basic Information */}

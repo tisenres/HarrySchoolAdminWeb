@@ -80,10 +80,14 @@ export async function middleware(request: NextRequest) {
                      pathname.includes('/sign-in') ||
                      pathname.includes('/forgot-password');
   
-  // Check if it's a locale-only path (dashboard)
+  // Check if it's a locale-only path (dashboard) - this should be protected
   const isDashboard = /^\/[a-z]{2}$/.test(pathname) || pathname === '/';
   
+  // Check if it's any dashboard route that needs protection
+  const isDashboardRoute = /^\/[a-z]{2}(?:\/|$)/.test(pathname) && !pathname.includes('/login') && !pathname.includes('/sign-in') && !pathname.includes('/forgot-password') && !pathname.includes('/maintenance');
+  
   const isProtectedRoute = isDashboard ||
+                          isDashboardRoute ||
                           pathname.includes('/teachers') || 
                           pathname.includes('/students') || 
                           pathname.includes('/groups') ||

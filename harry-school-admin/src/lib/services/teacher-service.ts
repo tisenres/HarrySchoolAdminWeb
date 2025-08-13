@@ -1,11 +1,13 @@
 import { BaseService } from './base-service'
 import { teacherInsertSchema, teacherUpdateSchema, teacherSearchSchema, paginationSchema } from '@/lib/validations'
 import type { Teacher, TeacherInsert } from '@/types/database'
+import type { Database } from '@/types/database.types'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import type { z } from 'zod'
 
 export class TeacherService extends BaseService {
-  constructor() {
-    super('teachers')
+  constructor(tableName: string = 'teachers', supabaseClientProvider?: () => Promise<SupabaseClient<Database>>) {
+    super(tableName as any, supabaseClientProvider)
   }
 
   /**

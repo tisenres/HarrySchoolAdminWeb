@@ -92,15 +92,15 @@ interface ColumnConfig {
   width?: string
 }
 
-const defaultColumns: ColumnConfig[] = [
+const getDefaultColumns = (t: any): ColumnConfig[] => [
   { key: 'select', label: '', sortable: false, visible: true, width: 'w-12' },
-  { key: 'full_name', label: 'Name', sortable: true, visible: true },
-  { key: 'email', label: 'Contact', sortable: false, visible: true },
-  { key: 'employment_status', label: 'Employment', sortable: true, visible: true },
-  { key: 'specializations', label: 'Specializations', sortable: false, visible: true },
-  { key: 'groups_count', label: 'Groups', sortable: false, visible: true },
-  { key: 'students_count', label: 'Students', sortable: false, visible: true },
-  { key: 'is_active', label: 'Status', sortable: true, visible: true },
+  { key: 'full_name', label: t('columns.name'), sortable: true, visible: true },
+  { key: 'email', label: t('columns.contact'), sortable: false, visible: true },
+  { key: 'employment_status', label: t('columns.employment'), sortable: true, visible: true },
+  { key: 'specializations', label: t('columns.specializations'), sortable: false, visible: true },
+  { key: 'groups_count', label: t('columns.groups'), sortable: false, visible: true },
+  { key: 'students_count', label: t('columns.students'), sortable: false, visible: true },
+  { key: 'is_active', label: t('columns.status'), sortable: true, visible: true },
   { key: 'actions', label: '', sortable: false, visible: true, width: 'w-12' },
 ]
 
@@ -126,8 +126,8 @@ export function TeachersTable({
   loading = false,
   showArchived = false,
 }: TeachersTableProps) {
-  const t = useTranslations('common')
-  const [columnConfig, setColumnConfig] = useState<ColumnConfig[]>(defaultColumns)
+  const t = useTranslations('teachersTable')
+  const [columnConfig, setColumnConfig] = useState<ColumnConfig[]>(() => getDefaultColumns(t))
   const [tableDensity, setTableDensity] = useState<'comfortable' | 'compact' | 'spacious'>('comfortable')
 
   // Memoized sorted data

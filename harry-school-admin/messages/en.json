@@ -176,7 +176,20 @@
     "outstandingBalance": "Outstanding Balance",
     "requiresAttention": "requires attention",
     "allPaymentsUpToDate": "all payments up to date",
-    "statusOverview": "Status Overview"
+    "statusOverview": "Status Overview",
+    "columns": {
+      "studentId": "Student ID",
+      "name": "Name",
+      "age": "Age",
+      "contact": "Contact",
+      "parentGuardian": "Parent/Guardian",
+      "status": "Status",
+      "payment": "Payment",
+      "level": "Level",
+      "groups": "Groups",
+      "balance": "Balance",
+      "enrolled": "Enrolled"
+    }
   },
   "groups": {
     "title": "Groups",
@@ -583,6 +596,121 @@
       },
       "actions": "Actions",
       "viewProfile": "View Profile"
+    },
+    "groupsTable": {
+      "columns": {
+        "groupName": "Group Name",
+        "code": "Code",
+        "subject": "Subject",
+        "level": "Level",
+        "teacher": "Teacher",
+        "enrollment": "Enrollment",
+        "schedule": "Schedule",
+        "status": "Status",
+        "startDate": "Start Date"
+      }
+    },
+    "studentForm": {
+      "title": {
+        "add": "Add New Student",
+        "edit": "Edit Student"
+      },
+      "description": {
+        "add": "Create a new student profile with complete information.",
+        "edit": "Update student information and enrollment details."
+      },
+      "tabs": {
+        "basic": "Basic Info",
+        "contact": "Contact",
+        "academic": "Academic", 
+        "financial": "Financial",
+        "additional": "Additional"
+      },
+      "sections": {
+        "personalInfo": "Personal Information",
+        "parentInfo": "Parent/Guardian Information",
+        "addressInfo": "Address Information",
+        "emergencyContact": "Emergency Contact",
+        "academicInfo": "Academic Information",
+        "preferredSubjects": "Preferred Subjects",
+        "financialInfo": "Financial Information",
+        "additionalInfo": "Additional Information"
+      },
+      "fields": {
+        "firstName": "First Name",
+        "lastName": "Last Name", 
+        "dateOfBirth": "Date of Birth",
+        "gender": "Gender",
+        "phoneNumber": "Phone Number",
+        "email": "Email",
+        "emailOptional": "Email (Optional)",
+        "parentName": "Parent/Guardian Name",
+        "parentPhone": "Parent Phone",
+        "parentEmail": "Parent Email",
+        "parentEmailOptional": "Parent Email (Optional)",
+        "streetAddress": "Street Address",
+        "city": "City",
+        "region": "Region",
+        "postalCode": "Postal Code",
+        "country": "Country",
+        "emergencyContactName": "Emergency Contact Name", 
+        "relationship": "Relationship",
+        "emergencyContactPhone": "Emergency Contact Phone",
+        "emergencyContactEmail": "Emergency Contact Email",
+        "enrollmentDate": "Enrollment Date",
+        "status": "Status",
+        "currentLevel": "Current Level",
+        "academicYear": "Academic Year",
+        "gradeLevel": "Grade Level",
+        "paymentStatus": "Payment Status",
+        "tuitionFee": "Tuition Fee (UZS)",
+        "outstandingBalance": "Outstanding Balance (UZS)",
+        "medicalNotes": "Medical Notes",
+        "generalNotes": "General Notes"
+      },
+      "placeholders": {
+        "firstName": "Enter first name",
+        "lastName": "Enter last name",
+        "selectGender": "Select gender",
+        "phoneNumber": "+998901234567",
+        "email": "student@example.com",
+        "parentName": "Enter parent name",
+        "parentPhone": "+998901234567", 
+        "parentEmail": "parent@example.com",
+        "streetAddress": "Enter street address",
+        "city": "Enter city",
+        "selectRegion": "Select region",
+        "postalCode": "Enter postal code",
+        "country": "Enter country",
+        "emergencyName": "Enter emergency contact name",
+        "selectRelationship": "Select relationship",
+        "emergencyPhone": "+998901234567",
+        "emergencyEmail": "emergency@example.com",
+        "selectStatus": "Select status",
+        "selectLevel": "Select current level",
+        "academicYear": "2024-2025",
+        "gradeLevel": "Enter grade level",
+        "selectPaymentStatus": "Select payment status",
+        "tuitionFee": "500000",
+        "balance": "0",
+        "medicalNotes": "Any medical conditions, allergies, or special requirements...",
+        "generalNotes": "Any additional notes about the student..."
+      },
+      "options": {
+        "male": "Male",
+        "female": "Female", 
+        "other": "Other",
+        "paid": "Paid",
+        "pending": "Pending",
+        "overdue": "Overdue",
+        "partial": "Partial"
+      },
+      "buttons": {
+        "cancel": "Cancel",
+        "createStudent": "Create Student",
+        "updateStudent": "Update Student"
+      },
+      "required": "*"
     },
     "teacherForm": {
       "validation": {

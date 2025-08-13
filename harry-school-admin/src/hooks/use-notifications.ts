@@ -14,7 +14,13 @@ import type {
   CreateNotificationRequest
 } from '@/types/notification'
 
-const notificationService = new NotificationService()
+// Use mock service when database is not available
+let notificationService: NotificationService | typeof mockNotificationService
+try {
+  notificationService = new NotificationService()
+} catch {
+  notificationService = mockNotificationService
+}
 
 // Query keys
 const QUERY_KEYS = {
@@ -36,7 +42,7 @@ export function useNotifications(filters: NotificationFilters = {}, page: number
   const queryClient = useQueryClient()
   const subscriptionRef = useRef<any>(null)
 
-  // Fetch notifications
+  // Fetch notifications with fallback to mock service
   const {
     data: notificationsData,
     isLoading,
@@ -44,29 +50,50 @@ export function useNotifications(filters: NotificationFilters = {}, page: number
     refetch
   } = useQuery({
     queryKey: QUERY_KEYS.notifications(filters, page),
-    queryFn: () => notificationService.getNotifications(filters, page, limit),
+    queryFn: async () => {
+      try {
+        return await notificationService.getNotifications(filters, page, limit)
+      } catch (error) {
+        console.warn('Using mock notification service:', error)
+        return await mockNotificationService.getNotifications(filters, page, limit)
+      }
+    },
     staleTime: 30000, // 30 seconds
     refetchOnWindowFocus: false
   })
 
-  // Fetch unread count
+  // Fetch unread count with fallback to mock service
   const {
     data: unreadCount = 0,
     refetch: refetchUnreadCount
   } = useQuery({
     queryKey: QUERY_KEYS.unreadCount,
-    queryFn: () => notificationService.getUnreadCount(),
+    queryFn: async () => {
+      try {
+        return await notificationService.getUnreadCount()
+      } catch (error) {
+        console.warn('Using mock notification service for unread count:', error)
+        return await mockNotificationService.getUnreadCount()
+      }
+    },
     refetchInterval: 60000, // Refetch every minute
     refetchOnWindowFocus: true
   })
 
-  // Fetch notification stats
+  // Fetch notification stats with fallback to mock service
   const {
     data: stats,
     refetch: refetchStats
   } = useQuery({
     queryKey: QUERY_KEYS.stats,
-    queryFn: () => notificationService.getStats(),
+    queryFn: async () => {
+      try {
+        return await notificationService.getStats()
+      } catch (error) {
+        console.warn('Using mock notification service for stats:', error)
+        return await mockNotificationService.getStats()
+      }
+    },
     staleTime: 60000 // 1 minute
   })
 

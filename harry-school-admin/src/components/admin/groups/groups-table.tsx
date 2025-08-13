@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import {
   Table,
   TableBody,
@@ -54,6 +55,7 @@ export function GroupsTable({
   onDelete
 }: GroupsTableProps) {
   const router = useRouter()
+  const t = useTranslations('groupsTable')
   const [groups, setGroups] = useState<GroupTableRow[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedIds, setSelectedIds] = useState<string[]>([])
@@ -190,7 +192,7 @@ export function GroupsTable({
                   onClick={() => handleSort('name')}
                   className="h-auto p-0 font-semibold hover:bg-transparent"
                 >
-                  Group Name
+{t('columns.groupName')}
                   {getSortIcon('name')}
                 </Button>
               </TableHead>
@@ -201,7 +203,7 @@ export function GroupsTable({
                   onClick={() => handleSort('group_code')}
                   className="h-auto p-0 font-semibold hover:bg-transparent"
                 >
-                  Code
+{t('columns.code')}
                   {getSortIcon('group_code')}
                 </Button>
               </TableHead>
@@ -212,7 +214,7 @@ export function GroupsTable({
                   onClick={() => handleSort('subject')}
                   className="h-auto p-0 font-semibold hover:bg-transparent"
                 >
-                  Subject
+{t('columns.subject')}
                   {getSortIcon('subject')}
                 </Button>
               </TableHead>
@@ -223,11 +225,11 @@ export function GroupsTable({
                   onClick={() => handleSort('level')}
                   className="h-auto p-0 font-semibold hover:bg-transparent"
                 >
-                  Level
+{t('columns.level')}
                   {getSortIcon('level')}
                 </Button>
               </TableHead>
-              <TableHead>Teacher</TableHead>
+              <TableHead>{t('columns.teacher')}</TableHead>
               <TableHead>
                 <Button
                   variant="ghost"
@@ -235,11 +237,11 @@ export function GroupsTable({
                   onClick={() => handleSort('enrollment_percentage')}
                   className="h-auto p-0 font-semibold hover:bg-transparent"
                 >
-                  Enrollment
+{t('columns.enrollment')}
                   {getSortIcon('enrollment_percentage')}
                 </Button>
               </TableHead>
-              <TableHead>Schedule</TableHead>
+              <TableHead>{t('columns.schedule')}</TableHead>
               <TableHead>
                 <Button
                   variant="ghost"
@@ -247,7 +249,7 @@ export function GroupsTable({
                   onClick={() => handleSort('status')}
                   className="h-auto p-0 font-semibold hover:bg-transparent"
                 >
-                  Status
+{t('columns.status')}
                   {getSortIcon('status')}
                 </Button>
               </TableHead>
@@ -258,7 +260,7 @@ export function GroupsTable({
                   onClick={() => handleSort('start_date')}
                   className="h-auto p-0 font-semibold hover:bg-transparent"
                 >
-                  Start Date
+{t('columns.startDate')}
                   {getSortIcon('start_date')}
                 </Button>
               </TableHead>

@@ -146,9 +146,9 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Only superadmin can view system settings
-    if (profile.role !== 'superadmin') {
-      return NextResponse.json({ error: 'Only superadmin can view system settings' }, { status: 403 })
+    // Only admin and superadmin can view system settings
+    if (!['admin', 'superadmin'].includes(profile.role)) {
+      return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 })
     }
 
     const supabase = await createServerClient()
@@ -176,7 +176,7 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Only superadmin can update system settings
+    // Only superadmin can update system settings (keep this restriction for updates)
     if (profile.role !== 'superadmin') {
       return NextResponse.json({ error: 'Only superadmin can update system settings' }, { status: 403 })
     }

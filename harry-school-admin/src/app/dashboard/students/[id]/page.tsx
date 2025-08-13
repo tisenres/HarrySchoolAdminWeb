@@ -17,7 +17,7 @@ import { StudentProfile } from '@/components/admin/students/student-profile'
 import { StudentForm } from '@/components/admin/students/student-form'
 import { EnrollmentManager } from '@/components/admin/students/enrollment-manager'
 import { PaymentTracker } from '@/components/admin/students/payment-tracker'
-import { mockStudentService } from '@/lib/services/mock-student-service'
+import { StudentService } from '@/lib/services/student-service'
 import { fadeVariants, getAnimationConfig } from '@/lib/animations'
 
 // Mock groups data for enrollment manager
@@ -89,7 +89,8 @@ export default function StudentDetailPage() {
     setLoading(true)
     setError(null)
     try {
-      const studentData = await mockStudentService.getById(studentId)
+      const studentService = new StudentService()
+      const studentData = await studentService.getById(studentId)
       if (studentData) {
         setStudent(studentData)
       } else {
@@ -108,7 +109,8 @@ export default function StudentDetailPage() {
 
     setFormLoading(true)
     try {
-      const updatedStudent = await mockStudentService.update(student.id, data)
+      const studentService = new StudentService()
+      const updatedStudent = await studentService.update(student.id, data)
       setStudent(updatedStudent)
       setIsFormOpen(false)
     } catch (err) {
@@ -124,7 +126,7 @@ export default function StudentDetailPage() {
     try {
       // Simulate enrollment
       const updatedGroups = [...student.groups, groupId]
-      const updatedStudent = await mockStudentService.update(student.id, {
+      const updatedStudent = await new StudentService().update(student.id, {
         groups: updatedGroups
       })
       setStudent(updatedStudent)
@@ -139,7 +141,7 @@ export default function StudentDetailPage() {
     try {
       // Simulate withdrawal
       const updatedGroups = student.groups.filter(id => id !== groupId)
-      const updatedStudent = await mockStudentService.update(student.id, {
+      const updatedStudent = await new StudentService().update(student.id, {
         groups: updatedGroups
       })
       setStudent(updatedStudent)
@@ -158,7 +160,7 @@ export default function StudentDetailPage() {
     if (!student) return
 
     try {
-      const updatedStudent = await mockStudentService.update(student.id, {
+      const updatedStudent = await new StudentService().update(student.id, {
         payment_status: data.payment_status,
         balance: data.balance
       })

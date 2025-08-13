@@ -1,6 +1,8 @@
 'use client'
 
 import { useMemo, useState, useEffect } from 'react'
+import { PaymentService } from '@/lib/services/finance/payments.service'
+import { InvoiceService } from '@/lib/services/finance/invoices.service'
 import {
   ArrowDownRight,
   ArrowUpRight,
@@ -34,10 +36,33 @@ interface FinancialOverviewProps {
 }
 
 export function FinancialOverview({ organizationId }: FinancialOverviewProps) {
-  // Mock data for development - would be replaced with actual API calls
-  const [payments] = useState([])
-  const [invoices] = useState([])
-  const [transactions] = useState([])
+  const [payments, setPayments] = useState<any[]>([])
+  const [invoices, setInvoices] = useState<any[]>([])
+  const [transactions, setTransactions] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const loadFinancialData = async () => {
+      try {
+        setLoading(true)
+        const [paymentsData, invoicesData] = await Promise.all([
+          PaymentService.list({ organizationId }),
+          InvoiceService.list({ organizationId })
+        ])
+        
+        setPayments(paymentsData || [])
+        setInvoices(invoicesData || [])
+        setTransactions([]) // Would load transaction data if available
+      } catch (error) {
+        console.error('Error loading financial data:', error)
+        // Keep empty arrays as fallback
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadFinancialData()
+  }, [organizationId])
   const stats = useMemo(() => {
     const now = new Date()
     const thirtyDaysAgo = new Date(now)

@@ -205,7 +205,20 @@
     "outstandingBalance": "Qarzdorlik",
     "requiresAttention": "e'tibor talab qiladi",
     "allPaymentsUpToDate": "barcha to'lovlar dolzarb",
-    "statusOverview": "Holat ko'rinishi"
+    "statusOverview": "Holat ko'rinishi",
+    "columns": {
+      "studentId": "Talaba ID si",
+      "name": "Ism",
+      "age": "Yosh",
+      "contact": "Aloqa",
+      "parentGuardian": "Ota-ona/Vasiy",
+      "status": "Holat",
+      "payment": "To'lov",
+      "level": "Daraja",
+      "groups": "Guruhlar",
+      "balance": "Balans",
+      "enrolled": "Ro'yxatga olingan"
+    }
   },
   "groups": {
     "title": "Guruhlar",
@@ -556,6 +569,84 @@
       "actions": "Harakatlar",
       "viewProfile": "Profilni ko'rish"
     },
+    "groupsTable": {
+      "columns": {
+        "groupName": "Guruh nomi",
+        "code": "Kod",
+        "subject": "Fan",
+        "level": "Daraja",
+        "teacher": "O'qituvchi",
+        "enrollment": "Ro'yxatga olish",
+        "schedule": "Jadval",
+        "status": "Holat",
+        "startDate": "Boshlanish sanasi"
+      }
+    },
+    "studentForm": {
+      "title": {
+        "add": "Talaba qo'shish",
+        "edit": "Talabani tahrirlash"
+      },
+      "description": {
+        "add": "To'liq ma'lumot bilan yangi talaba profilini yarating.",
+        "edit": "Talaba ma'lumotlari va ro'yxatga olish tafsilotlarini yangilash."
+      },
+      "tabs": {
+        "basic": "Asosiy ma'lumot",
+        "contact": "Aloqa",
+        "academic": "Akademik",
+        "financial": "Moliyaviy",
+        "additional": "Qo'shimcha"
+      },
+      "sections": {
+        "personalInfo": "Shaxsiy ma'lumotlar",
+        "parentInfo": "Ota-ona/Vasiy ma'lumotlari",
+        "addressInfo": "Manzil ma'lumotlari",
+        "emergencyContact": "Favqulodda aloqa",
+        "academicInfo": "Akademik ma'lumotlar",
+        "preferredSubjects": "Afzal fanlar",
+        "financialInfo": "Moliyaviy ma'lumotlar",
+        "additionalInfo": "Qo'shimcha ma'lumotlar"
+      },
+      "fields": {
+        "firstName": "Ism",
+        "lastName": "Familiya",
+        "dateOfBirth": "Tug'ilgan sana",
+        "gender": "Jins",
+        "phoneNumber": "Telefon raqami",
+        "email": "Elektron pochta",
+        "emailOptional": "Elektron pochta (ixtiyoriy)",
+        "parentName": "Ota-ona/Vasiy ismi",
+        "parentPhone": "Ota-ona telefoni",
+        "parentEmail": "Ota-ona elektron pochtasi",
+        "parentEmailOptional": "Ota-ona elektron pochtasi (ixtiyoriy)",
+        "streetAddress": "Ko'cha manzili",
+        "city": "Shahar",
+        "region": "Viloyat",
+        "postalCode": "Pochta indeksi",
+        "country": "Mamlakat",
+        "emergencyContactName": "Favqulodda aloqa ismi",
+        "relationship": "Qarindoshlik",
+        "emergencyContactPhone": "Favqulodda aloqa telefoni",
+        "emergencyContactEmail": "Favqulodda aloqa elektron pochtasi",
+        "enrollmentDate": "Ro'yxatga olingan sana",
+        "status": "Holat",
+        "currentLevel": "Hozirgi daraja",
+        "academicYear": "O'quv yili",
+        "gradeLevel": "Sinf darajasi",
+        "paymentStatus": "To'lov holati",
+        "tuitionFee": "O'qish haqi (UZS)",
+        "outstandingBalance": "To'lanmagan balans (UZS)",
+        "medicalNotes": "Tibbiy eslatmalar",
+        "generalNotes": "Umumiy eslatmalar"
+      },
+      "buttons": {
+        "cancel": "Bekor qilish",
+        "createStudent": "Talaba yaratish",
+        "updateStudent": "Talabani yangilash"
+      },
+      "required": "*"
+    },
     "teacherForm": {
       "validation": {
         "invalidImage": "Iltimos, to'g'ri rasm faylini tanlang",
@@ -710,7 +801,10 @@
       "reminder": "Eslatma",
       "security": "Xavfsizlik",
       "backup": "Zaxira nusxa",
-      "maintenance": "Texnik xizmat"
+      "maintenance": "Texnik xizmat",
+      "schedule": "Jadval",
+      "achievement": "Muvaffaqiyat",
+      "alert": "Ogohlantirish"
     },
     "status": {
       "read": "O'qilgan",
@@ -782,6 +876,8 @@
       "priority": "Muhimlik",
       "high": "Yuqori",
       "medium": "O'rta",
+      "normal": "Oddiy",
+      "urgent": "Shoshilinch",
       "low": "Past"
     },
     "empty": {

@@ -205,7 +205,20 @@
     "outstandingBalance": "Задолженность",
     "requiresAttention": "требует внимания",
     "allPaymentsUpToDate": "все платежи актуальны",
-    "statusOverview": "Обзор статуса"
+    "statusOverview": "Обзор статуса",
+    "columns": {
+      "studentId": "ID студента",
+      "name": "Имя",
+      "age": "Возраст",
+      "contact": "Контакт",
+      "parentGuardian": "Родитель/Опекун",
+      "status": "Статус",
+      "payment": "Оплата",
+      "level": "Уровень",
+      "groups": "Группы",
+      "balance": "Баланс",
+      "enrolled": "Зачислен"
+    }
   },
   "groups": {
     "title": "Группы",
@@ -556,6 +569,121 @@
       "actions": "Действия",
       "viewProfile": "Просмотр профиля"
     },
+    "groupsTable": {
+      "columns": {
+        "groupName": "Название группы",
+        "code": "Код",
+        "subject": "Предмет",
+        "level": "Уровень",
+        "teacher": "Преподаватель",
+        "enrollment": "Зачисление",
+        "schedule": "Расписание",
+        "status": "Статус",
+        "startDate": "Дата начала"
+      }
+    },
+    "studentForm": {
+      "title": {
+        "add": "Добавить студента",
+        "edit": "Редактировать студента"
+      },
+      "description": {
+        "add": "Создать новый профиль студента с полной информацией.",
+        "edit": "Обновить информацию о студенте и записи."
+      },
+      "tabs": {
+        "basic": "Основная инф-я",
+        "contact": "Контакты",
+        "academic": "Академич.",
+        "financial": "Финансы", 
+        "additional": "Дополнительно"
+      },
+      "sections": {
+        "personalInfo": "Личная информация",
+        "parentInfo": "Информация о родителях/опекунах",
+        "addressInfo": "Адресная информация",
+        "emergencyContact": "Экстренный контакт",
+        "academicInfo": "Академическая информация",
+        "preferredSubjects": "Предпочитаемые предметы",
+        "financialInfo": "Финансовая информация", 
+        "additionalInfo": "Дополнительная информация"
+      },
+      "fields": {
+        "firstName": "Имя",
+        "lastName": "Фамилия",
+        "dateOfBirth": "Дата рождения",
+        "gender": "Пол",
+        "phoneNumber": "Номер телефона",
+        "email": "Эл. почта",
+        "emailOptional": "Эл. почта (необязательно)",
+        "parentName": "Имя родителя/опекуна",
+        "parentPhone": "Телефон родителя",
+        "parentEmail": "Эл. почта родителя",
+        "parentEmailOptional": "Эл. почта родителя (необязательно)",
+        "streetAddress": "Адрес улицы",
+        "city": "Город",
+        "region": "Регион",
+        "postalCode": "Почтовый индекс",
+        "country": "Страна",
+        "emergencyContactName": "Имя экстренного контакта",
+        "relationship": "Отношения",
+        "emergencyContactPhone": "Телефон экстренного контакта",
+        "emergencyContactEmail": "Эл. почта экстренного контакта",
+        "enrollmentDate": "Дата зачисления",
+        "status": "Статус",
+        "currentLevel": "Текущий уровень",
+        "academicYear": "Учебный год",
+        "gradeLevel": "Класс",
+        "paymentStatus": "Статус оплаты",
+        "tuitionFee": "Плата за обучение (UZS)",
+        "outstandingBalance": "Непогашенный баланс (UZS)",
+        "medicalNotes": "Медицинские заметки",
+        "generalNotes": "Общие заметки"
+      },
+      "placeholders": {
+        "firstName": "Введите имя",
+        "lastName": "Введите фамилию",
+        "selectGender": "Выберите пол",
+        "phoneNumber": "+998901234567",
+        "email": "student@example.com",
+        "parentName": "Введите имя родителя",
+        "parentPhone": "+998901234567",
+        "parentEmail": "parent@example.com", 
+        "streetAddress": "Введите адрес улицы",
+        "city": "Введите город",
+        "selectRegion": "Выберите регион",
+        "postalCode": "Введите почтовый индекс",
+        "country": "Введите страну",
+        "emergencyName": "Введите имя экстренного контакта",
+        "selectRelationship": "Выберите отношения",
+        "emergencyPhone": "+998901234567",
+        "emergencyEmail": "emergency@example.com",
+        "selectStatus": "Выберите статус",
+        "selectLevel": "Выберите текущий уровень",
+        "academicYear": "2024-2025",
+        "gradeLevel": "Введите класс",
+        "selectPaymentStatus": "Выберите статус оплаты",
+        "tuitionFee": "500000",
+        "balance": "0",
+        "medicalNotes": "Любые медицинские состояния, аллергии или особые требования...",
+        "generalNotes": "Любые дополнительные заметки о студенте..."
+      },
+      "options": {
+        "male": "Мужской",
+        "female": "Женский",
+        "other": "Другой",
+        "paid": "Оплачено",
+        "pending": "В ожидании",
+        "overdue": "Просрочено",
+        "partial": "Частично"
+      },
+      "buttons": {
+        "cancel": "Отмена",
+        "createStudent": "Создать студента",
+        "updateStudent": "Обновить студента"
+      },
+      "required": "*"
+    },
     "teacherForm": {
       "validation": {
         "invalidImage": "Пожалуйста, выберите допустимый файл изображения",
@@ -710,7 +838,10 @@
       "reminder": "Напоминание",
       "security": "Безопасность",
       "backup": "Резервная копия",
-      "maintenance": "Обслуживание"
+      "maintenance": "Обслуживание",
+      "schedule": "Расписание",
+      "achievement": "Достижение",
+      "alert": "Оповещение"
     },
     "status": {
       "read": "Прочитано",
@@ -782,6 +913,8 @@
       "priority": "Приоритет",
       "high": "Высокий",
       "medium": "Средний",
+      "normal": "Обычный",
+      "urgent": "Срочный",
       "low": "Низкий"
     },
     "empty": {
