@@ -96,10 +96,7 @@ export function UserManagement() {
       const response = await fetch('/api/settings/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'invite',
-          ...newUser,
-        }),
+        body: JSON.stringify(newUser),
       })
 
       if (!response.ok) {

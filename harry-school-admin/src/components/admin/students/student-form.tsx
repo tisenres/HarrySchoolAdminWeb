@@ -219,7 +219,7 @@ export function StudentForm({
                     <CardHeader>
                       <CardTitle className="flex items-center space-x-2">
                         <User className="h-4 w-4" />
-                        <span>Personal Information</span>
+                        <span>{t('sections.personalInfo')}</span>
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
@@ -229,9 +229,9 @@ export function StudentForm({
                           name="first_name"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>First Name *</FormLabel>
+                              <FormLabel>{t('fields.firstName')} {t('required')}</FormLabel>
                               <FormControl>
-                                <Input placeholder="Enter first name" {...field} />
+                                <Input placeholder={t('placeholders.firstName')} {...field} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -243,9 +243,9 @@ export function StudentForm({
                           name="last_name"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Last Name *</FormLabel>
+                              <FormLabel>{t('fields.lastName')} {t('required')}</FormLabel>
                               <FormControl>
-                                <Input placeholder="Enter last name" {...field} />
+                                <Input placeholder={t('placeholders.lastName')} {...field} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -257,7 +257,7 @@ export function StudentForm({
                           name="date_of_birth"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Date of Birth *</FormLabel>
+                              <FormLabel>{t('fields.dateOfBirth')} {t('required')}</FormLabel>
                               <FormControl>
                                 <Input type="date" {...field} />
                               </FormControl>
@@ -271,17 +271,17 @@ export function StudentForm({
                           name="gender"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Gender *</FormLabel>
+                              <FormLabel>{t('fields.gender')} {t('required')}</FormLabel>
                               <Select onValueChange={field.onChange} defaultValue={field.value}>
                                 <FormControl>
                                   <SelectTrigger>
-                                    <SelectValue placeholder="Select gender" />
+                                    <SelectValue placeholder={t('placeholders.selectGender')} />
                                   </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
-                                  <SelectItem value="male">Male</SelectItem>
-                                  <SelectItem value="female">Female</SelectItem>
-                                  <SelectItem value="other">Other</SelectItem>
+                                  <SelectItem value="male">{t('options.male')}</SelectItem>
+                                  <SelectItem value="female">{t('options.female')}</SelectItem>
+                                  <SelectItem value="other">{t('options.other')}</SelectItem>
                                 </SelectContent>
                               </Select>
                               <FormMessage />
@@ -294,7 +294,7 @@ export function StudentForm({
                           name="phone"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Phone Number *</FormLabel>
+                              <FormLabel>{t('fields.phoneNumber')} {t('required')}</FormLabel>
                               <FormControl>
                                 <Input placeholder="+998901234567" {...field} />
                               </FormControl>
@@ -308,9 +308,9 @@ export function StudentForm({
                           name="email"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Email (Optional)</FormLabel>
+                              <FormLabel>{t('fields.emailOptional')}</FormLabel>
                               <FormControl>
-                                <Input type="email" placeholder="student@example.com" {...field} />
+                                <Input type="email" placeholder={t('placeholders.email')} {...field} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -327,7 +327,7 @@ export function StudentForm({
                     <CardHeader>
                       <CardTitle className="flex items-center space-x-2">
                         <Users className="h-4 w-4" />
-                        <span>Parent/Guardian Information</span>
+                        <span>{t('sections.parentInfo')}</span>
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
@@ -337,9 +337,9 @@ export function StudentForm({
                           name="parent_name"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Parent/Guardian Name *</FormLabel>
+                              <FormLabel>{t('fields.parentName')} {t('required')}</FormLabel>
                               <FormControl>
-                                <Input placeholder="Enter parent name" {...field} />
+                                <Input placeholder={t('placeholders.parentName')} {...field} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -351,7 +351,7 @@ export function StudentForm({
                           name="parent_phone"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Parent Phone *</FormLabel>
+                              <FormLabel>{t('fields.parentPhone')} {t('required')}</FormLabel>
                               <FormControl>
                                 <Input placeholder="+998901234567" {...field} />
                               </FormControl>
@@ -365,7 +365,7 @@ export function StudentForm({
                           name="parent_email"
                           render={({ field }) => (
                             <FormItem className="md:col-span-2">
-                              <FormLabel>Parent Email (Optional)</FormLabel>
+                              <FormLabel>{t('fields.parentEmailOptional')}</FormLabel>
                               <FormControl>
                                 <Input type="email" placeholder="parent@example.com" {...field} />
                               </FormControl>
@@ -381,7 +381,7 @@ export function StudentForm({
                     <CardHeader>
                       <CardTitle className="flex items-center space-x-2">
                         <MapPin className="h-4 w-4" />
-                        <span>Address Information</span>
+                        <span>{t('sections.addressInfo')}</span>
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
@@ -391,9 +391,9 @@ export function StudentForm({
                           name="address.street"
                           render={({ field }) => (
                             <FormItem className="md:col-span-2">
-                              <FormLabel>Street Address *</FormLabel>
+                              <FormLabel>{t('fields.streetAddress')} {t('required')}</FormLabel>
                               <FormControl>
-                                <Input placeholder="Enter street address" {...field} />
+                                <Input placeholder={t('placeholders.streetAddress')} {...field} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -405,9 +405,9 @@ export function StudentForm({
                           name="address.city"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>City *</FormLabel>
+                              <FormLabel>{t('fields.city')} {t('required')}</FormLabel>
                               <FormControl>
-                                <Input placeholder="Enter city" {...field} />
+                                <Input placeholder={t('placeholders.city')} {...field} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -419,11 +419,11 @@ export function StudentForm({
                           name="address.region"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Region *</FormLabel>
+                              <FormLabel>{t('fields.region')} {t('required')}</FormLabel>
                               <Select onValueChange={field.onChange} defaultValue={field.value}>
                                 <FormControl>
                                   <SelectTrigger>
-                                    <SelectValue placeholder="Select region" />
+                                    <SelectValue placeholder={t('placeholders.selectRegion')} />
                                   </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
@@ -444,9 +444,9 @@ export function StudentForm({
                           name="address.postal_code"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Postal Code</FormLabel>
+                              <FormLabel>{t('fields.postalCode')}</FormLabel>
                               <FormControl>
-                                <Input placeholder="Enter postal code" {...field} />
+                                <Input placeholder={t('placeholders.postalCode')} {...field} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -458,7 +458,7 @@ export function StudentForm({
                           name="address.country"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Country *</FormLabel>
+                              <FormLabel>{t('fields.country')} {t('required')}</FormLabel>
                               <FormControl>
                                 <Input {...field} disabled />
                               </FormControl>
@@ -474,7 +474,7 @@ export function StudentForm({
                     <CardHeader>
                       <CardTitle className="flex items-center space-x-2">
                         <AlertTriangle className="h-4 w-4" />
-                        <span>Emergency Contact</span>
+                        <span>{t('sections.emergencyContact')}</span>
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
@@ -484,9 +484,9 @@ export function StudentForm({
                           name="emergency_contact.name"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Emergency Contact Name *</FormLabel>
+                              <FormLabel>{t('fields.emergencyContactName')} {t('required')}</FormLabel>
                               <FormControl>
-                                <Input placeholder="Enter contact name" {...field} />
+                                <Input placeholder={t('placeholders.emergencyName')} {...field} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -498,11 +498,11 @@ export function StudentForm({
                           name="emergency_contact.relationship"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Relationship *</FormLabel>
+                              <FormLabel>{t('fields.relationship')} {t('required')}</FormLabel>
                               <Select onValueChange={field.onChange} defaultValue={field.value}>
                                 <FormControl>
                                   <SelectTrigger>
-                                    <SelectValue placeholder="Select relationship" />
+                                    <SelectValue placeholder={t('placeholders.selectRelationship')} />
                                   </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
@@ -523,7 +523,7 @@ export function StudentForm({
                           name="emergency_contact.phone"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Emergency Contact Phone *</FormLabel>
+                              <FormLabel>{t('fields.emergencyContactPhone')} {t('required')}</FormLabel>
                               <FormControl>
                                 <Input placeholder="+998901234567" {...field} />
                               </FormControl>
@@ -537,7 +537,7 @@ export function StudentForm({
                           name="emergency_contact.email"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Emergency Contact Email</FormLabel>
+                              <FormLabel>{t('fields.emergencyContactEmail')}</FormLabel>
                               <FormControl>
                                 <Input type="email" placeholder="emergency@example.com" {...field} />
                               </FormControl>
@@ -556,7 +556,7 @@ export function StudentForm({
                     <CardHeader>
                       <CardTitle className="flex items-center space-x-2">
                         <Calendar className="h-4 w-4" />
-                        <span>Enrollment Details</span>
+                        <span>{t('sections.academicInfo')}</span>
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
@@ -566,7 +566,7 @@ export function StudentForm({
                           name="enrollment_date"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Enrollment Date *</FormLabel>
+                              <FormLabel>{t('fields.enrollmentDate')} {t('required')}</FormLabel>
                               <FormControl>
                                 <Input type="date" {...field} />
                               </FormControl>
@@ -580,11 +580,11 @@ export function StudentForm({
                           name="status"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Status *</FormLabel>
+                              <FormLabel>{t('fields.status')} {t('required')}</FormLabel>
                               <Select onValueChange={field.onChange} defaultValue={field.value}>
                                 <FormControl>
                                   <SelectTrigger>
-                                    <SelectValue placeholder="Select status" />
+                                    <SelectValue placeholder={t('placeholders.selectStatus')} />
                                   </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
@@ -605,11 +605,11 @@ export function StudentForm({
                           name="current_level"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Current Level *</FormLabel>
+                              <FormLabel>{t('fields.currentLevel')} {t('required')}</FormLabel>
                               <Select onValueChange={field.onChange} defaultValue={field.value}>
                                 <FormControl>
                                   <SelectTrigger>
-                                    <SelectValue placeholder="Select level" />
+                                    <SelectValue placeholder={t('placeholders.selectLevel')} />
                                   </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
@@ -630,9 +630,9 @@ export function StudentForm({
                           name="academic_year"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Academic Year</FormLabel>
+                              <FormLabel>{t('fields.academicYear')}</FormLabel>
                               <FormControl>
-                                <Input placeholder="2024-2025" {...field} />
+                                <Input placeholder={t('placeholders.academicYear')} {...field} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -645,7 +645,7 @@ export function StudentForm({
                         name="grade_level"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Grade Level</FormLabel>
+                            <FormLabel>{t('fields.gradeLevel')}</FormLabel>
                             <FormControl>
                               <Input placeholder="Enter grade level (if applicable)" {...field} />
                             </FormControl>
@@ -693,7 +693,7 @@ export function StudentForm({
                     <CardHeader>
                       <CardTitle className="flex items-center space-x-2">
                         <CreditCard className="h-4 w-4" />
-                        <span>Payment Information</span>
+                        <span>{t('sections.financialInfo')}</span>
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
@@ -703,18 +703,18 @@ export function StudentForm({
                           name="payment_status"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Payment Status *</FormLabel>
+                              <FormLabel>{t('fields.paymentStatus')} {t('required')}</FormLabel>
                               <Select onValueChange={field.onChange} defaultValue={field.value}>
                                 <FormControl>
                                   <SelectTrigger>
-                                    <SelectValue placeholder="Select payment status" />
+                                    <SelectValue placeholder={t('placeholders.selectPaymentStatus')} />
                                   </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
-                                  <SelectItem value="paid">Paid</SelectItem>
-                                  <SelectItem value="pending">Pending</SelectItem>
-                                  <SelectItem value="overdue">Overdue</SelectItem>
-                                  <SelectItem value="partial">Partial</SelectItem>
+                                  <SelectItem value="paid">{t('options.paid')}</SelectItem>
+                                  <SelectItem value="pending">{t('options.pending')}</SelectItem>
+                                  <SelectItem value="overdue">{t('options.overdue')}</SelectItem>
+                                  <SelectItem value="partial">{t('options.partial')}</SelectItem>
                                 </SelectContent>
                               </Select>
                               <FormMessage />
@@ -727,11 +727,11 @@ export function StudentForm({
                           name="tuition_fee"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Tuition Fee (UZS)</FormLabel>
+                              <FormLabel>{t('fields.tuitionFee')}</FormLabel>
                               <FormControl>
                                 <Input 
                                   type="number" 
-                                  placeholder="500000" 
+                                  placeholder={t('placeholders.tuitionFee')} 
                                   {...field}
                                   onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : 0)}
                                 />
@@ -746,11 +746,11 @@ export function StudentForm({
                           name="balance"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Outstanding Balance (UZS)</FormLabel>
+                              <FormLabel>{t('fields.outstandingBalance')}</FormLabel>
                               <FormControl>
                                 <Input 
                                   type="number" 
-                                  placeholder="0" 
+                                  placeholder={t('placeholders.balance')} 
                                   {...field}
                                   onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : 0)}
                                 />
@@ -770,7 +770,7 @@ export function StudentForm({
                     <CardHeader>
                       <CardTitle className="flex items-center space-x-2">
                         <FileText className="h-4 w-4" />
-                        <span>Additional Information</span>
+                        <span>{t('sections.additionalInfo')}</span>
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
@@ -779,10 +779,10 @@ export function StudentForm({
                         name="medical_notes"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Medical Notes</FormLabel>
+                            <FormLabel>{t('fields.medicalNotes')}</FormLabel>
                             <FormControl>
                               <Textarea 
-                                placeholder="Any medical conditions, allergies, or special requirements..."
+                                placeholder={t('placeholders.medicalNotes')}
                                 className="min-h-[100px]"
                                 {...field}
                               />
@@ -797,10 +797,10 @@ export function StudentForm({
                         name="notes"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>General Notes</FormLabel>
+                            <FormLabel>{t('fields.generalNotes')}</FormLabel>
                             <FormControl>
                               <Textarea 
-                                placeholder="Any additional notes about the student..."
+                                placeholder={t('placeholders.generalNotes')}
                                 className="min-h-[100px]"
                                 {...field}
                               />
@@ -822,7 +822,7 @@ export function StudentForm({
                   onClick={() => onOpenChange(false)}
                   disabled={loading}
                 >
-                  Cancel
+                  {t('buttons.cancel')}
                 </Button>
                 <Button
                   type="submit"
@@ -831,7 +831,7 @@ export function StudentForm({
                 >
                   {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   <Save className="mr-2 h-4 w-4" />
-                  {student ? 'Update Student' : 'Create Student'}
+                  {student ? t('buttons.updateStudent') : t('buttons.createStudent')}
                 </Button>
               </div>
             </form>

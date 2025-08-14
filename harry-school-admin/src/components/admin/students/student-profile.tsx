@@ -25,10 +25,12 @@ import {
   TrendingUp,
   Activity,
   DollarSign,
+  Trophy,
 } from 'lucide-react'
 import type { Student } from '@/types/student'
 import { ClientOnly } from '@/components/ui/client-only'
 import { fadeVariants } from '@/lib/animations'
+import { StudentRankingTab } from './ranking/student-ranking-tab'
 
 interface StudentProfileProps {
   student: Student
@@ -168,8 +170,12 @@ export function StudentProfile({
 
       {/* Tabs Content */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="ranking" className="flex items-center space-x-2">
+            <Trophy className="h-4 w-4" />
+            <span>Ranking</span>
+          </TabsTrigger>
           <TabsTrigger value="contact">Contact</TabsTrigger>
           <TabsTrigger value="academic">Academic</TabsTrigger>
           <TabsTrigger value="financial">Financial</TabsTrigger>
@@ -277,6 +283,11 @@ export function StudentProfile({
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* Ranking Tab */}
+        <TabsContent value="ranking" className="space-y-6">
+          <StudentRankingTab student={student} />
         </TabsContent>
 
         {/* Contact Tab */}

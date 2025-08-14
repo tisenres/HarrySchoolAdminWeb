@@ -1,0 +1,5 @@
+export { PointsManagementInterface } from './points-management-interface'
+export { PointsManagementDashboard } from './points-management-dashboard'
+export { BulkPointsOperations } from './bulk-points-operations'
+export { PointsApprovalQueue } from './points-approval-queue'
+export { PointsAnalyticsDashboard } from './points-analytics-dashboard'

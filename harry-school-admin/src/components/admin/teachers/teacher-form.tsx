@@ -83,7 +83,7 @@ export function TeacherForm({
   isLoading = false,
   mode = teacher ? 'edit' : 'create'
 }: TeacherFormProps) {
-  const t = useTranslations('teachers')
+  const t = useTranslations('teacherForm')
   const tCommon = useTranslations('common')
   const tForms = useTranslations('forms')
   const [newSpecialization, setNewSpecialization] = useState('')
@@ -156,13 +156,13 @@ export function TeacherForm({
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      alert('Please select a valid image file')
+      alert(t('alerts.selectValidImage'))
       return
     }
 
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      alert('File size must be less than 5MB')
+      alert(t('alerts.fileSizeLimit'))
       return
     }
 
@@ -273,15 +273,15 @@ export function TeacherForm({
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>Unsaved Changes</AlertDialogTitle>
+                <AlertDialogTitle>{t('alerts.unsavedChanges')}</AlertDialogTitle>
                 <AlertDialogDescription>
-                  You have unsaved changes. Are you sure you want to leave? Your changes will be lost.
+                  {t('alerts.unsavedChangesDescription')}
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>Continue Editing</AlertDialogCancel>
+                <AlertDialogCancel>{t('actions.continueEditing')}</AlertDialogCancel>
                 <AlertDialogAction onClick={onCancel} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                  Leave Without Saving
+                  {t('actions.leaveWithoutSaving')}
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
@@ -289,12 +289,12 @@ export function TeacherForm({
 
           <div>
             <h1 className="text-3xl font-bold">
-              {mode === 'edit' ? 'Edit Teacher' : 'Add New Teacher'}
+              {mode === 'edit' ? t('title.edit') : t('title.create')}
             </h1>
             <p className="text-muted-foreground mt-1">
               {mode === 'edit' 
-                ? 'Update teacher information and assignments'
-                : 'Create a comprehensive teacher profile'
+                ? t('description.edit')
+                : t('description.create')
               }
             </p>
           </div>
@@ -303,20 +303,20 @@ export function TeacherForm({
         <div className="flex items-center gap-4">
           {/* Form Progress */}
           <div className="flex items-center gap-2">
-            <span className="text-sm font-medium">{formProgress}% Complete</span>
+            <span className="text-sm font-medium">{formProgress}% {t('progress.complete')}</span>
             <Progress value={formProgress} className="w-20" />
           </div>
 
           <div className="flex items-center gap-2">
             <Button type="button" variant="outline" onClick={handleCancel}>
-              Cancel
+              {t('actions.cancel')}
             </Button>
             <Button 
               onClick={form.handleSubmit(handleSubmit)} 
               disabled={isLoading || !form.formState.isValid}
             >
               <Save className="h-4 w-4 mr-2" />
-              {isLoading ? 'Saving...' : mode === 'edit' ? 'Update Teacher' : 'Create Teacher'}
+              {isLoading ? t('actions.saving') : mode === 'edit' ? t('actions.updateTeacher') : t('actions.createTeacher')}
             </Button>
           </div>
         </div>
@@ -328,7 +328,7 @@ export function TeacherForm({
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Camera className="h-5 w-5" />
-              Profile Photo
+              {t('sections.profilePhoto')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -369,10 +369,10 @@ export function TeacherForm({
                     disabled={isLoading}
                   >
                     <Upload className="h-4 w-4 mr-2" />
-                    Upload Photo
+                    {t('buttons.uploadPhoto')}
                   </Button>
                   <span className="text-sm text-muted-foreground">
-                    JPG, PNG up to 5MB
+                    {t('messages.jpgPngUpTo5mb')}
                   </span>
                 </div>
                 <input
@@ -393,18 +393,18 @@ export function TeacherForm({
         {/* Basic Information */}
         <Card>
           <CardHeader>
-            <CardTitle>Basic Information</CardTitle>
+            <CardTitle>{t('sections.basicInformation')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="first_name">
-                  First Name <span className="text-red-500">*</span>
+                  {t('fields.firstName')} <span className="text-red-500">{t('required')}</span>
                 </Label>
                 <Input
                   id="first_name"
                   {...form.register('first_name')}
-                  placeholder="Enter first name"
+                  placeholder={t('placeholders.enterFirstName')}
                   className={form.formState.errors.first_name ? 'border-red-500' : ''}
                 />
                 {form.formState.errors.first_name && (
@@ -417,12 +417,12 @@ export function TeacherForm({
 
               <div>
                 <Label htmlFor="last_name">
-                  Last Name <span className="text-red-500">*</span>
+                  {t('fields.lastName')} <span className="text-red-500">{t('required')}</span>
                 </Label>
                 <Input
                   id="last_name"
                   {...form.register('last_name')}
-                  placeholder="Enter last name"
+                  placeholder={t('placeholders.enterLastName')}
                   className={form.formState.errors.last_name ? 'border-red-500' : ''}
                 />
                 {form.formState.errors.last_name && (
@@ -436,12 +436,12 @@ export function TeacherForm({
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="email">Email Address</Label>
+                <Label htmlFor="email">{t('fields.emailAddress')}</Label>
                 <Input
                   id="email"
                   type="email"
                   {...form.register('email')}
-                  placeholder="teacher@harryschool.uz"
+                  placeholder={t('placeholders.teacherEmail')}
                   className={form.formState.errors.email ? 'border-red-500' : ''}
                 />
                 {form.formState.errors.email && (
@@ -454,12 +454,12 @@ export function TeacherForm({
 
               <div>
                 <Label htmlFor="phone">
-                  Phone Number <span className="text-red-500">*</span>
+                  {t('fields.phoneNumber')} <span className="text-red-500">{t('required')}</span>
                 </Label>
                 <Input
                   id="phone"
                   {...form.register('phone')}
-                  placeholder="+998901234567"
+                  placeholder={t('placeholders.phoneNumber')}
                   className={form.formState.errors.phone ? 'border-red-500' : ''}
                 />
                 {form.formState.errors.phone && (
@@ -473,7 +473,7 @@ export function TeacherForm({
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <Label htmlFor="date_of_birth">Date of Birth</Label>
+                <Label htmlFor="date_of_birth">{t('fields.dateOfBirth')}</Label>
                 <Input
                   id="date_of_birth"
                   type="date"
@@ -483,28 +483,28 @@ export function TeacherForm({
               </div>
 
               <div>
-                <Label htmlFor="gender">Gender</Label>
+                <Label htmlFor="gender">{t('fields.gender')}</Label>
                 <Select
                   value={form.watch('gender') || ''}
                   onValueChange={(value) => form.setValue('gender', value as any, { shouldDirty: true })}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select gender" />
+                    <SelectValue placeholder={t('placeholders.selectGender')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="male">Male</SelectItem>
-                    <SelectItem value="female">Female</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
+                    <SelectItem value="male">{t('options.male')}</SelectItem>
+                    <SelectItem value="female">{t('options.female')}</SelectItem>
+                    <SelectItem value="other">{t('options.other')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div>
-                <Label htmlFor="employee_id">Employee ID</Label>
+                <Label htmlFor="employee_id">{t('fields.employeeId')}</Label>
                 <Input
                   id="employee_id"
                   {...form.register('employee_id')}
-                  placeholder="HS2024001"
+                  placeholder={t('placeholders.employeeId')}
                 />
               </div>
             </div>
@@ -514,13 +514,13 @@ export function TeacherForm({
         {/* Professional Information */}
         <Card>
           <CardHeader>
-            <CardTitle>Professional Information</CardTitle>
+            <CardTitle>{t('sections.professionalInformation')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <Label htmlFor="hire_date">
-                  Hire Date <span className="text-red-500">*</span>
+                  {t('fields.hireDate')} <span className="text-red-500">{t('required')}</span>
                 </Label>
                 <Input
                   id="hire_date"
@@ -537,7 +537,7 @@ export function TeacherForm({
               </div>
 
               <div>
-                <Label htmlFor="employment_status">Employment Status</Label>
+                <Label htmlFor="employment_status">{t('fields.employmentStatus')}</Label>
                 <Select
                   value={form.watch('employment_status')}
                   onValueChange={(value) => form.setValue('employment_status', value as any, { shouldDirty: true })}
@@ -546,28 +546,28 @@ export function TeacherForm({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="inactive">Inactive</SelectItem>
-                    <SelectItem value="on_leave">On Leave</SelectItem>
-                    <SelectItem value="terminated">Terminated</SelectItem>
+                    <SelectItem value="active">{t('options.active')}</SelectItem>
+                    <SelectItem value="inactive">{t('options.inactive')}</SelectItem>
+                    <SelectItem value="on_leave">{t('options.onLeave')}</SelectItem>
+                    <SelectItem value="terminated">{t('options.terminated')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div>
-                <Label htmlFor="contract_type">Contract Type</Label>
+                <Label htmlFor="contract_type">{t('fields.contractType')}</Label>
                 <Select
                   value={form.watch('contract_type') || ''}
                   onValueChange={(value) => form.setValue('contract_type', value as any, { shouldDirty: true })}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select contract type" />
+                    <SelectValue placeholder={t('placeholders.selectContractType')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="full_time">Full Time</SelectItem>
-                    <SelectItem value="part_time">Part Time</SelectItem>
-                    <SelectItem value="contract">Contract</SelectItem>
-                    <SelectItem value="substitute">Substitute</SelectItem>
+                    <SelectItem value="full_time">{t('options.fullTime')}</SelectItem>
+                    <SelectItem value="part_time">{t('options.partTime')}</SelectItem>
+                    <SelectItem value="contract">{t('options.contract')}</SelectItem>
+                    <SelectItem value="substitute">{t('options.substitute')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -576,7 +576,7 @@ export function TeacherForm({
             {/* Salary Information */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <Label>Salary Information</Label>
+                <Label>{t('sections.salaryInformation')}</Label>
                 <Button
                   type="button"
                   variant="ghost"
@@ -585,26 +585,26 @@ export function TeacherForm({
                   className="gap-2"
                 >
                   {showSalary ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  {showSalary ? 'Hide' : 'Show'} Salary
+                  {showSalary ? t('buttons.hideSalary') : t('buttons.showSalary')}
                 </Button>
               </div>
               
               {showSalary && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-muted/20 rounded-lg">
                   <div>
-                    <Label htmlFor="salary_amount">Salary Amount</Label>
+                    <Label htmlFor="salary_amount">{t('fields.salaryAmount')}</Label>
                     <Input
                       id="salary_amount"
                       type="number"
                       {...form.register('salary_amount', { valueAsNumber: true })}
-                      placeholder="8000000"
+                      placeholder={t('placeholders.salaryAmount')}
                       min="0"
                       step="100000"
                     />
                   </div>
 
                   <div>
-                    <Label htmlFor="salary_currency">Currency</Label>
+                    <Label htmlFor="salary_currency">{t('fields.currency')}</Label>
                     <Select
                       value={form.watch('salary_currency')}
                       onValueChange={(value) => form.setValue('salary_currency', value, { shouldDirty: true })}
@@ -613,9 +613,9 @@ export function TeacherForm({
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="UZS">UZS - Uzbek Som</SelectItem>
-                        <SelectItem value="USD">USD - US Dollar</SelectItem>
-                        <SelectItem value="EUR">EUR - Euro</SelectItem>
+                        <SelectItem value="UZS">{t('options.uzs')}</SelectItem>
+                        <SelectItem value="USD">{t('options.usd')}</SelectItem>
+                        <SelectItem value="EUR">{t('options.eur')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -630,7 +630,7 @@ export function TeacherForm({
                 checked={form.watch('is_active')}
                 onCheckedChange={(checked) => form.setValue('is_active', checked, { shouldDirty: true })}
               />
-              <Label htmlFor="is_active">Active Teacher</Label>
+              <Label htmlFor="is_active">{t('fields.activeTeacher')}</Label>
             </div>
           </CardContent>
         </Card>
@@ -638,12 +638,12 @@ export function TeacherForm({
         {/* Specializations & Languages */}
         <Card>
           <CardHeader>
-            <CardTitle>Specializations & Languages</CardTitle>
+            <CardTitle>{t('sections.specializationsLanguages')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Specializations */}
             <div>
-              <Label>Teaching Specializations</Label>
+              <Label>{t('fields.teachingSpecializations')}</Label>
               <div className="space-y-4">
                 <div className="flex flex-wrap gap-2">
                   {form.watch('specializations').map((spec, index) => (
@@ -690,7 +690,7 @@ export function TeacherForm({
                   <Input
                     value={newSpecialization}
                     onChange={(e) => setNewSpecialization(e.target.value)}
-                    placeholder="Add custom specialization"
+                    placeholder={t('placeholders.addCustomSpecialization')}
                     onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addSpecialization())}
                   />
                   <Button type="button" onClick={addSpecialization} disabled={!newSpecialization.trim()}>
@@ -704,7 +704,7 @@ export function TeacherForm({
 
             {/* Languages */}
             <div>
-              <Label>Languages Spoken</Label>
+              <Label>{t('fields.languagesSpoken')}</Label>
               <div className="space-y-4">
                 <div className="flex flex-wrap gap-2">
                   {form.watch('languages_spoken').map((lang, index) => (
@@ -725,7 +725,7 @@ export function TeacherForm({
 
                 <Select onValueChange={addLanguage}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Add language" />
+                    <SelectValue placeholder={t('placeholders.addLanguage')} />
                   </SelectTrigger>
                   <SelectContent>
                     {languageOptions
@@ -745,13 +745,13 @@ export function TeacherForm({
         {/* Qualifications */}
         <Card>
           <CardHeader>
-            <CardTitle>Education & Qualifications</CardTitle>
+            <CardTitle>{t('sections.educationQualifications')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             {_qualificationFields.map((field, index) => (
               <div key={field.id} className="space-y-4 p-4 border rounded-lg bg-muted/20">
                 <div className="flex items-center justify-between">
-                  <h4 className="font-medium">Qualification {index + 1}</h4>
+                  <h4 className="font-medium">{t('fields.qualification')} {index + 1}</h4>
                   <Button
                     type="button"
                     variant="ghost"
@@ -765,44 +765,44 @@ export function TeacherForm({
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label>Degree <span className="text-red-500">*</span></Label>
+                    <Label>{t('fields.degree')} <span className="text-red-500">{t('required')}</span></Label>
                     <Input
                       {...form.register(`qualifications.${index}.degree`)}
-                      placeholder="Bachelor of Arts"
+                      placeholder={t('placeholders.bachelorOfArts')}
                     />
                   </div>
                   <div>
-                    <Label>Institution <span className="text-red-500">*</span></Label>
+                    <Label>{t('fields.institution')} <span className="text-red-500">{t('required')}</span></Label>
                     <Input
                       {...form.register(`qualifications.${index}.institution`)}
-                      placeholder="University name"
+                      placeholder={t('placeholders.universityName')}
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <Label>Year <span className="text-red-500">*</span></Label>
+                    <Label>{t('fields.year')} <span className="text-red-500">{t('required')}</span></Label>
                     <Input
                       type="number"
                       {...form.register(`qualifications.${index}.year`, { valueAsNumber: true })}
-                      placeholder="2020"
+                      placeholder={t('placeholders.year')}
                       min="1950"
                       max={new Date().getFullYear()}
                     />
                   </div>
                   <div>
-                    <Label>Field of Study</Label>
+                    <Label>{t('fields.fieldOfStudy')}</Label>
                     <Input
                       {...form.register(`qualifications.${index}.field_of_study`)}
-                      placeholder="English Literature"
+                      placeholder={t('placeholders.englishLiterature')}
                     />
                   </div>
                   <div>
-                    <Label>Country</Label>
+                    <Label>{t('fields.country')}</Label>
                     <Input
                       {...form.register(`qualifications.${index}.country`)}
-                      placeholder="United Kingdom"
+                      placeholder={t('placeholders.unitedKingdom')}
                     />
                   </div>
                 </div>
@@ -821,7 +821,7 @@ export function TeacherForm({
               className="w-full"
             >
               <Plus className="h-4 w-4 mr-2" />
-              Add Qualification
+              {t('buttons.addQualification')}
             </Button>
           </CardContent>
         </Card>
@@ -831,44 +831,44 @@ export function TeacherForm({
           {/* Emergency Contact */}
           <Card>
             <CardHeader>
-              <CardTitle>Emergency Contact</CardTitle>
+              <CardTitle>{t('sections.emergencyContact')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="emergency_name">Contact Name</Label>
+                  <Label htmlFor="emergency_name">{t('fields.contactName')}</Label>
                   <Input
                     id="emergency_name"
                     {...form.register('emergency_contact.name')}
-                    placeholder="Emergency contact name"
+                    placeholder={t('placeholders.emergencyContactName')}
                   />
                 </div>
                 <div>
-                  <Label htmlFor="emergency_relationship">Relationship</Label>
+                  <Label htmlFor="emergency_relationship">{t('fields.relationship')}</Label>
                   <Input
                     id="emergency_relationship"
                     {...form.register('emergency_contact.relationship')}
-                    placeholder="spouse, parent, sibling"
+                    placeholder={t('placeholders.spouseParentSibling')}
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="emergency_phone">Phone</Label>
+                  <Label htmlFor="emergency_phone">{t('fields.phone')}</Label>
                   <Input
                     id="emergency_phone"
                     {...form.register('emergency_contact.phone')}
-                    placeholder="+998901234567"
+                    placeholder={t('placeholders.phoneNumber')}
                   />
                 </div>
                 <div>
-                  <Label htmlFor="emergency_email">Email</Label>
+                  <Label htmlFor="emergency_email">{t('fields.email')}</Label>
                   <Input
                     id="emergency_email"
                     type="email"
                     {...form.register('emergency_contact.email')}
-                    placeholder="contact@email.com"
+                    placeholder={t('placeholders.contactEmail')}
                   />
                 </div>
               </div>
@@ -878,52 +878,52 @@ export function TeacherForm({
           {/* Address */}
           <Card>
             <CardHeader>
-              <CardTitle>Address Information</CardTitle>
+              <CardTitle>{t('sections.addressInformation')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label htmlFor="street">Street Address</Label>
+                <Label htmlFor="street">{t('fields.streetAddress')}</Label>
                 <Input
                   id="street"
                   {...form.register('address.street')}
-                  placeholder="123 Main Street"
+                  placeholder={t('placeholders.streetAddress')}
                 />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="city">City</Label>
+                  <Label htmlFor="city">{t('fields.city')}</Label>
                   <Input
                     id="city"
                     {...form.register('address.city')}
-                    placeholder="Tashkent"
+                    placeholder={t('placeholders.city')}
                   />
                 </div>
                 <div>
-                  <Label htmlFor="region">Region</Label>
+                  <Label htmlFor="region">{t('fields.region')}</Label>
                   <Input
                     id="region"
                     {...form.register('address.region')}
-                    placeholder="Toshkent shahar"
+                    placeholder={t('placeholders.region')}
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="postal_code">Postal Code</Label>
+                  <Label htmlFor="postal_code">{t('fields.postalCode')}</Label>
                   <Input
                     id="postal_code"
                     {...form.register('address.postal_code')}
-                    placeholder="100000"
+                    placeholder={t('placeholders.postalCode')}
                   />
                 </div>
                 <div>
-                  <Label htmlFor="country">Country</Label>
+                  <Label htmlFor="country">{t('fields.country')}</Label>
                   <Input
                     id="country"
                     {...form.register('address.country')}
-                    placeholder="Uzbekistan"
+                    placeholder={t('placeholders.country')}
                   />
                 </div>
               </div>
@@ -934,17 +934,17 @@ export function TeacherForm({
         {/* Additional Notes */}
         <Card>
           <CardHeader>
-            <CardTitle>Additional Notes</CardTitle>
+            <CardTitle>{t('sections.additionalNotes')}</CardTitle>
           </CardHeader>
           <CardContent>
             <Textarea
               {...form.register('notes')}
-              placeholder="Additional notes about the teacher, special accommodations, or other relevant information..."
+              placeholder={t('placeholders.additionalNotes')}
               rows={4}
               maxLength={2000}
             />
             <div className="text-right text-sm text-muted-foreground mt-1">
-              {form.watch('notes')?.length || 0}/2000
+              {form.watch('notes')?.length || 0}{t('messages.charactersLimit')}
             </div>
           </CardContent>
         </Card>
@@ -954,21 +954,21 @@ export function TeacherForm({
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div className="space-y-1">
-                <p className="font-medium">Ready to {mode === 'edit' ? 'update' : 'create'} teacher profile?</p>
+                <p className="font-medium">{mode === 'edit' ? t('alerts.readyToUpdate') : t('alerts.readyToCreate')}</p>
                 <p className="text-sm text-muted-foreground">
-                  Please review all information before submitting.
+                  {t('alerts.reviewInformation')}
                 </p>
               </div>
               <div className="flex items-center gap-2">
                 {form.formState.isValid ? (
                   <div className="flex items-center gap-2 text-green-600">
                     <Check className="h-4 w-4" />
-                    <span className="text-sm font-medium">Ready to submit</span>
+                    <span className="text-sm font-medium">{t('alerts.readyToSubmit')}</span>
                   </div>
                 ) : (
                   <div className="flex items-center gap-2 text-amber-600">
                     <AlertTriangle className="h-4 w-4" />
-                    <span className="text-sm font-medium">Please complete required fields</span>
+                    <span className="text-sm font-medium">{t('alerts.completeRequiredFields')}</span>
                   </div>
                 )}
               </div>

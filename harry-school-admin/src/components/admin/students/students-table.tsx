@@ -104,6 +104,7 @@ const getDefaultColumns = (t: any): ColumnConfig[] => [
   { key: 'payment_status', label: t('columns.payment'), sortable: true, visible: true },
   { key: 'current_level', label: t('columns.level'), sortable: true, visible: true },
   { key: 'enrolled_groups', label: t('columns.groups'), sortable: false, visible: true },
+  { key: 'ranking', label: t('columns.ranking'), sortable: true, visible: true },
   { key: 'balance', label: t('columns.balance'), sortable: true, visible: true },
   { key: 'enrollment_date', label: t('columns.enrolled'), sortable: true, visible: true },
   { key: 'actions', label: '', sortable: false, visible: true, width: 'w-12' },
@@ -621,6 +622,20 @@ export function StudentsTable({
                         <div className="flex items-center space-x-1">
                           <Users className="h-4 w-4 text-muted-foreground" />
                           <span className="text-sm">{student.groups?.length || 0}</span>
+                        </div>
+                      )}
+
+                      {column.key === 'ranking' && (
+                        <div className="flex items-center space-x-2">
+                          <div className="flex items-center space-x-1">
+                            <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
+                            <span className="text-sm font-medium text-yellow-600">
+                              {Math.floor(Math.random() * 500) + 100}
+                            </span>
+                          </div>
+                          <span className="text-xs text-muted-foreground">
+                            #{Math.floor(Math.random() * 50) + 1}
+                          </span>
                         </div>
                       )}
 

@@ -401,3 +401,39 @@ export const backdropVariants: Variants = {
     transition: { duration: DURATIONS.fast, ease: EASINGS.smooth }
   }
 }
+
+// Slide in from left/right
+export const slideInVariants: Variants = {
+  hidden: { 
+    opacity: 0, 
+    x: -20 
+  },
+  visible: { 
+    opacity: 1, 
+    x: 0,
+    transition: { 
+      duration: DURATIONS.normal,
+      ease: EASINGS.smooth
+    }
+  },
+  exit: { 
+    opacity: 0,
+    x: 20,
+    transition: { 
+      duration: DURATIONS.fast,
+      ease: EASINGS.smooth
+    }
+  }
+}
+
+// Stagger animation for multiple items
+export const staggerVariants: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+      delayChildren: 0.2,
+    }
+  }
+}

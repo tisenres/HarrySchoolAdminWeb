@@ -21,6 +21,9 @@ interface DashboardStats {
   upcomingClasses: number
   outstandingBalance: number
   monthlyRevenue: number
+  studentGrowth: number
+  groupGrowth: number
+  revenueGrowth: number
 }
 
 interface Activity {
@@ -47,6 +50,9 @@ export default function DashboardPage() {
     upcomingClasses: 0,
     outstandingBalance: 0,
     monthlyRevenue: 0,
+    studentGrowth: 0,
+    groupGrowth: 0,
+    revenueGrowth: 0,
   })
   const [activities, setActivities] = useState<Activity[]>([])
   const [loading, setLoading] = useState(true)
@@ -71,9 +77,7 @@ export default function DashboardPage() {
     loadDashboardData()
   }, [])
 
-  const studentGrowth = 12.5
-  const groupGrowth = 8.3
-  const revenueGrowth = 15.2
+  // Growth percentages are now included in statistics from getDashboardStats
 
   return (
     <div className="space-y-6">
@@ -106,7 +110,7 @@ export default function DashboardPage() {
           subtitle={`${statistics.activeStudents} ${tCommon('active')}`}
           icon="Users"
           color="blue"
-          {...(studentGrowth > 0 && { trend: { value: studentGrowth, isPositive: true } })}
+          {...(statistics.studentGrowth > 0 && { trend: { value: statistics.studentGrowth, isPositive: true } })}
         />
         <StatsCard
           title={t('activeGroups')}
@@ -114,7 +118,7 @@ export default function DashboardPage() {
           subtitle={`${statistics.totalGroups} ${t('totalGroups')}`}
           icon="GraduationCap"
           color="green"
-          {...(groupGrowth > 0 && { trend: { value: groupGrowth, isPositive: true } })}
+          {...(statistics.groupGrowth > 0 && { trend: { value: statistics.groupGrowth, isPositive: true } })}
         />
         <StatsCard
           title={t('totalTeachers')}
@@ -129,7 +133,7 @@ export default function DashboardPage() {
           subtitle={`$${statistics.outstandingBalance.toLocaleString()} ${t('outstanding')}`}
           icon="DollarSign"
           color="green"
-          {...(revenueGrowth > 0 && { trend: { value: revenueGrowth, isPositive: true } })}
+          {...(statistics.revenueGrowth > 0 && { trend: { value: statistics.revenueGrowth, isPositive: true } })}
         />
       </div>
 

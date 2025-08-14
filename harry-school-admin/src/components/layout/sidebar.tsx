@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname, useParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
-import { Users, GraduationCap, UserCheck, Settings, BookOpen } from 'lucide-react'
+import { Users, GraduationCap, UserCheck, Settings, BookOpen, Award, Trophy, Medal, Gift } from 'lucide-react'
 
 export function Sidebar() {
   const pathname = usePathname()
@@ -17,6 +17,7 @@ export function Sidebar() {
     { name: t('teachers'), href: `/${locale}/teachers`, icon: UserCheck },
     { name: t('groups'), href: `/${locale}/groups`, icon: BookOpen },
     { name: t('students'), href: `/${locale}/students`, icon: Users },
+    { name: t('rankings'), href: `/${locale}/rankings`, icon: Trophy },
     { name: t('settings'), href: `/${locale}/settings`, icon: Settings },
   ]
 

@@ -1,0 +1,6 @@
+export { default as RewardsManagementDashboard } from './rewards-management-dashboard'
+export { default as RewardsCatalogTable } from './rewards-catalog-table'
+export { default as RedemptionsTable } from './redemptions-table'
+export { default as RewardsAnalytics } from './rewards-analytics'
+export { default as RewardForm } from './reward-form'
+export { default as StudentRewardsInterface } from './student-rewards-interface'

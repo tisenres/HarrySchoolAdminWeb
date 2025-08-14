@@ -50,6 +50,8 @@ import {
   AlertDialogTrigger
 } from '@/components/ui/alert-dialog'
 import type { Teacher } from '@/types/teacher'
+import { TeacherPerformanceTab } from '@/components/admin/teachers/teacher-performance-tab'
+import { TeacherWithRanking } from '@/types/ranking'
 import {
   staggerContainer
 } from '@/lib/animations'
@@ -71,7 +73,7 @@ export function TeacherProfile({
   onRestore,
   loading = false 
 }: TeacherProfileProps) {
-  const [activeTab, setActiveTab] = useState<'overview' | 'education' | 'assignments' | 'documents'>('overview')
+  const [activeTab, setActiveTab] = useState<'overview' | 'education' | 'assignments' | 'documents' | 'performance'>('overview')
 
   const getEmploymentStatusBadge = (status: string) => {
     const variants = {
@@ -143,6 +145,7 @@ export function TeacherProfile({
     { id: 'overview', label: 'Overview', icon: User },
     { id: 'education', label: 'Education & Skills', icon: GraduationCap },
     { id: 'assignments', label: 'Assignments', icon: Users },
+    { id: 'performance', label: 'Performance', icon: Award },
     { id: 'documents', label: 'Documents', icon: FileText },
   ]
 
@@ -655,6 +658,32 @@ variants={{
               </div>
             </CardContent>
           </Card>
+        )}
+
+        {activeTab === 'performance' && (
+          <TeacherPerformanceTab 
+            teacher={{
+              ...teacher,
+              teacher_id: teacher.id,
+              user_type: 'teacher' as const,
+              ranking: {
+                id: `ranking-${teacher.id}`,
+                user_id: teacher.id,
+                organization_id: teacher.organization_id,
+                user_type: 'teacher' as const,
+                total_points: 2850, // Mock data - will be replaced with real API
+                available_coins: 142,
+                spent_coins: 28,
+                current_level: 12,
+                current_rank: 3,
+                efficiency_percentage: 89.5,
+                quality_score: 87.2,
+                performance_tier: 'excellent' as const,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+              }
+            } as TeacherWithRanking}
+          />
         )}
 
         {activeTab === 'documents' && (

@@ -12,6 +12,7 @@ import {
   TrendingUp,
   Users,
   Wallet,
+  Upload,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -22,19 +23,24 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 // import { DateRangePicker } from '@/components/ui/date-range-picker'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-// import { ReportGeneratorService, ReportFilters } from '@/lib/services/reports/report-generator.service'
-// import { toast } from '@/components/ui/use-toast'
-// import { RevenueChart } from './revenue-chart'
-// import { OutstandingBalancesTable } from './outstanding-balances-table'
-// import { GroupAnalysisChart } from './group-analysis-chart'
+import { reportsService, ReportType } from '@/lib/services/reports-service'
+import { ImportExportService } from '@/lib/services/import-export-service'
 
 interface ReportDashboardProps {
   organizationId: string
 }
 
-type ReportType = 'revenue' | 'outstanding' | 'payment_history' | 'group_analysis' | 'student_statement'
 
 export function ReportDashboard({ organizationId }: ReportDashboardProps) {
   const [isLoading, setIsLoading] = useState(false)
@@ -44,6 +50,7 @@ export function ReportDashboard({ organizationId }: ReportDashboardProps) {
     to: Date
   } | null>(null)
   const [reportData, setReportData] = useState<any>(null)
+  const [showImportDialog, setShowImportDialog] = useState(false)
   const [quickDateRanges, setQuickDateRanges] = useState<Array<{
     label: string
     value: string
@@ -77,68 +84,126 @@ export function ReportDashboard({ organizationId }: ReportDashboardProps) {
     
     setIsLoading(true)
     try {
-      // Mock report data for testing
-      const mockData = {
-        revenue: {
-          total: 125000,
-          monthly: [
-            { month: 'Jan', revenue: 15000 },
-            { month: 'Feb', revenue: 18000 },
-            { month: 'Mar', revenue: 22000 },
-            { month: 'Apr', revenue: 19000 },
-            { month: 'May', revenue: 25000 },
-            { month: 'Jun', revenue: 26000 }
-          ]
-        },
-        outstanding: {
-          balances: [
-            { student: 'Alice Johnson', amount: 1200, days: 15 },
-            { student: 'Bob Smith', amount: 800, days: 22 },
-            { student: 'Carol Davis', amount: 1500, days: 8 }
-          ]
-        },
-        payment_history: {
-          statistics: {
-            paymentCount: 245,
-            totalAmount: 98750,
-            averagePayment: 403
-          }
-        }
-      }
-
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      setReportData(mockData[reportType] || mockData.revenue)
-      
-      // Show success message (simplified without toast)
+      const reportData = await reportsService.generateReport(reportType, dateRange)
+      setReportData(reportData)
       console.log('Report generated successfully')
     } catch (error) {
       console.error('Error generating report:', error)
+      // Fallback to some basic data on error
+      setReportData(null)
     } finally {
       setIsLoading(false)
     }
   }
 
-  const exportReport = (format: 'excel' | 'pdf' | 'csv') => {
-    if (!reportData) {
+  const exportReport = async (format: 'excel' | 'pdf' | 'csv') => {
+    if (!reportData || !dateRange) {
       alert('Please generate a report first.')
       return
     }
 
     try {
-      const reportName = `${reportType}_report_${format}`
+      setIsLoading(true)
       
-      // Mock export functionality
-      console.log(`Exporting ${reportName} as ${format.toUpperCase()}`)
+      // Get exportable data from reports service
+      const exportData = await reportsService.generateExportableData(reportType, dateRange)
+      const filename = `${reportType}_report_${new Date().toISOString().split('T')[0]}`
       
-      // In a real implementation, this would trigger actual file download
-      // For demo purposes, just show success
-      alert(`Report exported as ${format.toUpperCase()} successfully!`)
+      if (format === 'excel') {
+        // Create multi-sheet Excel with summary and details
+        const sheets = [
+          {
+            name: 'Summary',
+            headers: ['Metric', 'Value'],
+            data: Object.entries(exportData.summary || {}).map(([key, value]) => [
+              key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()),
+              value
+            ])
+          },
+          {
+            name: 'Details',
+            headers: exportData.headers,
+            data: exportData.rows
+          }
+        ]
+        
+        ImportExportService.exportMultiSheet(sheets, filename)
+        
+      } else if (format === 'csv') {
+        // Export as CSV with headers
+        const csvData = [exportData.headers, ...exportData.rows]
+        ImportExportService.exportToExcel(csvData, { 
+          filename, 
+          format: 'csv',
+          includeHeaders: true 
+        })
+        
+      } else if (format === 'pdf') {
+        // PDF export not implemented yet
+        alert('PDF export is not yet implemented. Please use Excel or CSV format.')
+        return
+      }
+      
+      console.log(`Successfully exported ${reportType} report as ${format.toUpperCase()}`)
+      
     } catch (error) {
       console.error('Error exporting report:', error)
-      alert('Failed to export report. Please try again.')
+      alert(`Failed to export report: ${error.message}`)
+    } finally {
+      setIsLoading(false)
     }
+  }
+
+  const handleImportFile = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    try {
+      setIsLoading(true)
+      
+      // Read the imported file
+      const rawData = await ImportExportService.readExcelFile(file)
+      const { headers, rows } = ImportExportService.parseFileData(rawData)
+      
+      console.log('Imported headers:', headers)
+      console.log('Imported data rows:', rows.length)
+      
+      // For now, just display the imported data structure
+      // In a real implementation, you would validate and process this data
+      alert(`Successfully imported ${rows.length} rows with columns: ${headers.join(', ')}`)
+      
+      setShowImportDialog(false)
+      
+    } catch (error) {
+      console.error('Error importing file:', error)
+      alert(`Failed to import file: ${error.message}`)
+    } finally {
+      setIsLoading(false)
+      // Reset file input
+      if (event.target) {
+        event.target.value = ''
+      }
+    }
+  }
+
+  const downloadTemplate = () => {
+    const template = {
+      headers: ['Date', 'Student Name', 'Amount', 'Payment Method', 'Status'],
+      sampleData: [
+        ['2024-01-15', 'John Doe', '500', 'Cash', 'Completed'],
+        ['2024-01-16', 'Jane Smith', '750', 'Card', 'Pending'],
+        ['2024-01-17', 'Bob Johnson', '600', 'Transfer', 'Completed']
+      ],
+      instructions: [
+        'Fill in your data following the sample format above',
+        'Date format: YYYY-MM-DD',
+        'Amount should be numeric without currency symbols',
+        'Status can be: Completed, Pending, Failed',
+        'Payment Method can be: Cash, Card, Transfer, Check'
+      ]
+    }
+    
+    ImportExportService.generateTemplate(template, 'payment_import_template')
   }
 
   return (
@@ -194,24 +259,45 @@ export function ReportDashboard({ organizationId }: ReportDashboardProps) {
                 </SelectContent>
               </Select>
 
-              <Button onClick={generateReport} disabled={isLoading}>
-                {isLoading ? 'Generating...' : 'Generate Report'}
-              </Button>
+              <div className="flex gap-2">
+                <Button onClick={generateReport} disabled={isLoading}>
+                  {isLoading ? 'Generating...' : 'Generate Report'}
+                </Button>
+                <Button variant="outline" onClick={() => setShowImportDialog(true)} disabled={isLoading}>
+                  <Upload className="mr-2 h-4 w-4" />
+                  Import Data
+                </Button>
+              </div>
             </div>
 
             {reportData && (
               <div className="flex gap-2">
-                <Button variant="outline" size="sm" onClick={() => exportReport('excel')}>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => exportReport('excel')}
+                  disabled={isLoading}
+                >
                   <FileSpreadsheet className="mr-2 h-4 w-4" />
-                  Export Excel
+                  {isLoading ? 'Exporting...' : 'Export Excel'}
                 </Button>
-                <Button variant="outline" size="sm" onClick={() => exportReport('pdf')}>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => exportReport('pdf')}
+                  disabled={isLoading}
+                >
                   <FileText className="mr-2 h-4 w-4" />
-                  Export PDF
+                  {isLoading ? 'Exporting...' : 'Export PDF'}
                 </Button>
-                <Button variant="outline" size="sm" onClick={() => exportReport('csv')}>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => exportReport('csv')}
+                  disabled={isLoading}
+                >
                   <Download className="mr-2 h-4 w-4" />
-                  Export CSV
+                  {isLoading ? 'Exporting...' : 'Export CSV'}
                 </Button>
               </div>
             )}
@@ -237,7 +323,7 @@ export function ReportDashboard({ organizationId }: ReportDashboardProps) {
                       <CardTitle className="text-sm">Total Revenue</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="text-2xl font-bold">${reportData?.total?.toLocaleString() || '125,000'}</div>
+                      <div className="text-2xl font-bold">${reportData?.total?.toLocaleString() || '0'}</div>
                     </CardContent>
                   </Card>
                   <Card>
@@ -245,7 +331,7 @@ export function ReportDashboard({ organizationId }: ReportDashboardProps) {
                       <CardTitle className="text-sm">Monthly Average</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="text-2xl font-bold">${Math.round((reportData?.total || 125000) / 6).toLocaleString()}</div>
+                      <div className="text-2xl font-bold">${Math.round((reportData?.total || 0) / Math.max(reportData?.monthly?.length || 1, 1)).toLocaleString()}</div>
                     </CardContent>
                   </Card>
                   <Card>
@@ -253,7 +339,7 @@ export function ReportDashboard({ organizationId }: ReportDashboardProps) {
                       <CardTitle className="text-sm">Growth Rate</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="text-2xl font-bold text-green-600">+12.5%</div>
+                      <div className="text-2xl font-bold text-muted-foreground">N/A</div>
                     </CardContent>
                   </Card>
                 </div>
@@ -286,7 +372,7 @@ export function ReportDashboard({ organizationId }: ReportDashboardProps) {
                       <CardTitle className="text-sm">Total Payments</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="text-2xl font-bold">{reportData?.statistics?.paymentCount || 245}</div>
+                      <div className="text-2xl font-bold">{reportData?.statistics?.paymentCount || 0}</div>
                     </CardContent>
                   </Card>
                   <Card>
@@ -294,7 +380,7 @@ export function ReportDashboard({ organizationId }: ReportDashboardProps) {
                       <CardTitle className="text-sm">Total Amount</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="text-2xl font-bold">${(reportData?.statistics?.totalAmount || 98750).toLocaleString()}</div>
+                      <div className="text-2xl font-bold">${(reportData?.statistics?.totalAmount || 0).toLocaleString()}</div>
                     </CardContent>
                   </Card>
                   <Card>
@@ -302,7 +388,7 @@ export function ReportDashboard({ organizationId }: ReportDashboardProps) {
                       <CardTitle className="text-sm">Average Payment</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="text-2xl font-bold">${reportData?.statistics?.averagePayment || 403}</div>
+                      <div className="text-2xl font-bold">${reportData?.statistics?.averagePayment || 0}</div>
                     </CardContent>
                   </Card>
                 </div>
@@ -311,6 +397,53 @@ export function ReportDashboard({ organizationId }: ReportDashboardProps) {
           </CardContent>
         </Card>
       )}
+
+      {/* Import Dialog */}
+      <Dialog open={showImportDialog} onOpenChange={setShowImportDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Import Report Data</DialogTitle>
+            <DialogDescription>
+              Upload an Excel or CSV file to import payment/financial data for analysis
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="import-file">Select File</Label>
+              <Input
+                id="import-file"
+                type="file"
+                accept=".xlsx,.xls,.csv"
+                onChange={handleImportFile}
+                disabled={isLoading}
+                className="mt-1"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Supported formats: Excel (.xlsx, .xls) and CSV (.csv)
+              </p>
+            </div>
+            
+            <div className="flex justify-between items-center pt-4 border-t">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={downloadTemplate}
+                disabled={isLoading}
+              >
+                <Download className="mr-2 h-4 w-4" />
+                Download Template
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => setShowImportDialog(false)}
+                disabled={isLoading}
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
