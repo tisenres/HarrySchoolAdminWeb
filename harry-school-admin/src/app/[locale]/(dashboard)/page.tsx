@@ -2,7 +2,7 @@
 
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Users, UserCheck, TrendingUp, DollarSign, Calendar, BookOpen, Activity } from 'lucide-react'
+import { Users, UserCheck, UserPlus, TrendingUp, DollarSign, Calendar, BookOpen, Activity, Target } from 'lucide-react'
 import Link from 'next/link'
 import { StatsCard } from '@/components/admin/dashboard/stats-card'
 import { ActivityFeed } from '@/components/admin/dashboard/activity-feed'
