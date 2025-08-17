@@ -87,7 +87,11 @@
       "mcp__playwright__browser_take_screenshot",
       "Bash(cd:*)",
       "mcp__context7__resolve-library-id",
-      "mcp__context7__get-library-docs"
+      "mcp__context7__get-library-docs",
+      "mcp__puppeteer__puppeteer_screenshot",
+      "mcp__puppeteer__puppeteer_evaluate",
+      "mcp__puppeteer__puppeteer_click",
+      "mcp__puppeteer__puppeteer_navigate"
     ],
     "deny": [
       "Bash(rm -rf /)",

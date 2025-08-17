@@ -4,14 +4,18 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
-import { Plus, Award, History, BarChart3 } from 'lucide-react'
+import { Plus, Award, History, BarChart3, MessageSquare } from 'lucide-react'
 import { StudentRankingOverview } from './student-ranking-overview'
 import { PointsTransactionHistory } from './points-transaction-history'
 import { AchievementGallery } from './achievement-gallery'
 import { QuickPointAward } from './quick-point-award'
 import type { Student } from '@/types/student'
 import type { StudentRanking, PointsTransaction, StudentAchievement, PointsAwardRequest } from '@/types/ranking'
+import type { StudentFeedbackOverview, FeedbackFormData, FeedbackEntry } from '@/types/feedback'
 import { fadeVariants } from '@/lib/animations'
+import { FeedbackPointsHistory } from './feedback-points-history'
+import { QuickFeedbackModal } from './quick-feedback-modal'
+import { feedbackService } from '@/lib/services/feedback-service'
 
 interface StudentRankingTabProps {
   student: Student
@@ -116,13 +120,64 @@ const generateMockAchievements = (studentId: string): StudentAchievement[] => {
   }).sort((a, b) => new Date(b.earned_at).getTime() - new Date(a.earned_at).getTime())
 }
 
+const generateMockFeedback = (studentId: string, direction: 'given' | 'received'): FeedbackEntry[] => {
+  const categories = ['teaching_quality', 'communication', 'behavior', 'homework', 'attendance']
+  const messages = [
+    'Great teaching style and clear explanations',
+    'Very helpful and patient with questions',
+    'Excellent communication skills',
+    'Always punctual and well-prepared',
+    'Creates a positive learning environment'
+  ]
+
+  return Array.from({ length: Math.floor(Math.random() * 5) + 2 }, (_, i) => ({
+    id: `feedback-${direction}-${i}`,
+    organization_id: 'org-1',
+    from_user_id: direction === 'given' ? studentId : `teacher-${i}`,
+    to_user_id: direction === 'given' ? `teacher-${i}` : studentId,
+    from_user_type: direction === 'given' ? 'student' as const : 'teacher' as const,
+    to_user_type: direction === 'given' ? 'teacher' as const : 'student' as const,
+    message: messages[Math.floor(Math.random() * messages.length)],
+    rating: Math.floor(Math.random() * 2) + 4, // 4-5 rating
+    category: categories[Math.floor(Math.random() * categories.length)],
+    is_anonymous: Math.random() > 0.7,
+    affects_ranking: true,
+    ranking_points_impact: Math.floor(Math.random() * 30) + 20,
+    status: 'active' as const,
+    created_at: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
+    updated_at: new Date().toISOString(),
+    from_user_profile: direction === 'given' ? {
+      full_name: 'Current Student',
+      avatar_url: undefined,
+      user_type: 'student' as const
+    } : {
+      full_name: `Teacher ${i + 1}`,
+      avatar_url: undefined,
+      user_type: 'teacher' as const
+    },
+    to_user_profile: direction === 'given' ? {
+      full_name: `Teacher ${i + 1}`,
+      avatar_url: undefined,
+      user_type: 'teacher' as const
+    } : {
+      full_name: 'Current Student',
+      avatar_url: undefined,
+      user_type: 'student' as const
+    }
+  })).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+}
+
 export function StudentRankingTab({ student, loading = false }: StudentRankingTabProps) {
   const [ranking, setRanking] = useState<StudentRanking | null>(null)
   const [transactions, setTransactions] = useState<PointsTransaction[]>([])
   const [achievements, setAchievements] = useState<StudentAchievement[]>([])
+  const [feedbackOverview, setFeedbackOverview] = useState<StudentFeedbackOverview | null>(null)
+  const [feedbackEntries, setFeedbackEntries] = useState<FeedbackEntry[]>([])
   const [activeTab, setActiveTab] = useState('overview')
   const [isPointAwardOpen, setIsPointAwardOpen] = useState(false)
   const [pointAwardLoading, setPointAwardLoading] = useState(false)
+  const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false)
+  const [feedbackLoading, setFeedbackLoading] = useState(false)
 
   // Load mock data on component mount
   useEffect(() => {
@@ -130,8 +185,43 @@ export function StudentRankingTab({ student, loading = false }: StudentRankingTa
       setRanking(generateMockRanking(student.id))
       setTransactions(generateMockTransactions(student.id))
       setAchievements(generateMockAchievements(student.id))
+      loadFeedbackData()
     }
   }, [student.id])
+
+  const loadFeedbackData = async () => {
+    try {
+      // In a real implementation, this would call the actual feedback service
+      // For now, we'll generate some mock feedback data
+      const mockFeedbackOverview: StudentFeedbackOverview = {
+        feedback_given: {
+          total_submitted: Math.floor(Math.random() * 15) + 5,
+          recent_submissions: generateMockFeedback(student.id, 'given'),
+          engagement_score: Math.floor(Math.random() * 40) + 60,
+          categories_covered: ['teaching_quality', 'communication', 'behavior']
+        },
+        feedback_received: {
+          total_received: Math.floor(Math.random() * 20) + 10,
+          average_rating: 4.2 + Math.random() * 0.7,
+          recent_feedback: generateMockFeedback(student.id, 'received'),
+          improvement_suggestions: []
+        },
+        ranking_impact: {
+          points_from_engagement: Math.floor(Math.random() * 100) + 50,
+          quality_bonus: Math.floor(Math.random() * 30) + 10,
+          feedback_streaks: Math.floor(Math.random() * 5)
+        }
+      }
+      
+      setFeedbackOverview(mockFeedbackOverview)
+      setFeedbackEntries([
+        ...mockFeedbackOverview.feedback_given.recent_submissions,
+        ...mockFeedbackOverview.feedback_received.recent_feedback
+      ])
+    } catch (error) {
+      console.error('Error loading feedback data:', error)
+    }
+  }
 
   const handlePointAward = async (data: PointsAwardRequest) => {
     setPointAwardLoading(true)
@@ -182,6 +272,63 @@ export function StudentRankingTab({ student, loading = false }: StudentRankingTa
     }
   }
 
+  const handleFeedbackSubmit = async (data: FeedbackFormData) => {
+    setFeedbackLoading(true)
+    try {
+      // Mock feedback submission - in real implementation, this would call the actual API
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      
+      // Create mock feedback entry
+      const newFeedback: FeedbackEntry = {
+        id: `feedback-new-${Date.now()}`,
+        organization_id: 'org-1',
+        from_user_id: student.id,
+        to_user_id: data.to_user_id,
+        from_user_type: 'student',
+        to_user_type: data.to_user_type,
+        message: data.message,
+        rating: data.rating,
+        category: data.category,
+        is_anonymous: data.is_anonymous,
+        affects_ranking: true,
+        ranking_points_impact: data.rating * 10,
+        status: 'active',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        from_user_profile: {
+          full_name: student.full_name,
+          avatar_url: undefined,
+          user_type: 'student'
+        },
+        to_user_profile: {
+          full_name: 'Teacher Name',
+          avatar_url: undefined,
+          user_type: 'teacher'
+        }
+      }
+
+      // Update feedback data
+      setFeedbackEntries(prev => [newFeedback, ...prev])
+      if (feedbackOverview) {
+        setFeedbackOverview(prev => prev ? {
+          ...prev,
+          feedback_given: {
+            ...prev.feedback_given,
+            total_submitted: prev.feedback_given.total_submitted + 1,
+            recent_submissions: [newFeedback, ...prev.feedback_given.recent_submissions.slice(0, 4)]
+          }
+        } : null)
+      }
+
+      console.log('Feedback submitted successfully:', data)
+    } catch (error) {
+      console.error('Error submitting feedback:', error)
+      throw error
+    } finally {
+      setFeedbackLoading(false)
+    }
+  }
+
   if (loading || !ranking) {
     return (
       <div className="space-y-6">
@@ -226,7 +373,7 @@ export function StudentRankingTab({ student, loading = false }: StudentRankingTa
 
       {/* Ranking Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="overview" className="flex items-center space-x-2">
             <BarChart3 className="h-4 w-4" />
             <span>Overview</span>
@@ -239,6 +386,10 @@ export function StudentRankingTab({ student, loading = false }: StudentRankingTa
             <Award className="h-4 w-4" />
             <span>Achievements</span>
           </TabsTrigger>
+          <TabsTrigger value="feedback" className="flex items-center space-x-2">
+            <MessageSquare className="h-4 w-4" />
+            <span>Feedback</span>
+          </TabsTrigger>
           <TabsTrigger value="analytics" className="flex items-center space-x-2" disabled>
             <BarChart3 className="h-4 w-4" />
             <span>Analytics</span>
@@ -249,7 +400,10 @@ export function StudentRankingTab({ student, loading = false }: StudentRankingTa
           <StudentRankingOverview
             ranking={ranking}
             recentAchievements={achievements.slice(0, 3)}
+            feedbackOverview={feedbackOverview}
             onQuickPointAward={() => setIsPointAwardOpen(true)}
+            onSubmitFeedback={() => setIsFeedbackModalOpen(true)}
+            onViewFeedbackDetails={() => setActiveTab('feedback')}
             loading={false}
           />
         </TabsContent>
@@ -264,6 +418,13 @@ export function StudentRankingTab({ student, loading = false }: StudentRankingTa
         <TabsContent value="achievements" className="space-y-6">
           <AchievementGallery
             achievements={achievements}
+            loading={false}
+          />
+        </TabsContent>
+
+        <TabsContent value="feedback" className="space-y-6">
+          <FeedbackPointsHistory
+            feedbackEntries={feedbackEntries}
             loading={false}
           />
         </TabsContent>
@@ -287,6 +448,17 @@ export function StudentRankingTab({ student, loading = false }: StudentRankingTa
         studentNames={[student.full_name]}
         onSubmit={handlePointAward}
         loading={pointAwardLoading}
+      />
+
+      {/* Quick Feedback Modal */}
+      <QuickFeedbackModal
+        open={isFeedbackModalOpen}
+        onOpenChange={setIsFeedbackModalOpen}
+        recipientId="teacher-1" // Mock teacher ID
+        recipientName="Ms. Johnson" // Mock teacher name
+        recipientType="teacher"
+        onSubmit={handleFeedbackSubmit}
+        loading={feedbackLoading}
       />
     </motion.div>
   )

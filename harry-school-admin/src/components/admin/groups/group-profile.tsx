@@ -20,11 +20,19 @@ import {
   BookOpen,
   UserPlus,
   Edit,
-  Globe
+  Globe,
+  MessageSquare,
+  Star,
+  TrendingUp
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { format } from 'date-fns'
 import type { GroupWithDetails } from '@/types/group'
+import { 
+  GroupFeedbackOverview, 
+  TeacherStudentFeedbackMatrix, 
+  QuickGroupFeedbackActions 
+} from './feedback'
 
 interface GroupProfileProps {
   group: GroupWithDetails
@@ -111,6 +119,10 @@ export function GroupProfile({
               </div>
             </div>
             <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm">
+                <MessageSquare className="h-4 w-4 mr-2" />
+                Quick Feedback
+              </Button>
               <Button variant="outline" size="sm" onClick={onAssignTeacher}>
                 <Users className="h-4 w-4 mr-2" />
                 Assign Teacher
@@ -129,7 +141,7 @@ export function GroupProfile({
       </Card>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
@@ -214,6 +226,25 @@ export function GroupProfile({
             </div>
           </CardContent>
         </Card>
+
+        {/* Feedback Summary Card */}
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <MessageSquare className="h-5 w-5 text-blue-600" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Feedback</p>
+                <p className="text-lg font-semibold">24 entries</p>
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                  <span>4.2 avg rating</span>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Tabs Section */}
@@ -223,6 +254,14 @@ export function GroupProfile({
           <TabsTrigger value="schedule">Schedule</TabsTrigger>
           <TabsTrigger value="students">Students</TabsTrigger>
           <TabsTrigger value="teachers">Teachers</TabsTrigger>
+          <TabsTrigger value="feedback">
+            <MessageSquare className="h-4 w-4 mr-2" />
+            Feedback
+          </TabsTrigger>
+          <TabsTrigger value="insights">
+            <TrendingUp className="h-4 w-4 mr-2" />
+            Insights
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
@@ -429,6 +468,60 @@ export function GroupProfile({
                   </Button>
                 </div>
               )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="feedback" className="space-y-6">
+          {/* Quick Feedback Actions */}
+          <QuickGroupFeedbackActions 
+            group={group} 
+            onFeedbackSubmitted={() => {
+              // Refresh feedback data
+              console.log('Feedback submitted, refreshing data...')
+            }}
+          />
+          
+          {/* Group Feedback Overview */}
+          <GroupFeedbackOverview group={group} />
+        </TabsContent>
+
+        <TabsContent value="insights" className="space-y-6">
+          {/* Teacher-Student Feedback Matrix */}
+          <TeacherStudentFeedbackMatrix group={group} />
+          
+          {/* Additional insights could go here */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Feedback Performance Correlation</CardTitle>
+              <CardDescription>
+                How feedback patterns correlate with group academic performance and engagement
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4 md:grid-cols-3">
+                <div className="text-center p-4 border rounded-lg">
+                  <div className="text-2xl font-bold text-green-600 mb-2">+12%</div>
+                  <div className="text-sm text-muted-foreground">Academic Performance</div>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    Groups with active feedback show better outcomes
+                  </div>
+                </div>
+                <div className="text-center p-4 border rounded-lg">
+                  <div className="text-2xl font-bold text-blue-600 mb-2">85%</div>
+                  <div className="text-sm text-muted-foreground">Engagement Rate</div>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    Student participation in feedback activities
+                  </div>
+                </div>
+                <div className="text-center p-4 border rounded-lg">
+                  <div className="text-2xl font-bold text-purple-600 mb-2">4.2</div>
+                  <div className="text-sm text-muted-foreground">Satisfaction Score</div>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    Overall group satisfaction rating
+                  </div>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>

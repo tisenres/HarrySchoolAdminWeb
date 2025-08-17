@@ -28,7 +28,9 @@ import {
   User,
   MoreVertical,
   Download,
-  Share2
+  Share2,
+  MessageSquare,
+  Star
 } from 'lucide-react'
 import {
   DropdownMenu,
@@ -39,7 +41,9 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import type { Teacher } from '@/types/teacher'
+import type { TeacherWithRanking } from '@/types/ranking'
 import { TeacherForm } from '@/components/admin/teachers/teacher-form'
+import { TeacherFeedbackOverview, FeedbackSubmissionForm } from '@/components/admin/teachers/feedback'
 import { fadeVariants, getAnimationConfig } from '@/lib/animations'
 
 interface PageProps {
@@ -55,6 +59,7 @@ export default function TeacherDetailPage({ params }: PageProps) {
   const [teacher, setTeacher] = useState<Teacher | null>(null)
   const [loading, setLoading] = useState(true)
   const [isEditFormOpen, setIsEditFormOpen] = useState(false)
+  const [isFeedbackFormOpen, setIsFeedbackFormOpen] = useState(false)
   const [formLoading, setFormLoading] = useState(false)
 
   // Load teacher data
@@ -253,6 +258,11 @@ export default function TeacherDetailPage({ params }: PageProps) {
                 Share Profile
               </DropdownMenuItem>
               <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => setIsFeedbackFormOpen(true)}>
+                <MessageSquare className="mr-2 h-4 w-4" />
+                Give Feedback
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleArchive}>
                 <Archive className="mr-2 h-4 w-4" />
                 Archive Teacher
@@ -270,7 +280,7 @@ export default function TeacherDetailPage({ params }: PageProps) {
       </div>
 
       {/* Overview Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Profile Card */}
         <Card>
           <CardHeader>
@@ -398,14 +408,62 @@ export default function TeacherDetailPage({ params }: PageProps) {
             </div>
           </CardContent>
         </Card>
+
+        {/* Feedback Summary Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <MessageSquare className="h-4 w-4" />
+              <span>Student Feedback</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Average Rating</p>
+                <p className="text-2xl font-bold text-green-600">4.3</p>
+              </div>
+              <div className="flex">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Star
+                    key={i}
+                    className={`h-5 w-5 ${
+                      i < 4 ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Total Reviews</p>
+                <p className="text-2xl font-bold">24</p>
+              </div>
+              <Award className="h-8 w-8 text-muted-foreground" />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">This Month</p>
+                <p className="text-lg font-medium text-blue-600">+6</p>
+              </div>
+              <Clock className="h-8 w-8 text-muted-foreground" />
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Detailed Information Tabs */}
       <Card>
         <CardContent className="p-6">
           <Tabs defaultValue="personal" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="personal">Personal Info</TabsTrigger>
+              <TabsTrigger value="feedback" className="flex items-center space-x-2">
+                <MessageSquare className="h-4 w-4" />
+                <span>Feedback</span>
+              </TabsTrigger>
               <TabsTrigger value="groups">Groups</TabsTrigger>
               <TabsTrigger value="schedule">Schedule</TabsTrigger>
               <TabsTrigger value="documents">Documents</TabsTrigger>
@@ -471,6 +529,16 @@ export default function TeacherDetailPage({ params }: PageProps) {
               )}
             </TabsContent>
 
+            <TabsContent value="feedback" className="mt-6">
+              <TeacherFeedbackOverview 
+                teacher={{
+                  ...teacher,
+                  teacher_id: teacher.teacher_id || teacher.id,
+                  user_type: 'teacher' as const
+                } as TeacherWithRanking} 
+              />
+            </TabsContent>
+
             <TabsContent value="groups" className="mt-6">
               {teacher.groups && teacher.groups.length > 0 ? (
                 <div className="space-y-4">
@@ -530,6 +598,21 @@ export default function TeacherDetailPage({ params }: PageProps) {
           onOpenChange={setIsEditFormOpen}
         />
       )}
+
+      {/* Feedback Form Dialog */}
+      <FeedbackSubmissionForm
+        recipient={{
+          id: teacher.id,
+          full_name: teacher.full_name,
+          user_type: 'teacher' as const
+        }}
+        open={isFeedbackFormOpen}
+        onOpenChange={setIsFeedbackFormOpen}
+        onSubmit={() => {
+          setIsFeedbackFormOpen(false)
+          // In real implementation, refresh feedback data
+        }}
+      />
     </motion.div>
   )
 }

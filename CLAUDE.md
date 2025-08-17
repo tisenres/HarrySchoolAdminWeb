@@ -18,10 +18,12 @@
 ## Core Modules
 
 ### Initial Version (Phase 1-3)
-1. **Teachers** - Full CRUD with group assignments and specializations
-2. **Groups** - Learning class management with teacher-student relationships  
-3. **Students** - Complete student lifecycle with status tracking and enrollment
-4. **Settings** - User management, archives, and system configuration
+1. **Teachers** - Full CRUD with group assignments, specializations, and integrated feedback management
+2. **Groups** - Learning class management with teacher-student relationships and feedback context  
+3. **Students** - Complete student lifecycle with status tracking, enrollment, and feedback engagement
+4. **Rankings & Performance** - Unified ranking system with points, achievements, and feedback integration
+5. **Feedback System** - Bidirectional feedback between students and teachers with analytics
+6. **Settings** - User management, archives, and system configuration
 
 ### Future Modules (Phase 4+)
 - **Leads** - CRM for prospective students
@@ -32,8 +34,11 @@
 
 - **Multi-tenant Architecture**: Organization-based data isolation
 - **Role-based Access Control**: superadmin/admin roles with comprehensive RLS
+- **Integrated Feedback System**: Bidirectional feedback with ranking integration and analytics
+- **Unified Ranking Engine**: Points, achievements, and performance tracking with feedback correlation
+- **Smart Analytics Dashboard**: Performance insights enhanced with feedback data and trends
 - **Soft Delete System**: Complete audit trail with restore capabilities
-- **Real-time Notifications**: System events and alerts
+- **Real-time Notifications**: System events, alerts, and feedback notifications
 - **Advanced Search & Filtering**: Contextual search within each module
 - **Multi-language Support**: English (default), Russian, Uzbek Latin
 - **Responsive Design**: Desktop and tablet optimized admin interface
@@ -114,15 +119,24 @@ npx supabase gen types  # Generate TypeScript types
 ### Core Entities
 - **organizations** - Multi-tenant support with settings
 - **profiles** - User profiles extending Supabase auth.users
-- **teachers** - Teacher information with specializations
-- **students** - Student records with status and enrollment tracking
-- **groups** - Learning classes with scheduling and capacity
-- **notifications** - Real-time system events and alerts
+- **teachers** - Teacher information with specializations and feedback metrics
+- **students** - Student records with status, enrollment tracking, and feedback engagement
+- **groups** - Learning classes with scheduling, capacity, and feedback context
+- **feedback_entries** - Bidirectional feedback with ratings, categories, and ranking impact
+- **feedback_templates** - Reusable feedback templates for different scenarios
+- **user_rankings** - Unified ranking system with points, tiers, and feedback correlation
+- **points_transactions** - Point awards, deductions, and feedback-based calculations
+- **achievements** - Performance milestones with feedback-driven criteria
+- **notifications** - Real-time system events, alerts, and feedback notifications
 
 ### Key Relationships
 - Teachers ↔ Groups (many-to-many assignments)
 - Students ↔ Groups (enrollment history with dates)
 - Users ↔ Organizations (role-based access control)
+- Users ↔ Feedback Entries (bidirectional feedback relationships)
+- Feedback ↔ Rankings (automatic points calculation and tier progression)
+- Achievements ↔ Feedback (performance-based and feedback-quality achievements)
+- Notifications ↔ Feedback (real-time feedback alerts and milestones)
 
 ## Security & Compliance
 

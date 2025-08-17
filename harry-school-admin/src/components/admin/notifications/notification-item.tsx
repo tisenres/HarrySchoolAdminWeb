@@ -17,7 +17,12 @@ import {
   Eye,
   EyeOff,
   Trash2,
-  ExternalLink
+  ExternalLink,
+  MessageSquare,
+  Reply,
+  Trophy,
+  TrendingUp,
+  MessageCircle
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -49,7 +54,12 @@ const NOTIFICATION_ICON_MAP: Record<NotificationType, typeof Bell> = {
   schedule: Calendar,
   achievement: Award,
   reminder: Clock,
-  alert: AlertTriangle
+  alert: AlertTriangle,
+  feedback_received: MessageSquare,
+  feedback_response: Reply,
+  feedback_milestone: Trophy,
+  feedback_impact: TrendingUp,
+  feedback_reminder: MessageCircle
 }
 
 export function NotificationItem({
@@ -111,7 +121,30 @@ export function NotificationItem({
     return null
   }
 
+  const getFeedbackContextText = () => {
+    if (!notification.type.startsWith('feedback_')) return null
+    
+    const metadata = notification.metadata as any
+    if (!metadata) return null
+
+    switch (notification.type) {
+      case 'feedback_received':
+        return `Category: ${metadata.category || 'General'} • Rating: ${metadata.rating || 'N/A'}/5`
+      case 'feedback_milestone':
+        return `Milestone: ${metadata.milestone_count || 'N/A'} ${metadata.milestone_type?.replace('_', ' ') || 'achievements'}`
+      case 'feedback_impact':
+        return `Points earned: +${metadata.points_impact || 0} • Category: ${metadata.category || 'General'}`
+      case 'feedback_response':
+        return `Response to your feedback`
+      case 'feedback_reminder':
+        return `Reminder: Share feedback to help our community`
+      default:
+        return null
+    }
+  }
+
   const relatedEntity = getRelatedEntityText()
+  const feedbackContext = getFeedbackContextText()
 
   return (
     <div
@@ -172,6 +205,13 @@ export function NotificationItem({
                 {notification.related_teacher && <GraduationCap className="h-3 w-3" />}
                 {notification.related_group && <Users className="h-3 w-3" />}
                 {relatedEntity}
+              </p>
+            )}
+
+            {/* Feedback Context */}
+            {feedbackContext && !compact && (
+              <p className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded mb-2">
+                {feedbackContext}
               </p>
             )}
 

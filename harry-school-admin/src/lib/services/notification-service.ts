@@ -431,4 +431,219 @@ export class NotificationService extends BaseService {
       role_target: ['admin', 'superadmin']
     })
   }
+
+  /**
+   * Create feedback received notification
+   */
+  async createFeedbackReceivedNotification(
+    title: string,
+    message: string,
+    recipientId: string,
+    feedbackId: string,
+    priority: NotificationPriority = 'normal',
+    metadata?: Record<string, any>
+  ): Promise<Tables<'notifications'>> {
+    return this.createNotification({
+      type: 'feedback_received',
+      title,
+      message,
+      priority,
+      user_id: recipientId,
+      action_url: `/feedback/${feedbackId}`,
+      metadata: {
+        feedback_id: feedbackId,
+        ...metadata
+      }
+    })
+  }
+
+  /**
+   * Create feedback response notification
+   */
+  async createFeedbackResponseNotification(
+    title: string,
+    message: string,
+    originalSenderId: string,
+    feedbackId: string,
+    responderId: string
+  ): Promise<Tables<'notifications'>> {
+    return this.createNotification({
+      type: 'feedback_response',
+      title,
+      message,
+      priority: 'normal',
+      user_id: originalSenderId,
+      action_url: `/feedback/${feedbackId}`,
+      metadata: {
+        feedback_id: feedbackId,
+        responded_by: responderId,
+        response_type: 'admin_response'
+      }
+    })
+  }
+
+  /**
+   * Create feedback milestone notification
+   */
+  async createFeedbackMilestoneNotification(
+    title: string,
+    message: string,
+    userId: string,
+    milestoneType: 'feedback_received' | 'positive_streak' | 'engagement',
+    milestoneCount: number
+  ): Promise<Tables<'notifications'>> {
+    return this.createNotification({
+      type: 'feedback_milestone',
+      title,
+      message,
+      priority: 'normal',
+      user_id: userId,
+      action_url: '/dashboard/achievements',
+      metadata: {
+        milestone_type: milestoneType,
+        milestone_count: milestoneCount,
+        achievement_category: 'engagement'
+      }
+    })
+  }
+
+  /**
+   * Create feedback impact notification (ranking points earned)
+   */
+  async createFeedbackImpactNotification(
+    title: string,
+    message: string,
+    userId: string,
+    pointsImpact: number,
+    feedbackId: string,
+    category: string
+  ): Promise<Tables<'notifications'>> {
+    return this.createNotification({
+      type: 'feedback_impact',
+      title,
+      message,
+      priority: 'normal',
+      user_id: userId,
+      action_url: '/rankings',
+      metadata: {
+        points_impact: pointsImpact,
+        feedback_id: feedbackId,
+        category: category,
+        impact_type: 'ranking_points'
+      }
+    })
+  }
+
+  /**
+   * Create feedback reminder notification
+   */
+  async createFeedbackReminderNotification(
+    title: string,
+    message: string,
+    userId: string,
+    userType: 'student' | 'teacher',
+    scheduledFor?: string
+  ): Promise<Tables<'notifications'>> {
+    return this.createNotification({
+      type: 'feedback_reminder',
+      title,
+      message,
+      priority: 'low',
+      user_id: userId,
+      action_url: '/feedback/submit',
+      scheduled_for: scheduledFor,
+      expires_at: scheduledFor ? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() : undefined,
+      metadata: {
+        reminder_type: 'feedback_engagement',
+        user_type: userType,
+        last_feedback_days_ago: 14
+      }
+    })
+  }
+
+  /**
+   * Send bulk feedback reminder notifications
+   */
+  async sendFeedbackReminderNotifications(): Promise<number> {
+    const supabase = await this.getSupabase()
+    
+    const { data, error } = await supabase
+      .rpc('send_feedback_reminder_notifications')
+
+    if (error) {
+      throw new Error(`Failed to send feedback reminder notifications: ${error.message}`)
+    }
+
+    return data || 0
+  }
+
+  /**
+   * Get feedback-related notifications for a user
+   */
+  async getFeedbackNotifications(
+    userId?: string,
+    feedbackTypes: ('feedback_received' | 'feedback_response' | 'feedback_milestone' | 'feedback_impact' | 'feedback_reminder')[] = [],
+    page: number = 1,
+    limit: number = 20
+  ): Promise<{
+    data: NotificationWithRelations[]
+    count: number
+    hasMore: boolean
+  }> {
+    const filters: NotificationFilters = {
+      type: feedbackTypes.length > 0 ? feedbackTypes : ['feedback_received', 'feedback_response', 'feedback_milestone', 'feedback_impact', 'feedback_reminder']
+    }
+
+    return this.getNotifications(filters, page, limit)
+  }
+
+  /**
+   * Get feedback notification statistics
+   */
+  async getFeedbackNotificationStats(): Promise<{
+    total_feedback_notifications: number
+    by_type: Record<string, number>
+    recent_activity: number
+  }> {
+    const user = await this.getCurrentUser()
+    const organizationId = await this.getCurrentOrganization()
+    const supabase = await this.getSupabase()
+    const userRole = await this.getCurrentUserRole()
+
+    const feedbackTypes = ['feedback_received', 'feedback_response', 'feedback_milestone', 'feedback_impact', 'feedback_reminder']
+
+    const { data, error } = await supabase
+      .from('notifications')
+      .select('type, created_at')
+      .eq('organization_id', organizationId)
+      .or(`user_id.eq.${user.id},role_target.cs.{${userRole}}`)
+      .in('type', feedbackTypes)
+      .is('deleted_at', null)
+
+    if (error) {
+      throw new Error(`Failed to fetch feedback notification stats: ${error.message}`)
+    }
+
+    const stats = {
+      total_feedback_notifications: data.length,
+      by_type: {} as Record<string, number>,
+      recent_activity: 0
+    }
+
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+
+    feedbackTypes.forEach(type => stats.by_type[type] = 0)
+
+    data.forEach(notification => {
+      if (notification.type && feedbackTypes.includes(notification.type)) {
+        stats.by_type[notification.type]++
+        
+        if (new Date(notification.created_at) > sevenDaysAgo) {
+          stats.recent_activity++
+        }
+      }
+    })
+
+    return stats
+  }
 }

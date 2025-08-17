@@ -78,7 +78,23 @@
     "quality": "Quality",
     "totalBonusesAwarded": "Total Bonuses Awarded",
     "averageBonus": "Average Bonus",
-    "pendingAdjustments": "Pending Adjustments"
+    "pendingAdjustments": "Pending Adjustments",
+    "feedbackEngagement": "Feedback Engagement",
+    "feedbackQuality": "Feedback Quality",
+    "feedbackImpact": "Feedback Impact",
+    "feedbackVelocity": "Feedback Velocity",
+    "performanceCorrelation": "Performance Correlation",
+    "qualityIndicators": "Quality Indicators",
+    "feedbackTrends": "Feedback Trends",
+    "engagementTrends": "Engagement Trends",
+    "topPerformanceAreas": "Top Performance Areas",
+    "focusAreas": "Focus Areas",
+    "performanceImpact": "Performance Impact",
+    "feedbackBonuses": "Feedback Bonuses",
+    "improvementFocus": "Improvement Focus Areas",
+    "highestRated": "Highest Rated",
+    "mostEngaged": "Most Engaged",
+    "feedbackRecognition": "Feedback Recognition"
   },
   "common": {
     "dashboard": "Dashboard",
@@ -789,15 +805,15 @@
       "fromLastMonth": "from last month"
     },
     "teachersTable": {
-      "columns": {
-        "name": "Name",
-        "contact": "Contact",
-        "employment": "Employment",
-        "specializations": "Specializations",
-        "groups": "Groups",
-        "students": "Students",
-        "status": "Status"
-      },
+    "columns": {
+    "name": "Name",
+    "contact": "Contact",
+    "employment": "Employment",
+    "specializations": "Specializations",
+    "groups": "Groups",
+    "students": "Students",
+    "status": "Status"
+    },
       "bulkActions": {
         "selected": "teacher selected",
         "teachersSelected": "teachers selected",

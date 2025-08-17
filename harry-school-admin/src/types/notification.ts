@@ -2,7 +2,7 @@ import { type Tables } from './database'
 
 export type NotificationRow = Tables<'notifications'>
 
-export type NotificationType = 'system' | 'enrollment' | 'payment' | 'schedule' | 'achievement' | 'reminder' | 'alert'
+export type NotificationType = 'system' | 'enrollment' | 'payment' | 'schedule' | 'achievement' | 'reminder' | 'alert' | 'feedback_received' | 'feedback_response' | 'feedback_milestone' | 'feedback_impact' | 'feedback_reminder'
 
 export type NotificationPriority = 'low' | 'normal' | 'high' | 'urgent'
 
@@ -33,6 +33,9 @@ export interface NotificationPreferences {
   payment_reminders: boolean
   enrollment_alerts: boolean
   schedule_changes: boolean
+  feedback_notifications: boolean
+  feedback_milestones: boolean
+  feedback_responses: boolean
 }
 
 export interface CreateNotificationRequest {
@@ -82,7 +85,12 @@ export const NOTIFICATION_ICONS: Record<NotificationType, string> = {
   schedule: 'Calendar',
   achievement: 'Award',
   reminder: 'Clock',
-  alert: 'AlertTriangle'
+  alert: 'AlertTriangle',
+  feedback_received: 'MessageSquare',
+  feedback_response: 'Reply',
+  feedback_milestone: 'Trophy',
+  feedback_impact: 'TrendingUp',
+  feedback_reminder: 'MessageCircle'
 }
 
 export const NOTIFICATION_COLORS: Record<NotificationPriority, {
@@ -123,5 +131,8 @@ export const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
   student_updates: true,
   payment_reminders: true,
   enrollment_alerts: true,
-  schedule_changes: true
+  schedule_changes: true,
+  feedback_notifications: true,
+  feedback_milestones: true,
+  feedback_responses: true
 }

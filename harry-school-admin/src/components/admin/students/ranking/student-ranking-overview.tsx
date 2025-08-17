@@ -16,21 +16,29 @@ import {
   Plus
 } from 'lucide-react'
 import type { StudentRanking, StudentAchievement } from '@/types/ranking'
+import type { StudentFeedbackOverview } from '@/types/feedback'
 import { fadeVariants, staggerContainer, staggerItem } from '@/lib/animations'
+import { FeedbackEngagementSummary } from './feedback-engagement-summary'
 
 interface StudentRankingOverviewProps {
   ranking: StudentRanking
   recentAchievements?: StudentAchievement[]
+  feedbackOverview?: StudentFeedbackOverview | null
   onQuickPointAward?: () => void
   onAwardAchievement?: () => void
+  onSubmitFeedback?: () => void
+  onViewFeedbackDetails?: () => void
   loading?: boolean
 }
 
 export function StudentRankingOverview({
   ranking,
   recentAchievements = [],
+  feedbackOverview,
   onQuickPointAward,
   onAwardAchievement,
+  onSubmitFeedback,
+  onViewFeedbackDetails,
   loading = false
 }: StudentRankingOverviewProps) {
   
@@ -155,8 +163,8 @@ export function StudentRankingOverview({
         </Card>
       </motion.div>
 
-      {/* Quick Actions & Recent Achievements */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* Quick Actions, Recent Achievements & Feedback Engagement */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* Quick Actions */}
         <motion.div variants={staggerItem}>
           <Card>
@@ -257,6 +265,16 @@ export function StudentRankingOverview({
             </CardContent>
           </Card>
         </motion.div>
+
+        {/* Feedback Engagement */}
+        <motion.div variants={staggerItem}>
+          <FeedbackEngagementSummary
+            feedbackOverview={feedbackOverview}
+            loading={loading}
+            onViewDetails={onViewFeedbackDetails}
+            onSubmitFeedback={onSubmitFeedback}
+          />
+        </motion.div>
       </div>
 
       {/* Progress Summary */}
@@ -269,7 +287,7 @@ export function StudentRankingOverview({
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <div className="text-center">
                 <div className="text-2xl font-bold text-[#4F7942]">
                   {ranking.total_points}
@@ -287,6 +305,12 @@ export function StudentRankingOverview({
                   {ranking.spent_coins}
                 </div>
                 <p className="text-sm text-muted-foreground">Coins Spent</p>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-purple-600">
+                  {feedbackOverview?.feedback_given?.total_submitted || 0}
+                </div>
+                <p className="text-sm text-muted-foreground">Feedback Given</p>
               </div>
             </div>
           </CardContent>

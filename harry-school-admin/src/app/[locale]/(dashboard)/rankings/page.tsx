@@ -1,6 +1,5 @@
-import { Suspense } from 'react'
 import { getTranslations } from 'next-intl/server'
-import { UnifiedRankingsInterface } from '@/components/admin/rankings/unified-rankings-interface'
+import { SimpleRankings } from '@/components/admin/rankings/simple-rankings'
 
 interface RankingsPageProps {
   params: Promise<{
@@ -31,16 +30,7 @@ export default async function RankingsPage({
         </div>
       </div>
 
-      <Suspense fallback={
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        </div>
-      }>
-        <UnifiedRankingsInterface 
-          defaultTab={awaitedSearchParams.tab || 'overview'}
-          defaultUserType={awaitedSearchParams.userType || 'combined'}
-        />
-      </Suspense>
+      <SimpleRankings />
     </div>
   )
 }

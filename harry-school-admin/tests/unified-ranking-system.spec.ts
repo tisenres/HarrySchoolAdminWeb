@@ -5,12 +5,18 @@ test.describe('Unified Ranking System Tests', () => {
     // Navigate to login page
     await page.goto('/en/login')
     
-    // Handle development login with test credentials
-    await page.getByRole('button', { name: 'Test Credentials' }).click()
-    await page.getByRole('button', { name: 'Sign In' }).click()
+    // Fill in the actual credentials
+    await page.fill('input[type="email"]', 'admin@harryschool.uz')
+    await page.fill('input[type="password"]', 'Admin123!')
     
-    // Wait for authentication to complete
-    await page.waitForURL('/en')
+    // Click sign in button
+    await page.getByRole('button', { name: /sign in/i }).click()
+    
+    // Wait for authentication to complete and redirect
+    await page.waitForURL('**/en/**', { timeout: 10000 })
+    
+    // Additional wait to ensure the page is fully loaded
+    await page.waitForLoadState('networkidle')
   })
 
   test.describe('Rankings Page Navigation', () => {

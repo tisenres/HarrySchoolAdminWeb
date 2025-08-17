@@ -1,8 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -59,7 +58,6 @@ import {
 } from 'lucide-react'
 import type { Achievement } from '@/types/ranking'
 import { AchievementForm } from './achievement-form'
-import { fadeVariants, staggerContainer, staggerItem } from '@/lib/animations'
 
 // Mock data - Replace with actual API calls
 const mockAchievements: Achievement[] = [
@@ -346,11 +344,7 @@ export function AchievementManagement() {
   const stats = getAchievementStats()
 
   return (
-    <motion.div
-      variants={fadeVariants}
-      initial="hidden"
-      animate="visible"
-    >
+    <div>
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -371,10 +365,7 @@ export function AchievementManagement() {
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Stats */}
-          <motion.div 
-            variants={staggerItem}
-            className="grid grid-cols-2 md:grid-cols-4 gap-4"
-          >
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="text-center p-4 bg-muted rounded-lg">
               <div className="text-2xl font-bold text-blue-600">{stats.total}</div>
               <div className="text-sm text-muted-foreground">Total</div>
@@ -391,15 +382,12 @@ export function AchievementManagement() {
               <div className="text-2xl font-bold text-red-600">{stats.archived}</div>
               <div className="text-sm text-muted-foreground">Archived</div>
             </div>
-          </motion.div>
+          </div>
 
           <Separator />
 
           {/* Filters */}
-          <motion.div 
-            variants={staggerItem}
-            className="flex flex-col lg:flex-row gap-4"
-          >
+          <div className="flex flex-col lg:flex-row gap-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <Input
@@ -439,7 +427,7 @@ export function AchievementManagement() {
                 </SelectContent>
               </Select>
             </div>
-          </motion.div>
+          </div>
 
           {/* Achievement Table */}
           {loading ? (
@@ -451,7 +439,7 @@ export function AchievementManagement() {
               ))}
             </div>
           ) : (
-            <motion.div variants={staggerItem}>
+            <div>
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -464,18 +452,13 @@ export function AchievementManagement() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  <AnimatePresence>
                     {filteredAchievements.map((achievement) => {
                       const rarity = getAchievementRarity(achievement.achievement_type)
                       const isArchived = !!achievement.deleted_at
 
                       return (
-                        <motion.tr
+                        <tr
                           key={achievement.id}
-                          variants={staggerItem}
-                          initial="hidden"
-                          animate="visible"
-                          exit="hidden"
                           className={isArchived ? 'opacity-60' : ''}
                         >
                           <TableCell>
@@ -621,10 +604,9 @@ export function AchievementManagement() {
                               </DropdownMenuContent>
                             </DropdownMenu>
                           </TableCell>
-                        </motion.tr>
+                        </tr>
                       )
                     })}
-                  </AnimatePresence>
                 </TableBody>
               </Table>
 
@@ -651,7 +633,7 @@ export function AchievementManagement() {
                   )}
                 </div>
               )}
-            </motion.div>
+            </div>
           )}
         </CardContent>
       </Card>
@@ -692,6 +674,6 @@ export function AchievementManagement() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </motion.div>
+    </div>
   )
 }
