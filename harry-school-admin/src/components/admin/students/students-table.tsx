@@ -46,7 +46,8 @@ import {
   RotateCcw,
   GraduationCap,
   Users,
-  CreditCard
+  CreditCard,
+  UserPlus
 } from 'lucide-react'
 import {
   Select,
@@ -61,6 +62,7 @@ import {
   educationalLoadingVariants
 } from '@/lib/animations'
 import { ClientOnly } from '@/components/ui/client-only'
+import { ReferralCountBadge } from './referral-status-indicator'
 
 export interface StudentsTableProps {
   students: Student[]
@@ -70,6 +72,7 @@ export interface StudentsTableProps {
   onBulkStatusChange?: (studentIds: string[], status: string) => void
   onBulkArchive?: (studentIds: string[]) => void
   onBulkRestore?: (studentIds: string[]) => void
+  onBulkReferralAction?: (studentIds: string[], action: 'view' | 'export') => void
   onExport?: (studentIds?: string[]) => void
   selectedStudents: string[]
   onSelectionChange: (studentIds: string[]) => void
@@ -86,7 +89,7 @@ export interface StudentsTableProps {
 }
 
 interface ColumnConfig {
-  key: keyof Student | 'actions' | 'select' | 'age' | 'enrolled_groups'
+  key: keyof Student | 'actions' | 'select' | 'age' | 'enrolled_groups' | 'referrals'
   label: string
   sortable: boolean
   visible: boolean
@@ -104,6 +107,7 @@ const getDefaultColumns = (t: any): ColumnConfig[] => [
   { key: 'payment_status', label: t('columns.payment'), sortable: true, visible: true },
   { key: 'current_level', label: t('columns.level'), sortable: true, visible: true },
   { key: 'enrolled_groups', label: t('columns.groups'), sortable: false, visible: true },
+  { key: 'referrals', label: 'Referrals', sortable: false, visible: true },
   { key: 'ranking', label: t('columns.ranking'), sortable: true, visible: true },
   { key: 'balance', label: t('columns.balance'), sortable: true, visible: true },
   { key: 'enrollment_date', label: t('columns.enrolled'), sortable: true, visible: true },
@@ -118,6 +122,7 @@ export function StudentsTable({
   onBulkStatusChange,
   onBulkArchive,
   onBulkRestore,
+  onBulkReferralAction,
   onExport,
   selectedStudents,
   onSelectionChange,
@@ -405,6 +410,27 @@ export function StudentsTable({
                 </Button>
               )}
 
+              {onBulkReferralAction && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm">
+                      <UserPlus className="h-4 w-4 mr-2" />
+                      Referrals
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuItem onClick={() => onBulkReferralAction(selectedStudents, 'view')}>
+                      <Eye className="mr-2 h-4 w-4" />
+                      View Referral Status
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => onBulkReferralAction(selectedStudents, 'export')}>
+                      <Download className="mr-2 h-4 w-4" />
+                      Export Referral Data
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+
               <Button
                 variant="outline"
                 size="sm"
@@ -625,6 +651,16 @@ export function StudentsTable({
                         </div>
                       )}
 
+                      {column.key === 'referrals' && (
+                        <ReferralCountBadge 
+                          studentId={student.id}
+                          onClick={() => {
+                            // TODO: Open referral management modal/dialog
+                            console.log('View referrals for student:', student.id)
+                          }}
+                        />
+                      )}
+
                       {column.key === 'ranking' && (
                         <div className="flex items-center space-x-2">
                           <div className="flex items-center space-x-1">
@@ -681,6 +717,15 @@ export function StudentsTable({
                             <DropdownMenuItem>
                               <Users className="mr-2 h-4 w-4" />
                               Manage Enrollment
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              onClick={() => {
+                                // TODO: Open referral management for this student
+                                console.log('Manage referrals for student:', student.id)
+                              }}
+                            >
+                              <UserPlus className="mr-2 h-4 w-4" />
+                              View Referrals
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem

@@ -9,7 +9,7 @@ export const GET = withAuth(async (
   { params }: { params: Promise<{ id: string }> }
 ) => {
   try {
-    const { createServerClient } = await import('@/lib/supabase')
+    const { createServerClient } = await import('@/lib/supabase-server')
     const supabase = await createServerClient()
     
     // Await params in Next.js 15
@@ -60,7 +60,7 @@ export const PUT = withAuth(async (
 ) => {
   try {
     const body = await request.json()
-    const { createServerClient } = await import('@/lib/supabase')
+    const { createServerClient } = await import('@/lib/supabase-server')
     const supabase = await createServerClient()
     
     // Await params in Next.js 15
@@ -148,7 +148,7 @@ export const DELETE = withAuth(async (
   { params }: { params: Promise<{ id: string }> }
 ) => {
   try {
-    const { createServerClient } = await import('@/lib/supabase')
+    const { createServerClient } = await import('@/lib/supabase-server')
     const supabase = await createServerClient()
     
     // Await params in Next.js 15

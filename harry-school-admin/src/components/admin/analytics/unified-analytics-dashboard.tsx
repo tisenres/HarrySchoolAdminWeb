@@ -25,6 +25,7 @@ import {
   Pie,
   Cell
 } from 'recharts'
+import { ReferralAnalyticsIntegration } from './referral-analytics-integration'
 import { 
   TrendingUp,
   TrendingDown,
@@ -47,7 +48,9 @@ import {
   ArrowDownRight,
   Lightbulb,
   Crown,
-  Star
+  Star,
+  UserPlus,
+  DollarSign
 } from 'lucide-react'
 
 // Types for analytics data
@@ -437,9 +440,10 @@ export function UnifiedAnalyticsDashboard() {
 
       {/* Main Analytics Tabs */}
       <Tabs defaultValue="correlations" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="correlations">Teacher-Student Correlations</TabsTrigger>
           <TabsTrigger value="peer-influence">Peer Influence</TabsTrigger>
+          <TabsTrigger value="referral-analytics">Referral Analytics</TabsTrigger>
           <TabsTrigger value="organizational">Organizational Insights</TabsTrigger>
           <TabsTrigger value="predictive">Predictive Analytics</TabsTrigger>
         </TabsList>
@@ -614,6 +618,15 @@ export function UnifiedAnalyticsDashboard() {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* Referral Analytics Tab */}
+        <TabsContent value="referral-analytics" className="space-y-6">
+          <ReferralAnalyticsIntegration
+            organizationId="default-org" // This should come from context
+            timeRange={timeRange}
+            selectedDepartment={selectedDepartment}
+          />
         </TabsContent>
 
         {/* Peer Influence Tab */}

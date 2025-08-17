@@ -17,17 +17,23 @@ import {
 } from 'lucide-react'
 import type { StudentRanking, StudentAchievement } from '@/types/ranking'
 import type { StudentFeedbackOverview } from '@/types/feedback'
+import type { ReferralSummary, ReferralProgress } from '@/types/referral'
 import { fadeVariants, staggerContainer, staggerItem } from '@/lib/animations'
 import { FeedbackEngagementSummary } from './feedback-engagement-summary'
+import { ReferralSummaryCard } from './referral-summary-card'
 
 interface StudentRankingOverviewProps {
   ranking: StudentRanking
   recentAchievements?: StudentAchievement[]
   feedbackOverview?: StudentFeedbackOverview | null
+  referralSummary?: ReferralSummary | null
+  referralProgress?: ReferralProgress | null
   onQuickPointAward?: () => void
   onAwardAchievement?: () => void
   onSubmitFeedback?: () => void
   onViewFeedbackDetails?: () => void
+  onSubmitReferral?: () => void
+  onViewReferralDetails?: () => void
   loading?: boolean
 }
 
@@ -35,10 +41,14 @@ export function StudentRankingOverview({
   ranking,
   recentAchievements = [],
   feedbackOverview,
+  referralSummary,
+  referralProgress,
   onQuickPointAward,
   onAwardAchievement,
   onSubmitFeedback,
   onViewFeedbackDetails,
+  onSubmitReferral,
+  onViewReferralDetails,
   loading = false
 }: StudentRankingOverviewProps) {
   
@@ -163,8 +173,8 @@ export function StudentRankingOverview({
         </Card>
       </motion.div>
 
-      {/* Quick Actions, Recent Achievements & Feedback Engagement */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {/* Quick Actions, Recent Achievements, Feedback Engagement & Referral Summary */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Quick Actions */}
         <motion.div variants={staggerItem}>
           <Card>
@@ -275,6 +285,17 @@ export function StudentRankingOverview({
             onSubmitFeedback={onSubmitFeedback}
           />
         </motion.div>
+
+        {/* Referral Summary */}
+        <motion.div variants={staggerItem}>
+          <ReferralSummaryCard
+            referralSummary={referralSummary}
+            referralProgress={referralProgress}
+            onSubmitReferral={onSubmitReferral}
+            onViewDetails={onViewReferralDetails}
+            loading={loading}
+          />
+        </motion.div>
       </div>
 
       {/* Progress Summary */}
@@ -287,7 +308,7 @@ export function StudentRankingOverview({
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
               <div className="text-center">
                 <div className="text-2xl font-bold text-[#4F7942]">
                   {ranking.total_points}
@@ -311,6 +332,12 @@ export function StudentRankingOverview({
                   {feedbackOverview?.feedback_given?.total_submitted || 0}
                 </div>
                 <p className="text-sm text-muted-foreground">Feedback Given</p>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-orange-600">
+                  {referralSummary?.successful_referrals || 0}
+                </div>
+                <p className="text-sm text-muted-foreground">Referrals</p>
               </div>
             </div>
           </CardContent>

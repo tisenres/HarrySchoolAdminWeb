@@ -1301,5 +1301,36 @@
       "createFirstReward": "Создайте свою первую награду для начала",
       "noEligibleRewards": "Нет доступных наград для обмена"
     }
+  },
+  "leaderboard": {
+    "title": "Студенческий рейтинг",
+    "subtitle": "Отслеживайте успеваемость и достижения студентов",
+    "columns": {
+      "rank": "Место",
+      "student": "Студент",
+      "points": "Баллы",
+      "level": "Уровень",
+      "achievements": "Достижения",
+      "recent": "Недавние",
+      "referrals": "Рекомендации",
+      "successful": "Успешные",
+      "conversion": "Конверсия",
+      "referralPoints": "Баллы за рекомендации",
+      "recentReferrals": "Недавние рекомендации",
+      "lastActive": "Последняя активность"
+    },
+    "filters": {
+      "timePeriod": "Период времени",
+      "thisWeek": "Эта неделя",
+      "thisMonth": "Этот месяц",
+      "allTime": "Все время",
+      "allGroups": "Все группы",
+      "allTypes": "Все типы"
+    },
+    "topPerformers": "Лучшие исполнители",
+    "totalStudents": "Всего студентов",
+    "avgPoints": "Средние баллы",
+    "activeToday": "Активны сегодня",
+    "noStudents": "Студенты не найдены по вашим критериям"
   }
 }

@@ -9,7 +9,7 @@ import { z } from 'zod'
 export const GET = withAuth(async (request: NextRequest, context) => {
   try {
     const searchParams = request.nextUrl.searchParams
-    const { createServerClient } = await import('@/lib/supabase')
+    const { createServerClient } = await import('@/lib/supabase-server')
     const supabase = await createServerClient()
     
     // Get organization ID from authenticated user
@@ -148,7 +148,7 @@ export const POST = withAuth(async (request: NextRequest, context) => {
     }
     
     // Use server-side Supabase client with user context
-    const { createServerClient } = await import('@/lib/supabase')
+    const { createServerClient } = await import('@/lib/supabase-server')
     const supabase = await createServerClient()
     
     // Insert into Supabase

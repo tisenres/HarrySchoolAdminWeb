@@ -1,5 +1,5 @@
 import { getTranslations } from 'next-intl/server'
-import { SimpleRankings } from '@/components/admin/rankings/simple-rankings'
+import { WorkingRankings } from '@/components/admin/rankings/working-rankings'
 
 interface RankingsPageProps {
   params: Promise<{
@@ -30,7 +30,7 @@ export default async function RankingsPage({
         </div>
       </div>
 
-      <SimpleRankings />
+      <WorkingRankings />
     </div>
   )
 }

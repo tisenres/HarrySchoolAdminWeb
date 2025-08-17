@@ -218,6 +218,20 @@ export default function StudentsPage() {
     }
   }
 
+  const handleBulkReferralAction = async (studentIds: string[], action: 'view' | 'export') => {
+    try {
+      if (action === 'view') {
+        // TODO: Open bulk referral status modal
+        console.log('View referral status for students:', studentIds)
+      } else if (action === 'export') {
+        // TODO: Export referral data for selected students
+        console.log('Export referral data for students:', studentIds)
+      }
+    } catch (error) {
+      console.error('Error handling bulk referral action:', error)
+    }
+  }
+
   const handleFiltersChange = (newFilters: StudentFilters) => {
     setFilters(newFilters)
     setCurrentPage(1)
@@ -384,6 +398,7 @@ export default function StudentsPage() {
         onDelete={handleDeleteStudent}
         onBulkDelete={handleBulkDelete}
         onBulkStatusChange={handleBulkStatusChange}
+        onBulkReferralAction={handleBulkReferralAction}
         selectedStudents={selectedStudents}
         onSelectionChange={setSelectedStudents}
         sortConfig={sortConfig}

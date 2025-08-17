@@ -136,6 +136,11 @@
       "level": "Level",
       "achievements": "Achievements", 
       "recent": "Recent",
+      "referrals": "Referrals",
+      "successful": "Successful",
+      "conversion": "Conversion",
+      "referralPoints": "Referral Points",
+      "recentReferrals": "Recent Referrals",
       "lastActive": "Last Active"
     },
     "filters": {

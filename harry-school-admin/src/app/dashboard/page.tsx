@@ -1,5 +1,6 @@
 import { Card } from '@/components/ui/card'
 import { Users, GraduationCap, UserCheck, Settings } from 'lucide-react'
+import { PendingReferralsWidget } from '@/components/admin/dashboard/pending-referrals-widget'
 
 export const dynamic = 'force-dynamic'
 
@@ -42,12 +43,27 @@ export default function DashboardPage() {
           <p className="text-muted-foreground">No recent activity to display</p>
         </Card>
         
+        <PendingReferralsWidget 
+          organizationId="default-org" // This should come from auth context
+          onViewAllReferrals={() => {
+            // TODO: Navigate to referral management page
+            console.log('Navigate to referral management')
+          }}
+          onContactReferral={(referral) => {
+            // TODO: Handle referral contact
+            console.log('Contact referral:', referral)
+          }}
+        />
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-1">
         <Card className="p-6">
           <h3 className="text-lg font-semibold mb-4">Quick Actions</h3>
           <div className="space-y-2">
             <p className="text-sm text-muted-foreground">• Add new teacher</p>
             <p className="text-sm text-muted-foreground">• Create group</p>
             <p className="text-sm text-muted-foreground">• Enroll student</p>
+            <p className="text-sm text-muted-foreground">• Manage referrals</p>
           </div>
         </Card>
       </div>

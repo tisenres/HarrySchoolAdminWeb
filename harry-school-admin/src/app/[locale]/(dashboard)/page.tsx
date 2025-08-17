@@ -9,6 +9,8 @@ import { ActivityFeed } from '@/components/admin/dashboard/activity-feed'
 import { useTranslations } from 'next-intl'
 import { useEffect, useState } from 'react'
 import { getRecentActivities, getDashboardStats } from '@/lib/services/activity-service'
+import { dashboardAnalyticsService } from '@/lib/services/dashboard-analytics-service'
+import type { DashboardAnalytics } from '@/lib/services/dashboard-analytics-service'
 
 interface DashboardStats {
   totalStudents: number
@@ -54,19 +56,22 @@ export default function DashboardPage() {
     groupGrowth: 0,
     revenueGrowth: 0,
   })
+  const [integratedAnalytics, setIntegratedAnalytics] = useState<DashboardAnalytics | null>(null)
   const [activities, setActivities] = useState<Activity[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const loadDashboardData = async () => {
       try {
-        const [statsData, activitiesData] = await Promise.all([
+        const [statsData, activitiesData, integratedData] = await Promise.all([
           getDashboardStats(),
-          getRecentActivities(5)
+          getRecentActivities(5),
+          dashboardAnalyticsService.getIntegratedDashboardStats('default-org') // Should come from auth context
         ])
         
         setStatistics(statsData)
         setActivities(activitiesData)
+        setIntegratedAnalytics(integratedData)
       } catch (error) {
         console.error('Error loading dashboard data:', error)
       } finally {
@@ -107,7 +112,7 @@ export default function DashboardPage() {
         <StatsCard
           title={t('totalStudents')}
           value={statistics.totalStudents}
-          subtitle={`${statistics.activeStudents} ${tCommon('active')}`}
+          subtitle={`${statistics.activeStudents} ${tCommon('active')} • ${integratedAnalytics?.totalReferrals || 0} referred`}
           icon="Users"
           color="blue"
           {...(statistics.studentGrowth > 0 && { trend: { value: statistics.studentGrowth, isPositive: true } })}
@@ -130,7 +135,7 @@ export default function DashboardPage() {
         <StatsCard
           title={t('monthlyRevenue')}
           value={`$${statistics.monthlyRevenue.toLocaleString()}`}
-          subtitle={`$${statistics.outstandingBalance.toLocaleString()} ${t('outstanding')}`}
+          subtitle={`$${statistics.outstandingBalance.toLocaleString()} ${t('outstanding')} • $${(integratedAnalytics?.referralRevenue || 0).toLocaleString()} from referrals`}
           icon="DollarSign"
           color="green"
           {...(statistics.revenueGrowth > 0 && { trend: { value: statistics.revenueGrowth, isPositive: true } })}
@@ -138,7 +143,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Secondary Stats */}
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-4">
         <Card className="p-6">
           <div className="flex items-center justify-between">
             <div>
@@ -149,6 +154,23 @@ export default function DashboardPage() {
               <p className="text-xs text-muted-foreground">{t('last30Days')}</p>
             </div>
             <TrendingUp className="h-8 w-8 text-blue-500" strokeWidth={1.5} />
+          </div>
+        </Card>
+        
+        <Card className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">
+                Referral Conversion
+              </p>
+              <p className="text-2xl font-bold text-green-600">
+                {(integratedAnalytics?.referralConversionRate || 0).toFixed(1)}%
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {integratedAnalytics?.pendingReferrals || 0} pending
+              </p>
+            </div>
+            <UserPlus className="h-8 w-8 text-green-500" strokeWidth={1.5} />
           </div>
         </Card>
         
@@ -169,14 +191,14 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-muted-foreground">
-                {t('outstandingBalance')}
+                Referral Program ROI
               </p>
-              <p className="text-2xl font-bold text-red-600">
-                ${statistics.outstandingBalance.toLocaleString()}
+              <p className="text-2xl font-bold text-indigo-600">
+                {(integratedAnalytics?.referralROI || 0).toFixed(0)}%
               </p>
-              <p className="text-xs text-muted-foreground">{t('toBeCollected')}</p>
+              <p className="text-xs text-muted-foreground">Return on investment</p>
             </div>
-            <Activity className="h-8 w-8 text-red-500" strokeWidth={1.5} />
+            <Target className="h-8 w-8 text-indigo-500" strokeWidth={1.5} />
           </div>
         </Card>
       </div>

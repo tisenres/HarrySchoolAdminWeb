@@ -7,6 +7,8 @@ import {
   UserCheck, 
   GraduationCap, 
   DollarSign, 
+  UserPlus,
+  Target,
   TrendingUp, 
   TrendingDown 
 } from 'lucide-react'
@@ -21,8 +23,8 @@ interface StatsCardProps {
   title: string
   value: string | number
   subtitle?: string
-  icon: 'Users' | 'UserCheck' | 'GraduationCap' | 'DollarSign'
-  color: 'blue' | 'green' | 'purple' | 'red' | 'orange'
+  icon: 'Users' | 'UserCheck' | 'GraduationCap' | 'DollarSign' | 'UserPlus' | 'Target'
+  color: 'blue' | 'green' | 'purple' | 'red' | 'orange' | 'indigo' | 'emerald'
   trend?: Trend
   className?: string
 }
@@ -32,6 +34,8 @@ const iconComponents = {
   UserCheck,
   GraduationCap,
   DollarSign,
+  UserPlus,
+  Target,
 }
 
 const colorVariants = {
@@ -59,6 +63,16 @@ const colorVariants = {
     icon: 'text-orange-600',
     bg: 'bg-orange-100',
     border: 'border-orange-200',
+  },
+  indigo: {
+    icon: 'text-indigo-600',
+    bg: 'bg-indigo-100',
+    border: 'border-indigo-200',
+  },
+  emerald: {
+    icon: 'text-emerald-600',
+    bg: 'bg-emerald-100',
+    border: 'border-emerald-200',
   },
 }
 

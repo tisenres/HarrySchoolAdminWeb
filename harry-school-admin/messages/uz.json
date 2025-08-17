@@ -1295,5 +1295,36 @@
       "createFirstReward": "Boshlash uchun birinchi mukofotingizni yarating",
       "noEligibleRewards": "Almashuv uchun mavjud mukofotlar yo'q"
     }
+  },
+  "leaderboard": {
+    "title": "Talabalar reytingi",
+    "subtitle": "Talabalar faoliyati va yutuqlarini kuzating",
+    "columns": {
+      "rank": "O'rin",
+      "student": "Talaba",
+      "points": "Ballar",
+      "level": "Daraja",
+      "achievements": "Yutuqlar",
+      "recent": "So'nggi",
+      "referrals": "Tavsiyalar",
+      "successful": "Muvaffaqiyatli",
+      "conversion": "Konversiya",
+      "referralPoints": "Tavsiya ballari",
+      "recentReferrals": "So'nggi tavsiyalar",
+      "lastActive": "So'nggi faollik"
+    },
+    "filters": {
+      "timePeriod": "Vaqt davri",
+      "thisWeek": "Bu hafta",
+      "thisMonth": "Bu oy",
+      "allTime": "Barcha vaqt",
+      "allGroups": "Barcha guruhlar",
+      "allTypes": "Barcha turlar"
+    },
+    "topPerformers": "Eng yaxshi talabalar",
+    "totalStudents": "Jami talabalar",
+    "avgPoints": "O'rtacha ballar",
+    "activeToday": "Bugun faol",
+    "noStudents": "Sizning mezonlaringiz bo'yicha talabalar topilmadi"
   }
 }

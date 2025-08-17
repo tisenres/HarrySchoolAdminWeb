@@ -48,7 +48,12 @@ import {
   Zap,
   Target,
   Clock,
-  Crown
+  Crown,
+  UserPlus,
+  Percent,
+  Share2,
+  CheckCircle,
+  MessageSquare
 } from 'lucide-react'
 import {
   Select,
@@ -80,6 +85,18 @@ interface LeaderboardStudent {
   rank_change?: number // Position change from previous period
   last_activity_date?: string
   period_points: number // Points for selected time period
+  // Referral metrics
+  total_referrals?: number
+  successful_referrals?: number
+  referral_conversion_rate?: number
+  referral_points_earned?: number
+  recent_referrals?: Array<{
+    id: string
+    referred_student_name: string
+    status: 'pending' | 'contacted' | 'enrolled' | 'declined'
+    points_awarded: number
+    created_at: string
+  }>
 }
 
 interface LeaderboardFilters {
@@ -88,6 +105,8 @@ interface LeaderboardFilters {
   achievement_type?: string
   category?: string
   search?: string
+  view_type?: 'performance' | 'referrals' | 'combined'
+  referral_status?: 'all' | 'active' | 'top_performers'
 }
 
 interface LeaderboardTableProps {
@@ -109,22 +128,28 @@ interface LeaderboardTableProps {
 }
 
 interface ColumnConfig {
-  key: keyof LeaderboardStudent | 'rank_badge' | 'achievements_preview'
+  key: keyof LeaderboardStudent | 'rank_badge' | 'achievements_preview' | 'referral_stats' | 'referral_conversion' | 'recent_referrals_preview'
   label: string
   sortable: boolean
   visible: boolean
   width?: string
+  viewType?: 'performance' | 'referrals' | 'combined' | 'all' // Controls which view shows this column
 }
 
 const getDefaultColumns = (t: any): ColumnConfig[] => [
-  { key: 'current_rank', label: t('columns.rank'), sortable: false, visible: true, width: 'w-16' },
-  { key: 'rank_badge', label: '', sortable: false, visible: true, width: 'w-12' },
-  { key: 'student_name', label: t('columns.student'), sortable: true, visible: true },
-  { key: 'period_points', label: t('columns.points'), sortable: true, visible: true },
-  { key: 'current_level', label: t('columns.level'), sortable: true, visible: true },
-  { key: 'total_achievements', label: t('columns.achievements'), sortable: true, visible: true },
-  { key: 'achievements_preview', label: t('columns.recent'), sortable: false, visible: true },
-  { key: 'last_activity_date', label: t('columns.lastActive'), sortable: true, visible: true },
+  { key: 'current_rank', label: t('columns.rank'), sortable: false, visible: true, width: 'w-16', viewType: 'all' },
+  { key: 'rank_badge', label: '', sortable: false, visible: true, width: 'w-12', viewType: 'all' },
+  { key: 'student_name', label: t('columns.student'), sortable: true, visible: true, viewType: 'all' },
+  { key: 'period_points', label: t('columns.points'), sortable: true, visible: true, viewType: 'performance' },
+  { key: 'current_level', label: t('columns.level'), sortable: true, visible: true, viewType: 'performance' },
+  { key: 'total_achievements', label: t('columns.achievements'), sortable: true, visible: true, viewType: 'performance' },
+  { key: 'achievements_preview', label: t('columns.recent'), sortable: false, visible: true, viewType: 'performance' },
+  { key: 'total_referrals', label: t('columns.referrals'), sortable: true, visible: true, viewType: 'referrals' },
+  { key: 'successful_referrals', label: t('columns.successful'), sortable: true, visible: true, viewType: 'referrals' },
+  { key: 'referral_conversion', label: t('columns.conversion'), sortable: true, visible: true, viewType: 'referrals' },
+  { key: 'referral_points_earned', label: t('columns.referralPoints'), sortable: true, visible: true, viewType: 'referrals' },
+  { key: 'recent_referrals_preview', label: t('columns.recentReferrals'), sortable: false, visible: true, viewType: 'referrals' },
+  { key: 'last_activity_date', label: t('columns.lastActive'), sortable: true, visible: true, viewType: 'all' },
 ]
 
 export function LeaderboardTable({
@@ -167,6 +192,87 @@ export function LeaderboardTable({
           ? { ...col, visible: !col.visible }
           : col
       )
+    )
+  }, [])
+
+  // Referral-specific rendering functions
+  const getReferralStats = useCallback((student: LeaderboardStudent) => {
+    const totalReferrals = student.total_referrals || 0
+    const successfulReferrals = student.successful_referrals || 0
+    
+    return (
+      <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-1">
+          <UserPlus className="h-4 w-4 text-blue-500" />
+          <span className="font-medium">{totalReferrals}</span>
+        </div>
+        <div className="text-xs text-muted-foreground">
+          {successfulReferrals} successful
+        </div>
+      </div>
+    )
+  }, [])
+
+  const getReferralConversion = useCallback((student: LeaderboardStudent) => {
+    const conversionRate = student.referral_conversion_rate || 0
+    const colorClass = conversionRate >= 50 ? 'text-green-600' : conversionRate >= 25 ? 'text-yellow-600' : 'text-gray-600'
+    
+    return (
+      <div className="flex items-center space-x-2">
+        <Percent className={`h-4 w-4 ${colorClass}`} />
+        <span className={`font-medium ${colorClass}`}>
+          {conversionRate.toFixed(1)}%
+        </span>
+      </div>
+    )
+  }, [])
+
+  const getReferralPointsDisplay = useCallback((points: number) => {
+    return (
+      <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-1">
+          <Share2 className="h-4 w-4 text-green-500" />
+          <span className="font-bold text-green-600">
+            {points.toLocaleString()}
+          </span>
+        </div>
+      </div>
+    )
+  }, [])
+
+  const getRecentReferralsPreview = useCallback((referrals: LeaderboardStudent['recent_referrals']) => {
+    if (!referrals?.length) return null
+
+    const recentReferrals = referrals.slice(0, 3)
+    
+    return (
+      <div className="flex items-center space-x-1">
+        {recentReferrals.map((referral, index) => {
+          const statusColors = {
+            pending: 'bg-yellow-100 text-yellow-800',
+            contacted: 'bg-blue-100 text-blue-800', 
+            enrolled: 'bg-green-100 text-green-800',
+            declined: 'bg-red-100 text-red-800'
+          }
+          
+          return (
+            <div
+              key={referral.id}
+              className={`px-2 py-1 rounded-full text-xs font-medium ${statusColors[referral.status]}`}
+              title={`${referral.referred_student_name} - ${referral.status}`}
+            >
+              {referral.status === 'enrolled' ? <CheckCircle className="h-3 w-3" /> : 
+               referral.status === 'contacted' ? <MessageSquare className="h-3 w-3" /> :
+               <Clock className="h-3 w-3" />}
+            </div>
+          )
+        })}
+        {referrals.length > 3 && (
+          <span className="text-xs text-muted-foreground">
+            +{referrals.length - 3}
+          </span>
+        )}
+      </div>
     )
   }, [])
 
@@ -293,7 +399,16 @@ export function LeaderboardTable({
     })
   }, [])
 
-  const visibleColumns = columnConfig.filter(col => col.visible)
+  // Filter columns based on view type
+  const getFilteredColumns = useCallback(() => {
+    const viewType = filters.view_type || 'performance'
+    return columnConfig.filter(col => 
+      col.visible && (col.viewType === 'all' || col.viewType === viewType || 
+      (viewType === 'combined' && (col.viewType === 'performance' || col.viewType === 'referrals')))
+    )
+  }, [columnConfig, filters.view_type])
+
+  const visibleColumns = getFilteredColumns()
   
   const densityClasses = {
     compact: 'py-2',
@@ -340,7 +455,11 @@ export function LeaderboardTable({
       <Card>
         <CardHeader className="pb-4">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-lg">Student Leaderboard</CardTitle>
+            <CardTitle className="text-lg">
+              {filters.view_type === 'referrals' ? 'Referral Leaders' : 
+               filters.view_type === 'combined' ? 'Combined Rankings' : 
+               'Student Leaderboard'}
+            </CardTitle>
             <div className="flex items-center space-x-2">
               <Button
                 variant="outline"
@@ -390,6 +509,23 @@ export function LeaderboardTable({
                 <SelectItem value="week">This Week</SelectItem>
                 <SelectItem value="month">This Month</SelectItem>
                 <SelectItem value="all">All Time</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {/* View Type Filter */}
+            <Select 
+              value={filters.view_type || 'performance'} 
+              onValueChange={(value: 'performance' | 'referrals' | 'combined') => 
+                onFiltersChange({ ...filters, view_type: value })
+              }
+            >
+              <SelectTrigger className="w-44">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="performance">Performance</SelectItem>
+                <SelectItem value="referrals">Referral Leaders</SelectItem>
+                <SelectItem value="combined">Combined View</SelectItem>
               </SelectContent>
             </Select>
 
@@ -594,6 +730,29 @@ export function LeaderboardTable({
 
                       {column.key === 'achievements_preview' && (
                         getAchievementsPreview(student.recent_achievements)
+                      )}
+
+                      {column.key === 'total_referrals' && (
+                        getReferralStats(student)
+                      )}
+
+                      {column.key === 'successful_referrals' && (
+                        <div className="flex items-center space-x-2">
+                          <CheckCircle className="h-4 w-4 text-green-500" />
+                          <span className="font-medium">{student.successful_referrals || 0}</span>
+                        </div>
+                      )}
+
+                      {column.key === 'referral_conversion' && (
+                        getReferralConversion(student)
+                      )}
+
+                      {column.key === 'referral_points_earned' && (
+                        getReferralPointsDisplay(student.referral_points_earned || 0)
+                      )}
+
+                      {column.key === 'recent_referrals_preview' && (
+                        getRecentReferralsPreview(student.recent_referrals)
                       )}
 
                       {column.key === 'last_activity_date' && (

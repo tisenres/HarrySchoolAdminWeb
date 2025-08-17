@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
-import { Plus, Award, History, BarChart3, MessageSquare } from 'lucide-react'
+import { Plus, Award, History, BarChart3, MessageSquare, UserPlus } from 'lucide-react'
 import { StudentRankingOverview } from './student-ranking-overview'
 import { PointsTransactionHistory } from './points-transaction-history'
 import { AchievementGallery } from './achievement-gallery'
@@ -12,9 +12,13 @@ import { QuickPointAward } from './quick-point-award'
 import type { Student } from '@/types/student'
 import type { StudentRanking, PointsTransaction, StudentAchievement, PointsAwardRequest } from '@/types/ranking'
 import type { StudentFeedbackOverview, FeedbackFormData, FeedbackEntry } from '@/types/feedback'
+import type { StudentReferral, ReferralSummary, ReferralProgress, ReferralFormData, ReferralAchievement } from '@/types/referral'
 import { fadeVariants } from '@/lib/animations'
 import { FeedbackPointsHistory } from './feedback-points-history'
 import { QuickFeedbackModal } from './quick-feedback-modal'
+import { ReferralSubmissionForm } from './referral-submission-form'
+import { ReferralAchievements } from './referral-achievements'
+import { ReferralPointsBreakdown } from './referral-points-breakdown'
 import { feedbackService } from '@/lib/services/feedback-service'
 
 interface StudentRankingTabProps {
@@ -167,17 +171,155 @@ const generateMockFeedback = (studentId: string, direction: 'given' | 'received'
   })).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
 }
 
+const generateMockReferralData = (studentId: string) => {
+  const totalReferrals = Math.floor(Math.random() * 8) + 2
+  const successfulReferrals = Math.floor(totalReferrals * (0.6 + Math.random() * 0.3))
+  const pendingReferrals = totalReferrals - successfulReferrals
+  const conversionRate = totalReferrals > 0 ? (successfulReferrals / totalReferrals) * 100 : 0
+  const pointsEarned = successfulReferrals * 50
+
+  const recentReferrals: StudentReferral[] = Array.from({ length: totalReferrals }, (_, i) => {
+    const isSuccessful = i < successfulReferrals
+    return {
+      id: `referral-${i}`,
+      organization_id: 'org-1',
+      referrer_id: studentId,
+      referrer_type: 'student' as const,
+      referred_student_name: `Student ${i + 1} Referred`,
+      referred_student_phone: `+998 90 123 ${(45 + i).toString().padStart(2, '0')} ${(67 + i).toString().padStart(2, '0')}`,
+      status: isSuccessful ? 'enrolled' as const : (Math.random() > 0.5 ? 'pending' as const : 'contacted' as const),
+      points_awarded: isSuccessful ? 50 : 0,
+      enrollment_date: isSuccessful ? new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString() : undefined,
+      created_at: new Date(Date.now() - Math.random() * 60 * 24 * 60 * 60 * 1000).toISOString(),
+      updated_at: new Date().toISOString(),
+      created_by: 'admin-1'
+    }
+  })
+
+  const referralSummary: ReferralSummary = {
+    total_referrals: totalReferrals,
+    successful_referrals: successfulReferrals,
+    pending_referrals: pendingReferrals,
+    conversion_rate: conversionRate,
+    points_earned: pointsEarned,
+    recent_referrals: recentReferrals.slice(0, 5)
+  }
+
+  const nextMilestone = successfulReferrals < 5 ? {
+    target: 5,
+    reward_points: 100,
+    achievement_name: 'Referral Ambassador',
+    progress_percentage: (successfulReferrals / 5) * 100
+  } : successfulReferrals < 10 ? {
+    target: 10,
+    reward_points: 250,
+    achievement_name: 'Referral Master',
+    progress_percentage: (successfulReferrals / 10) * 100
+  } : {
+    target: 15,
+    reward_points: 500,
+    achievement_name: 'Referral Legend',
+    progress_percentage: (successfulReferrals / 15) * 100
+  }
+
+  const referralProgress: ReferralProgress = {
+    current_total: successfulReferrals,
+    next_milestone: nextMilestone,
+    streak_count: Math.floor(Math.random() * 3) + 1,
+    monthly_target: 3,
+    monthly_progress: Math.floor(Math.random() * 3)
+  }
+
+  const referralAchievements: ReferralAchievement[] = [
+    {
+      id: 'achievement-first-referral',
+      name: 'First Referral',
+      description: 'Submit your first student referral',
+      icon: '🎯',
+      badge_color: '#3B82F6',
+      points_reward: 25,
+      coins_reward: 5,
+      referral_requirement: 1,
+      achievement_type: 'referral',
+      earned: totalReferrals >= 1,
+      earned_at: totalReferrals >= 1 ? new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString() : undefined
+    },
+    {
+      id: 'achievement-referral-ambassador',
+      name: 'Referral Ambassador',
+      description: '5 successful student referrals',
+      icon: '🏆',
+      badge_color: '#10B981',
+      points_reward: 100,
+      coins_reward: 20,
+      referral_requirement: 5,
+      achievement_type: 'referral',
+      earned: successfulReferrals >= 5,
+      earned_at: successfulReferrals >= 5 ? new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString() : undefined
+    },
+    {
+      id: 'achievement-referral-master',
+      name: 'Referral Master',
+      description: '10 successful student referrals',
+      icon: '👑',
+      badge_color: '#F59E0B',
+      points_reward: 250,
+      coins_reward: 50,
+      referral_requirement: 10,
+      achievement_type: 'referral',
+      earned: successfulReferrals >= 10,
+      earned_at: successfulReferrals >= 10 ? new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString() : undefined
+    }
+  ]
+
+  const referralTransactions: PointsTransaction[] = recentReferrals
+    .filter(r => r.status === 'enrolled')
+    .map((referral, i) => ({
+      id: `referral-transaction-${i}`,
+      user_id: studentId,
+      organization_id: 'org-1',
+      user_type: 'student' as const,
+      transaction_type: 'earned' as const,
+      points_amount: 50,
+      coins_earned: 10,
+      reason: `Successful referral: ${referral.referred_student_name}`,
+      category: 'referral',
+      awarded_by: 'system',
+      created_at: referral.enrollment_date || referral.created_at,
+      awarded_by_profile: {
+        full_name: 'System',
+        avatar_url: undefined
+      }
+    }))
+
+  return {
+    referralSummary,
+    referralProgress,
+    referralAchievements,
+    referralTransactions
+  }
+}
+
 export function StudentRankingTab({ student, loading = false }: StudentRankingTabProps) {
   const [ranking, setRanking] = useState<StudentRanking | null>(null)
   const [transactions, setTransactions] = useState<PointsTransaction[]>([])
   const [achievements, setAchievements] = useState<StudentAchievement[]>([])
   const [feedbackOverview, setFeedbackOverview] = useState<StudentFeedbackOverview | null>(null)
   const [feedbackEntries, setFeedbackEntries] = useState<FeedbackEntry[]>([])
+  
+  // Referral state
+  const [referralSummary, setReferralSummary] = useState<ReferralSummary | null>(null)
+  const [referralProgress, setReferralProgress] = useState<ReferralProgress | null>(null)
+  const [referralAchievements, setReferralAchievements] = useState<ReferralAchievement[]>([])
+  const [referralTransactions, setReferralTransactions] = useState<PointsTransaction[]>([])
+  
   const [activeTab, setActiveTab] = useState('overview')
   const [isPointAwardOpen, setIsPointAwardOpen] = useState(false)
   const [pointAwardLoading, setPointAwardLoading] = useState(false)
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false)
   const [feedbackLoading, setFeedbackLoading] = useState(false)
+  const [isReferralFormOpen, setIsReferralFormOpen] = useState(false)
+  const [referralSubmissionLoading, setReferralSubmissionLoading] = useState(false)
 
   // Load mock data on component mount
   useEffect(() => {
@@ -186,8 +328,21 @@ export function StudentRankingTab({ student, loading = false }: StudentRankingTa
       setTransactions(generateMockTransactions(student.id))
       setAchievements(generateMockAchievements(student.id))
       loadFeedbackData()
+      loadReferralData()
     }
   }, [student.id])
+
+  const loadReferralData = () => {
+    try {
+      const referralData = generateMockReferralData(student.id)
+      setReferralSummary(referralData.referralSummary)
+      setReferralProgress(referralData.referralProgress)
+      setReferralAchievements(referralData.referralAchievements)
+      setReferralTransactions(referralData.referralTransactions)
+    } catch (error) {
+      console.error('Error loading referral data:', error)
+    }
+  }
 
   const loadFeedbackData = async () => {
     try {
@@ -329,6 +484,51 @@ export function StudentRankingTab({ student, loading = false }: StudentRankingTa
     }
   }
 
+  const handleReferralSubmit = async (data: ReferralFormData) => {
+    setReferralSubmissionLoading(true)
+    try {
+      // Mock referral submission - in real implementation, this would call the actual API
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      
+      // Create mock referral entry
+      const newReferral: StudentReferral = {
+        id: `referral-new-${Date.now()}`,
+        organization_id: 'org-1',
+        referrer_id: student.id,
+        referrer_type: 'student',
+        referred_student_name: data.referred_student_name,
+        referred_student_phone: data.referred_student_phone,
+        status: 'pending',
+        points_awarded: 0,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        created_by: 'current-admin',
+        contact_notes: data.contact_notes,
+        created_by_profile: {
+          full_name: 'Current Admin',
+          avatar_url: undefined
+        }
+      }
+
+      // Update referral summary
+      if (referralSummary) {
+        setReferralSummary(prev => prev ? {
+          ...prev,
+          total_referrals: prev.total_referrals + 1,
+          pending_referrals: prev.pending_referrals + 1,
+          recent_referrals: [newReferral, ...prev.recent_referrals.slice(0, 4)]
+        } : null)
+      }
+
+      console.log('Referral submitted successfully:', data)
+    } catch (error) {
+      console.error('Error submitting referral:', error)
+      throw error
+    } finally {
+      setReferralSubmissionLoading(false)
+    }
+  }
+
   if (loading || !ranking) {
     return (
       <div className="space-y-6">
@@ -373,7 +573,7 @@ export function StudentRankingTab({ student, loading = false }: StudentRankingTa
 
       {/* Ranking Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="overview" className="flex items-center space-x-2">
             <BarChart3 className="h-4 w-4" />
             <span>Overview</span>
@@ -390,6 +590,10 @@ export function StudentRankingTab({ student, loading = false }: StudentRankingTa
             <MessageSquare className="h-4 w-4" />
             <span>Feedback</span>
           </TabsTrigger>
+          <TabsTrigger value="referrals" className="flex items-center space-x-2">
+            <UserPlus className="h-4 w-4" />
+            <span>Referrals</span>
+          </TabsTrigger>
           <TabsTrigger value="analytics" className="flex items-center space-x-2" disabled>
             <BarChart3 className="h-4 w-4" />
             <span>Analytics</span>
@@ -401,9 +605,13 @@ export function StudentRankingTab({ student, loading = false }: StudentRankingTa
             ranking={ranking}
             recentAchievements={achievements.slice(0, 3)}
             feedbackOverview={feedbackOverview}
+            referralSummary={referralSummary}
+            referralProgress={referralProgress}
             onQuickPointAward={() => setIsPointAwardOpen(true)}
             onSubmitFeedback={() => setIsFeedbackModalOpen(true)}
             onViewFeedbackDetails={() => setActiveTab('feedback')}
+            onSubmitReferral={() => setIsReferralFormOpen(true)}
+            onViewReferralDetails={() => setActiveTab('referrals')}
             loading={false}
           />
         </TabsContent>
@@ -427,6 +635,25 @@ export function StudentRankingTab({ student, loading = false }: StudentRankingTa
             feedbackEntries={feedbackEntries}
             loading={false}
           />
+        </TabsContent>
+
+        <TabsContent value="referrals" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Referral Achievements */}
+            <ReferralAchievements
+              achievements={referralAchievements}
+              progress={referralProgress}
+              loading={false}
+            />
+            
+            {/* Referral Points Breakdown */}
+            <ReferralPointsBreakdown
+              referralSummary={referralSummary}
+              referralTransactions={referralTransactions}
+              onViewAllTransactions={() => setActiveTab('history')}
+              loading={false}
+            />
+          </div>
         </TabsContent>
 
         <TabsContent value="analytics" className="space-y-6">
@@ -459,6 +686,15 @@ export function StudentRankingTab({ student, loading = false }: StudentRankingTa
         recipientType="teacher"
         onSubmit={handleFeedbackSubmit}
         loading={feedbackLoading}
+      />
+
+      {/* Referral Submission Form */}
+      <ReferralSubmissionForm
+        open={isReferralFormOpen}
+        onOpenChange={setIsReferralFormOpen}
+        onSubmit={handleReferralSubmit}
+        loading={referralSubmissionLoading}
+        studentName={student.full_name}
       />
     </motion.div>
   )

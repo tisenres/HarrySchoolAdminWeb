@@ -39,7 +39,8 @@ export default function StudentsPage() {
   const [pageSize, setPageSize] = useState(20)
   const [totalCount, setTotalCount] = useState(0)
   const [totalPages, setTotalPages] = useState(1)
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [showArchived] = useState(false)
   
   // Form states
@@ -50,6 +51,7 @@ export default function StudentsPage() {
   // Load students data
   const loadStudents = useCallback(async () => {
     setLoading(true)
+    setError(null)
     try {
       const params = new URLSearchParams({
         page: currentPage.toString(),
@@ -62,6 +64,11 @@ export default function StudentsPage() {
       } as any)
 
       const response = await fetch(`/api/students?${params}`)
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      
       const result = await response.json()
       
       if (!result.success) {
@@ -76,8 +83,13 @@ export default function StudentsPage() {
       setStudents(studentsData.data)
       setTotalCount(studentsData.count)
       setTotalPages(studentsData.total_pages)
+      setError(null)
     } catch (error) {
       console.error('Error loading students:', error)
+      setError(error instanceof Error ? error.message : 'Failed to load students')
+      setStudents([])
+      setTotalCount(0)
+      setTotalPages(1)
     } finally {
       setLoading(false)
     }
@@ -115,12 +127,58 @@ export default function StudentsPage() {
 
   // Initial load
   useEffect(() => {
-    loadStudents()
-  }, [loadStudents])
+    const loadData = async () => {
+      setLoading(true)
+      setError(null)
+      try {
+        const params = new URLSearchParams({
+          page: currentPage.toString(),
+          limit: pageSize.toString(),
+          sort_by: sortConfig.field,
+          sort_order: sortConfig.direction,
+          ...(filters.search && { query: filters.search }),
+          ...(filters.status && { status: filters.status }),
+          ...(filters.grade_level && { grade_level: filters.grade_level })
+        } as any)
+
+        const response = await fetch(`/api/students?${params}`)
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
+        
+        const result = await response.json()
+        
+        if (!result.success) {
+          throw new Error(result.error || 'Failed to fetch students')
+        }
+        
+        const studentsData = {
+          data: result.data || [],
+          count: result.pagination?.total || 0,
+          total_pages: result.pagination?.total_pages || 1
+        }
+        setStudents(studentsData.data)
+        setTotalCount(studentsData.count)
+        setTotalPages(studentsData.total_pages)
+        setError(null)
+      } catch (error) {
+        console.error('Error loading students:', error)
+        setError(error instanceof Error ? error.message : 'Failed to load students')
+        setStudents([])
+        setTotalCount(0)
+        setTotalPages(1)
+      } finally {
+        setLoading(false)
+      }
+    }
+    
+    loadData()
+  }, [currentPage, pageSize, sortConfig.field, sortConfig.direction, filters.search, filters.status, filters.grade_level])
 
   useEffect(() => {
     loadStatistics()
-  }, [loadStatistics])
+  }, [])
 
   // Handle form submission
   const handleFormSubmit = async (data: CreateStudentRequest) => {
@@ -285,7 +343,7 @@ export default function StudentsPage() {
       </div>
 
       {/* Statistics Cards */}
-      {statistics && (
+      {!loading && statistics && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -432,9 +490,41 @@ export default function StudentsPage() {
       )}
 
       {/* Loading State */}
-      {loading && students.length === 0 && (
+      {loading && (
         <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          <div className="text-center">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mx-auto mb-2" />
+            <p className="text-sm text-muted-foreground">{t('loading') || 'Loading students...'}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Error State */}
+      {error && !loading && (
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <div className="mb-4">
+              <Activity className="h-8 w-8 text-destructive mx-auto mb-2" />
+              <p className="text-sm text-destructive mb-2">{error}</p>
+              <Button onClick={loadStudents} variant="outline">
+                {t('retry') || 'Try Again'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Empty State */}
+      {!loading && !error && students.length === 0 && (
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <Users className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+            <p className="text-sm text-muted-foreground mb-2">{t('noStudents') || 'No students found'}</p>
+            <Button onClick={() => setIsFormOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              {t('addFirstStudent') || 'Add your first student'}
+            </Button>
+          </div>
         </div>
       )}
     </motion.div>
