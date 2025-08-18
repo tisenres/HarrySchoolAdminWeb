@@ -5,7 +5,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { getSupabaseClient } from '@/lib/supabase'
 import { NotificationService } from '@/lib/services/notification-service'
-import { mockNotificationService } from '@/lib/services/mock-notification-service'
 import type { 
   NotificationWithRelations,
   NotificationFilters,
@@ -14,13 +13,8 @@ import type {
   CreateNotificationRequest
 } from '@/types/notification'
 
-// Use mock service when database is not available
-let notificationService: NotificationService | typeof mockNotificationService
-try {
-  notificationService = new NotificationService()
-} catch {
-  notificationService = mockNotificationService
-}
+// Initialize notification service
+const notificationService = new NotificationService()
 
 // Query keys
 const QUERY_KEYS = {
@@ -51,12 +45,7 @@ export function useNotifications(filters: NotificationFilters = {}, page: number
   } = useQuery({
     queryKey: QUERY_KEYS.notifications(filters, page),
     queryFn: async () => {
-      try {
-        return await notificationService.getNotifications(filters, page, limit)
-      } catch (error) {
-        console.warn('Using mock notification service:', error)
-        return await mockNotificationService.getNotifications(filters, page, limit)
-      }
+      return await notificationService.getNotifications(filters, page, limit)
     },
     staleTime: 30000, // 30 seconds
     refetchOnWindowFocus: false
@@ -69,12 +58,7 @@ export function useNotifications(filters: NotificationFilters = {}, page: number
   } = useQuery({
     queryKey: QUERY_KEYS.unreadCount,
     queryFn: async () => {
-      try {
-        return await notificationService.getUnreadCount()
-      } catch (error) {
-        console.warn('Using mock notification service for unread count:', error)
-        return await mockNotificationService.getUnreadCount()
-      }
+      return await notificationService.getUnreadCount()
     },
     refetchInterval: 60000, // Refetch every minute
     refetchOnWindowFocus: true
@@ -87,12 +71,7 @@ export function useNotifications(filters: NotificationFilters = {}, page: number
   } = useQuery({
     queryKey: QUERY_KEYS.stats,
     queryFn: async () => {
-      try {
-        return await notificationService.getStats()
-      } catch (error) {
-        console.warn('Using mock notification service for stats:', error)
-        return await mockNotificationService.getStats()
-      }
+      return await notificationService.getStats()
     },
     staleTime: 60000 // 1 minute
   })

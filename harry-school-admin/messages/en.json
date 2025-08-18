@@ -439,6 +439,24 @@
     "requiresAttention": "requires attention",
     "allPaymentsUpToDate": "all payments up to date",
     "statusOverview": "Status Overview",
+    "studentsTable": {
+      "columns": {
+        "studentId": "Student ID",
+        "name": "Name",
+        "age": "Age",
+        "contact": "Contact",
+        "parentGuardian": "Parent/Guardian",
+        "status": "Status",
+        "payment": "Payment",
+        "level": "Level",
+        "groups": "Groups",
+        "ranking": "Ranking",
+        "balance": "Balance",
+        "enrolled": "Enrolled",
+        "actions": "Actions",
+        "select": "Select"
+      }
+    },
     "columns": {
       "studentId": "Student ID",
       "name": "Name",
@@ -810,15 +828,17 @@
       "fromLastMonth": "from last month"
     },
     "teachersTable": {
-    "columns": {
-    "name": "Name",
-    "contact": "Contact",
-    "employment": "Employment",
-    "specializations": "Specializations",
-    "groups": "Groups",
-    "students": "Students",
-    "status": "Status"
-    },
+      "columns": {
+        "name": "Name",
+        "contact": "Contact",
+        "employment": "Employment",
+        "specializations": "Specializations",
+        "groups": "Groups",
+        "students": "Students",
+        "status": "Status",
+        "actions": "Actions",
+        "select": "Select"
+      },
       "bulkActions": {
         "selected": "teacher selected",
         "teachersSelected": "teachers selected",
@@ -870,7 +890,9 @@
         "enrollment": "Enrollment",
         "schedule": "Schedule",
         "status": "Status",
-        "startDate": "Start Date"
+        "startDate": "Start Date",
+        "actions": "Actions",
+        "select": "Select"
       }
     },
     "studentForm": {

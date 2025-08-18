@@ -1,5 +1,6 @@
 import type { Database } from '@/types/database.types'
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { authCache } from '@/lib/utils/auth-cache'
 
 export abstract class BaseService {
   protected tableName: keyof Database['public']['Tables']
@@ -49,6 +50,14 @@ export abstract class BaseService {
    */
   protected async getCurrentOrganization() {
     const user = await this.getCurrentUser()
+    
+    // Check cache first
+    const cacheKey = `org:${user.id}`
+    const cached = authCache.get<string>(cacheKey)
+    if (cached) {
+      return cached
+    }
+    
     const supabase = await this.getSupabase()
     
     const { data, error } = await supabase
@@ -61,6 +70,9 @@ export abstract class BaseService {
     if (error || !data) {
       throw new Error('User profile not found or user not associated with an organization')
     }
+    
+    // Cache the result for 5 minutes
+    authCache.set(cacheKey, data.organization_id, 300000)
     
     return data.organization_id
   }

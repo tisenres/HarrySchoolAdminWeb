@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import {
   Card,
   CardContent,
@@ -12,8 +13,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tabs } from '@/components/ui/tabs'
 import { Separator } from '@/components/ui/separator'
-import { supabase } from '@/lib/supabase/client'
-import { User } from '@supabase/supabase-js'
+import { SkeletonTable } from '@/components/ui/skeleton-table'
 import {
   Settings,
   Users,
@@ -41,6 +41,8 @@ import { BackupManagement } from './backup-management'
 
 interface SettingsDashboardProps {
   initialTab?: string
+  userId?: string
+  organizationId?: string
 }
 
 interface SettingsStatus {
@@ -51,11 +53,12 @@ interface SettingsStatus {
   notifications: 'complete' | 'incomplete' | 'warning'
 }
 
-export function SettingsDashboard({ initialTab = 'overview' }: SettingsDashboardProps) {
+export function SettingsDashboard({ 
+  initialTab = 'overview',
+  userId,
+  organizationId 
+}: SettingsDashboardProps) {
   const [activeTab, setActiveTab] = useState(initialTab)
-  const [settingsStatus, setSettingsStatus] = useState<SettingsStatus | null>(null)
-  const [user, setUser] = useState<User | null>(null)
-  // supabase is already imported
 
   const settingsSections = [
     {
@@ -116,48 +119,34 @@ export function SettingsDashboard({ initialTab = 'overview' }: SettingsDashboard
     }
   ]
 
-  useEffect(() => {
-    fetchSettingsStatus()
-    fetchUser()
-  }, [])
-
-  // Refresh status when tab changes
-  useEffect(() => {
-    if (activeTab === 'overview') {
-      fetchSettingsStatus()
-    }
-  }, [activeTab])
-
-  const fetchUser = async () => {
-    try {
-      const { data: { user: currentUser } } = await supabase.auth.getUser()
-      setUser(currentUser)
-    } catch (error) {
-      console.error('Error fetching user:', error)
-    }
-  }
-
-  const fetchSettingsStatus = async () => {
-    try {
-      const response = await fetch('/api/settings/status')
-      if (response.ok) {
-        const data = await response.json()
-        setSettingsStatus(data.status || data)
-      } else {
-        throw new Error('Failed to fetch settings status')
+  // Fetch settings status with React Query
+  const { data: settingsStatus, isLoading: isLoadingStatus, refetch: refetchStatus } = useQuery({
+    queryKey: ['settings-status', activeTab],
+    queryFn: async () => {
+      try {
+        const response = await fetch('/api/settings/status')
+        if (response.ok) {
+          const data = await response.json()
+          return data.status || data
+        } else {
+          throw new Error('Failed to fetch settings status')
+        }
+      } catch (error) {
+        console.error('Error fetching settings status:', error)
+        // Provide fallback status for demo
+        return {
+          organization: 'incomplete',
+          users: 'incomplete', 
+          security: 'incomplete',
+          backup: 'incomplete',
+          notifications: 'incomplete'
+        }
       }
-    } catch (error) {
-      console.error('Error fetching settings status:', error)
-      // Provide fallback status for demo
-      setSettingsStatus({
-        organization: 'incomplete',
-        users: 'incomplete', 
-        security: 'incomplete',
-        backup: 'incomplete',
-        notifications: 'incomplete'
-      })
-    }
-  }
+    },
+    staleTime: activeTab === 'overview' ? 0 : 5 * 60 * 1000, // Always fresh on overview tab
+    gcTime: 10 * 60 * 1000, // Cache for 10 minutes
+    enabled: activeTab === 'overview' // Only fetch when on overview tab
+  })
 
   const getStatusBadge = (status: string) => {
     switch (status) {

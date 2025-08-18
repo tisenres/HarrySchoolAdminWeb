@@ -1,10 +1,14 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { motion } from 'framer-motion'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { debounce } from 'lodash'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { LoadingButton } from '@/components/ui/loading-button'
+import { SkeletonTable, SkeletonStats, SkeletonCard } from '@/components/ui/skeleton-table'
 import { 
   Plus, 
   Users, 
@@ -23,38 +27,54 @@ import { StudentForm } from '@/components/admin/students/student-form'
 import { fadeVariants, getAnimationConfig } from '@/lib/animations'
 
 export default function StudentsPage() {
-  const [students, setStudents] = useState<Student[]>([])
-  const [statistics, setStatistics] = useState<StudentStatistics | null>(null)
+  const queryClient = useQueryClient()
   const [selectedStudents, setSelectedStudents] = useState<string[]>([])
   const [filters, setFilters] = useState<StudentFilters>({})
+  const [debouncedFilters, setDebouncedFilters] = useState<StudentFilters>({})
   const [sortConfig, setSortConfig] = useState<StudentSortConfig>({
     field: 'full_name',
     direction: 'asc'
   })
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(20)
-  const [totalCount, setTotalCount] = useState(0)
-  const [totalPages, setTotalPages] = useState(1)
-  const [loading, setLoading] = useState(false)
   const [showArchived] = useState(false)
   
   // Form states
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [editingStudent, setEditingStudent] = useState<Student | undefined>()
   const [formLoading, setFormLoading] = useState(false)
+  
+  // Action loading states
+  const [bulkDeleteLoading, setBulkDeleteLoading] = useState(false)
+  const [bulkStatusLoading, setBulkStatusLoading] = useState(false)
+  const [bulkReferralLoading, setBulkReferralLoading] = useState(false)
 
-  // Load students data
-  const loadStudents = useCallback(async () => {
-    setLoading(true)
-    try {
+  // Debounce filters to prevent excessive API calls
+  const debouncedFilterUpdate = useCallback(
+    debounce((newFilters: StudentFilters) => {
+      setDebouncedFilters(newFilters)
+      setCurrentPage(1) // Reset to first page when filters change
+    }, 500),
+    []
+  )
+
+  useEffect(() => {
+    debouncedFilterUpdate(filters)
+  }, [filters, debouncedFilterUpdate])
+
+  // Combined React Query for students data with responsive caching
+  const { data: studentsData, isLoading: studentsLoading, error: studentsError } = useQuery({
+    queryKey: ['students', debouncedFilters, sortConfig, currentPage, pageSize, showArchived],
+    queryFn: async () => {
       const params = new URLSearchParams({
         page: currentPage.toString(),
         limit: pageSize.toString(),
         sort_by: sortConfig.field,
         sort_order: sortConfig.direction,
-        ...(filters.search && { query: filters.search }),
-        ...(filters.status && { status: filters.status }),
-        ...(filters.grade_level && { grade_level: filters.grade_level })
+        ...(debouncedFilters.search && { query: debouncedFilters.search }),
+        ...(debouncedFilters.status && { status: debouncedFilters.status }),
+        ...(debouncedFilters.grade_level && { grade_level: debouncedFilters.grade_level }),
+        ...(showArchived && { archived: 'true' })
       } as any)
 
       const response = await fetch(`/api/students?${params}`)
@@ -64,61 +84,42 @@ export default function StudentsPage() {
         throw new Error(result.error || 'Failed to fetch students')
       }
       
-      const studentsData = {
-        data: result.data || [],
+      return {
+        students: result.data || [],
         count: result.pagination?.total || 0,
         total_pages: result.pagination?.total_pages || 1
       }
-      setStudents(studentsData.data)
-      setTotalCount(studentsData.count)
-      setTotalPages(studentsData.total_pages)
-    } catch (error) {
-      console.error('Error loading students:', error)
-    } finally {
-      setLoading(false)
-    }
-  }, [filters, sortConfig, currentPage, pageSize])
+    },
+    staleTime: 0, // Always refetch when query key changes (responsive pagination)
+    gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes for back/forward navigation
+    refetchOnWindowFocus: false,
+  })
 
-  // Load statistics
-  const loadStatistics = useCallback(async () => {
-    try {
-      // Fetch students to calculate statistics
-      const response = await fetch('/api/students?limit=100')
+  // React Query for statistics with longer caching (statistics don't change with pagination)
+  const { data: statistics, isLoading: statisticsLoading } = useQuery({
+    queryKey: ['student-statistics'],
+    queryFn: async () => {
+      const response = await fetch('/api/students/statistics')
       const result = await response.json()
       
-      if (result.success && result.data) {
-        const allStudents = result.data
-        setStatistics({
-          total_students: result.pagination?.total || 0,
-          active_students: allStudents.filter((s: any) => s.status === 'active').length,
-          inactive_students: allStudents.filter((s: any) => s.status === 'inactive').length,
-          graduated_students: allStudents.filter((s: any) => s.status === 'graduated').length,
-          suspended_students: allStudents.filter((s: any) => s.status === 'suspended').length,
-          total_enrollment: 0,
-          pending_payments: allStudents.filter((s: any) => s.payment_status === 'pending').length,
-          overdue_payments: allStudents.filter((s: any) => s.payment_status === 'overdue').length,
-          total_balance: allStudents.reduce((sum: number, s: any) => sum + (s.balance || 0), 0),
-          by_status: {},
-          by_level: {},
-          by_payment_status: {},
-          enrollment_trend: []
-        })
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to fetch statistics')
       }
-    } catch (error) {
-      console.error('Error loading statistics:', error)
-    }
-  }, [])
+      
+      return result.data
+    },
+    staleTime: 30000, // Cache for 30 seconds (statistics don't change often)
+    gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
+    refetchOnWindowFocus: false,
+  })
 
-  // Initial load
-  useEffect(() => {
-    loadStudents()
-  }, [loadStudents])
+  // Memoized derived data
+  const students = useMemo(() => studentsData?.students || [], [studentsData])
+  const totalCount = useMemo(() => studentsData?.count || 0, [studentsData])
+  const totalPages = useMemo(() => studentsData?.total_pages || 1, [studentsData])
+  const loading = studentsLoading || statisticsLoading
 
-  useEffect(() => {
-    loadStatistics()
-  }, [loadStatistics])
-
-  // Handle form submission
+  // Handle form submission with cache invalidation
   const handleFormSubmit = async (data: CreateStudentRequest) => {
     setFormLoading(true)
     try {
@@ -143,8 +144,11 @@ export default function StudentsPage() {
           throw new Error(result.error || 'Failed to create student')
         }
       }
-      await loadStudents()
-      await loadStatistics()
+      
+      // Invalidate and refetch relevant queries
+      await queryClient.invalidateQueries({ queryKey: ['students'] })
+      await queryClient.invalidateQueries({ queryKey: ['student-statistics'] })
+      
       setIsFormOpen(false)
       setEditingStudent(undefined)
     } catch (error) {
@@ -169,8 +173,11 @@ export default function StudentsPage() {
       if (!result.success) {
         throw new Error(result.error || 'Failed to delete student')
       }
-      await loadStudents()
-      await loadStatistics()
+      
+      // Invalidate and refetch relevant queries
+      await queryClient.invalidateQueries({ queryKey: ['students'] })
+      await queryClient.invalidateQueries({ queryKey: ['student-statistics'] })
+      
       setSelectedStudents(prev => prev.filter(id => id !== studentId))
     } catch (error) {
       console.error('Error deleting student:', error)
@@ -178,6 +185,7 @@ export default function StudentsPage() {
   }
 
   const handleBulkDelete = async (studentIds: string[]) => {
+    setBulkDeleteLoading(true)
     try {
       // Delete multiple students
       await Promise.all(
@@ -185,17 +193,23 @@ export default function StudentsPage() {
           fetch(`/api/students/${id}`, { method: 'DELETE' })
         )
       )
-      await loadStudents()
-      await loadStatistics()
+      
+      // Invalidate and refetch relevant queries
+      await queryClient.invalidateQueries({ queryKey: ['students'] })
+      await queryClient.invalidateQueries({ queryKey: ['student-statistics'] })
+      
       setSelectedStudents([])
     } catch (error) {
       console.error('Error bulk deleting students:', error)
+    } finally {
+      setBulkDeleteLoading(false)
     }
   }
 
   const handleBulkStatusChange = async (studentIds: string[], status: string) => {
+    setBulkStatusLoading(true)
     try {
-      // Simulate bulk status change
+      // Bulk status change with optimized API calls
       for (const studentId of studentIds) {
         const student = students.find(s => s.id === studentId)
         if (student) {
@@ -210,15 +224,21 @@ export default function StudentsPage() {
           }
         }
       }
-      await loadStudents()
-      await loadStatistics()
+      
+      // Invalidate and refetch relevant queries
+      await queryClient.invalidateQueries({ queryKey: ['students'] })
+      await queryClient.invalidateQueries({ queryKey: ['student-statistics'] })
+      
       setSelectedStudents([])
     } catch (error) {
       console.error('Error changing student status:', error)
+    } finally {
+      setBulkStatusLoading(false)
     }
   }
 
   const handleBulkReferralAction = async (studentIds: string[], action: 'view' | 'export') => {
+    setBulkReferralLoading(true)
     try {
       if (action === 'view') {
         // TODO: Open bulk referral status modal
@@ -229,12 +249,14 @@ export default function StudentsPage() {
       }
     } catch (error) {
       console.error('Error handling bulk referral action:', error)
+    } finally {
+      setBulkReferralLoading(false)
     }
   }
 
   const handleFiltersChange = (newFilters: StudentFilters) => {
     setFilters(newFilters)
-    setCurrentPage(1)
+    // Debounced filter update will handle page reset
   }
 
   const handleClearFilters = () => {
@@ -279,14 +301,19 @@ export default function StudentsPage() {
             Manage student profiles, enrollment, and status tracking
           </p>
         </div>
-        <Button onClick={() => setIsFormOpen(true)}>
+        <LoadingButton 
+          onClick={() => setIsFormOpen(true)}
+          loading={false}
+        >
           <Plus className="h-4 w-4 mr-2" />
           Add Student
-        </Button>
+        </LoadingButton>
       </div>
 
       {/* Statistics Cards */}
-      {statistics && (
+      {statisticsLoading ? (
+        <SkeletonStats />
+      ) : statistics ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -354,10 +381,12 @@ export default function StudentsPage() {
             </CardContent>
           </Card>
         </div>
-      )}
+      ) : null}
 
       {/* Status Overview */}
-      {statistics && (
+      {statisticsLoading ? (
+        <SkeletonCard />
+      ) : statistics ? (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
@@ -381,7 +410,7 @@ export default function StudentsPage() {
             </div>
           </CardContent>
         </Card>
-      )}
+      ) : null}
 
       {/* Filters */}
       <StudentsFilters

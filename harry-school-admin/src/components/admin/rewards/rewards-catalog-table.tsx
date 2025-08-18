@@ -41,6 +41,7 @@ import { useToast } from '@/components/ui/use-toast'
 import { rewardsService, RewardWithStats } from '@/lib/services/rewards-service'
 import RewardForm from './reward-form'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
+import { SkeletonTable } from '@/components/ui/skeleton-table'
 
 interface RewardsCatalogTableProps {
   onEditReward?: (reward: RewardWithStats) => void
@@ -82,32 +83,35 @@ export default function RewardsCatalogTable({ onEditReward }: RewardsCatalogTabl
     { value: 'special', label: t('categories.special') },
   ]
 
-  const fetchRewards = async () => {
-    try {
-      setIsLoading(true)
-      setError(null)
-      
-      const { rewards: data, pagination } = await rewardsService.getRewards({
-        page: currentPage,
-        limit: 20,
-        search: searchTerm || undefined,
-        reward_type: typeFilter || undefined,
-        reward_category: categoryFilter || undefined,
-        is_active: statusFilter ? statusFilter === 'active' : undefined,
-        sort_by: 'display_order',
-        sort_order: 'asc'
-      })
-      
-      setRewards(data || [])
-      setTotalPages(pagination?.totalPages || 0)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : t('errors.loadingRewards'))
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
+  // Fetch rewards
   useEffect(() => {
+    const fetchRewards = async () => {
+      try {
+        setIsLoading(true)
+        setError(null)
+        
+        const { rewards: data, pagination } = await rewardsService.getRewards({
+          page: currentPage,
+          limit: 20,
+          search: searchTerm || undefined,
+          reward_type: typeFilter || undefined,
+          reward_category: categoryFilter || undefined,
+          is_active: statusFilter ? statusFilter === 'active' : undefined,
+          sort_by: 'display_order',
+          sort_order: 'asc'
+        })
+        
+        setRewards(data)
+        setTotalPages(pagination?.totalPages || 0)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'An error occurred')
+        setRewards([])
+        setTotalPages(0)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
     fetchRewards()
   }, [currentPage, searchTerm, typeFilter, categoryFilter, statusFilter])
 
@@ -118,52 +122,65 @@ export default function RewardsCatalogTable({ onEditReward }: RewardsCatalogTabl
         title: t('messages.rewardDeleted'),
         description: `${reward.name} has been deleted successfully.`,
       })
-      fetchRewards()
-    } catch (err) {
+      setDeletingReward(null)
+      // Refetch data
+      const { rewards: data, pagination } = await rewardsService.getRewards({
+        page: currentPage,
+        limit: 20,
+        search: searchTerm || undefined,
+        reward_type: typeFilter || undefined,
+        reward_category: categoryFilter || undefined,
+        is_active: statusFilter ? statusFilter === 'active' : undefined,
+        sort_by: 'display_order',
+        sort_order: 'asc'
+      })
+      setRewards(data)
+      setTotalPages(pagination?.totalPages || 0)
+    } catch (error: any) {
       toast({
         variant: 'destructive',
         title: t('errors.deletingReward'),
-        description: err instanceof Error ? err.message : 'An error occurred',
+        description: error.message || 'An error occurred',
       })
-    } finally {
-      setDeletingReward(null)
     }
   }
 
   const handleToggleFeatured = async (reward: RewardWithStats) => {
     try {
-      await rewardsService.updateReward(reward.id, {
-        is_featured: !reward.is_featured
-      })
+      await rewardsService.updateReward(reward.id, { is_featured: !reward.is_featured })
       toast({
         title: t('messages.rewardUpdated'),
-        description: `${reward.name} has been ${reward.is_featured ? 'unfeatured' : 'featured'}.`,
+        description: `${reward.name} has been ${!reward.is_featured ? 'featured' : 'unfeatured'}.`,
       })
-      fetchRewards()
-    } catch (err) {
+      // Update local state
+      setRewards(rewards.map(r => 
+        r.id === reward.id ? { ...r, is_featured: !r.is_featured } : r
+      ))
+    } catch (error: any) {
       toast({
         variant: 'destructive',
         title: t('errors.updatingReward'),
-        description: err instanceof Error ? err.message : 'An error occurred',
+        description: error.message || 'An error occurred',
       })
     }
   }
 
   const handleToggleActive = async (reward: RewardWithStats) => {
     try {
-      await rewardsService.updateReward(reward.id, {
-        is_active: !reward.is_active
-      })
+      await rewardsService.updateReward(reward.id, { is_active: !reward.is_active })
       toast({
         title: t('messages.rewardUpdated'),
-        description: `${reward.name} has been ${reward.is_active ? 'deactivated' : 'activated'}.`,
+        description: `${reward.name} has been ${!reward.is_active ? 'activated' : 'deactivated'}.`,
       })
-      fetchRewards()
-    } catch (err) {
+      // Update local state
+      setRewards(rewards.map(r => 
+        r.id === reward.id ? { ...r, is_active: !r.is_active } : r
+      ))
+    } catch (error: any) {
       toast({
         variant: 'destructive',
         title: t('errors.updatingReward'),
-        description: err instanceof Error ? err.message : 'An error occurred',
+        description: error.message || 'An error occurred',
       })
     }
   }
@@ -193,11 +210,15 @@ export default function RewardsCatalogTable({ onEditReward }: RewardsCatalogTabl
 
   if (isLoading) {
     return (
-      <Card>
-        <CardContent className="p-6">
-          <div className="text-center">Loading rewards...</div>
-        </CardContent>
-      </Card>
+      <div className="space-y-4">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center">
+          <div className="h-10 bg-muted rounded animate-pulse flex-1"></div>
+          <div className="h-10 bg-muted rounded animate-pulse w-full md:w-[180px]"></div>
+          <div className="h-10 bg-muted rounded animate-pulse w-full md:w-[180px]"></div>
+          <div className="h-10 bg-muted rounded animate-pulse w-full md:w-[180px]"></div>
+        </div>
+        <SkeletonTable rows={5} columns={7} />
+      </div>
     )
   }
 
@@ -405,9 +426,25 @@ export default function RewardsCatalogTable({ onEditReward }: RewardsCatalogTabl
           isOpen={!!editingReward}
           reward={editingReward}
           onClose={() => setEditingReward(null)}
-          onSave={() => {
+          onSave={async () => {
             setEditingReward(null)
-            fetchRewards()
+            // Refetch data
+            try {
+              const { rewards: data, pagination } = await rewardsService.getRewards({
+                page: currentPage,
+                limit: 20,
+                search: searchTerm || undefined,
+                reward_type: typeFilter || undefined,
+                reward_category: categoryFilter || undefined,
+                is_active: statusFilter ? statusFilter === 'active' : undefined,
+                sort_by: 'display_order',
+                sort_order: 'asc'
+              })
+              setRewards(data)
+              setTotalPages(pagination?.totalPages || 0)
+            } catch (err) {
+              console.error('Failed to refetch rewards:', err)
+            }
           }}
         />
       )}
@@ -424,12 +461,12 @@ export default function RewardsCatalogTable({ onEditReward }: RewardsCatalogTabl
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
+            <Button
               onClick={() => deletingReward && handleDeleteReward(deletingReward)}
               className="bg-red-600 hover:bg-red-700"
             >
               Delete
-            </AlertDialogAction>
+            </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

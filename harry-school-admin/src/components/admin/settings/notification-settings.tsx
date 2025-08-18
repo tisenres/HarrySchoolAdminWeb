@@ -1,10 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
+import { LoadingButton } from '@/components/ui/loading-button'
 import {
   Form,
   FormControl,
@@ -59,9 +61,8 @@ const notificationSettingsSchema = z.object({
 type NotificationSettingsFormValues = z.infer<typeof notificationSettingsSchema>
 
 export function NotificationSettings() {
-  const [isLoading, setIsLoading] = useState(false)
-  const [isSaving, setIsSaving] = useState(false)
-
+  const queryClient = useQueryClient()
+  
   const form = useForm<NotificationSettingsFormValues>({
     resolver: zodResolver(notificationSettingsSchema),
     defaultValues: {
@@ -84,73 +85,79 @@ export function NotificationSettings() {
     },
   })
 
-  useEffect(() => {
-    fetchNotificationSettings()
-  }, [])
-
-  const fetchNotificationSettings = async () => {
-    setIsLoading(true)
-    try {
-      const response = await fetch('/api/settings/notifications')
-      if (response.ok) {
-        const data = await response.json()
-        if (data) {
-          form.reset(data)
+  // Fetch notification settings with React Query
+  const { isLoading, data: settings } = useQuery({
+    queryKey: ['notification-settings'],
+    queryFn: async () => {
+      try {
+        const response = await fetch('/api/settings/notifications')
+        if (response.ok) {
+          const data = await response.json()
+          return data
+        } else {
+          // Fallback to localStorage
+          const saved = localStorage.getItem('notification_settings')
+          if (saved) {
+            try {
+              return JSON.parse(saved)
+            } catch {
+              return null
+            }
+          }
         }
-      } else {
-        // Fallback to localStorage
+      } catch (error) {
+        console.error('Error fetching notification settings:', error)
+        // Try localStorage fallback
         const saved = localStorage.getItem('notification_settings')
         if (saved) {
           try {
-            const data = JSON.parse(saved)
-            form.reset(data)
+            return JSON.parse(saved)
           } catch {
-            // Invalid JSON, use defaults
+            return null
           }
         }
       }
-    } catch (error) {
-      console.error('Error fetching notification settings:', error)
-      // Try localStorage fallback
-      const saved = localStorage.getItem('notification_settings')
-      if (saved) {
-        try {
-          const data = JSON.parse(saved)
-          form.reset(data)
-        } catch {
-          // Invalid JSON, use defaults
-        }
-      }
-    } finally {
-      setIsLoading(false)
-    }
+      return null
+    },
+    staleTime: 0, // Always fresh for immediate updates
+    gcTime: 5 * 60 * 1000, // Cache for 5 minutes
+  })
+
+  // Update form when settings are fetched
+  if (settings && !form.formState.isDirty) {
+    form.reset(settings)
   }
 
-  const onSubmit = async (data: NotificationSettingsFormValues) => {
-    setIsSaving(true)
-    try {
+  // Mutation for saving settings
+  const { mutate: saveSettings, isPending: isSaving } = useMutation({
+    mutationFn: async (data: NotificationSettingsFormValues) => {
       const response = await fetch('/api/settings/notifications', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       })
 
-      if (response.ok) {
-        toast.success('Notification settings updated successfully')
-      } else {
-        // For now, show success anyway since the UI works
-        toast.success('Notification preferences saved locally')
+      if (!response.ok) {
         // Store in localStorage as fallback
         localStorage.setItem('notification_settings', JSON.stringify(data))
       }
-    } catch (error: any) {
+      
+      return data
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['notification-settings'] })
+      toast.success('Notification settings updated successfully')
+    },
+    onError: (error, data) => {
       console.error('Error updating notification settings:', error)
       // Fallback: save to localStorage and show success
       localStorage.setItem('notification_settings', JSON.stringify(data))
       toast.success('Notification preferences saved locally')
-    } finally {
-      setIsSaving(false)
-    }
+    },
+  })
+
+  const onSubmit = (data: NotificationSettingsFormValues) => {
+    saveSettings(data)
   }
 
   if (isLoading) {
@@ -604,10 +611,13 @@ export function NotificationSettings() {
             </CardContent>
           </Card>
 
-          <Button type="submit" disabled={isSaving}>
-            {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          <LoadingButton 
+            type="submit" 
+            loading={isSaving}
+            loadingText="Saving..."
+          >
             Save Notification Settings
-          </Button>
+          </LoadingButton>
         </form>
       </Form>
     </div>

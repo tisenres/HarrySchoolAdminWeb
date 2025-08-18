@@ -22,6 +22,7 @@ import {
   DropdownMenuCheckboxItem,
 } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
+import { LoadingButton } from '@/components/ui/loading-button'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
@@ -62,6 +63,7 @@ import {
   educationalLoadingVariants
 } from '@/lib/animations'
 import { ClientOnly } from '@/components/ui/client-only'
+import { SkeletonTable } from '@/components/ui/skeleton-table'
 import { ReferralCountBadge } from './referral-status-indicator'
 
 export interface StudentsTableProps {
@@ -86,6 +88,9 @@ export interface StudentsTableProps {
   onPageSizeChange?: (size: number) => void
   loading?: boolean
   showArchived?: boolean
+  bulkDeleteLoading?: boolean
+  bulkStatusLoading?: boolean
+  bulkReferralLoading?: boolean
 }
 
 interface ColumnConfig {
@@ -98,19 +103,19 @@ interface ColumnConfig {
 
 const getDefaultColumns = (t: any): ColumnConfig[] => [
   { key: 'select', label: '', sortable: false, visible: true, width: 'w-12' },
-  { key: 'student_id', label: t('columns.studentId'), sortable: true, visible: true },
-  { key: 'full_name', label: t('columns.name'), sortable: true, visible: true },
-  { key: 'age', label: t('columns.age'), sortable: true, visible: true },
-  { key: 'phone', label: t('columns.contact'), sortable: false, visible: true },
-  { key: 'parent_name', label: t('columns.parentGuardian'), sortable: true, visible: true },
-  { key: 'status', label: t('columns.status'), sortable: true, visible: true },
-  { key: 'payment_status', label: t('columns.payment'), sortable: true, visible: true },
-  { key: 'current_level', label: t('columns.level'), sortable: true, visible: true },
-  { key: 'enrolled_groups', label: t('columns.groups'), sortable: false, visible: true },
+  { key: 'student_id', label: t('studentsTable.columns.studentId'), sortable: true, visible: true },
+  { key: 'full_name', label: t('studentsTable.columns.name'), sortable: true, visible: true },
+  { key: 'age', label: t('studentsTable.columns.age'), sortable: true, visible: true },
+  { key: 'phone', label: t('studentsTable.columns.contact'), sortable: false, visible: true },
+  { key: 'parent_name', label: t('studentsTable.columns.parentGuardian'), sortable: true, visible: true },
+  { key: 'status', label: t('studentsTable.columns.status'), sortable: true, visible: true },
+  { key: 'payment_status', label: t('studentsTable.columns.payment'), sortable: true, visible: true },
+  { key: 'current_level', label: t('studentsTable.columns.level'), sortable: true, visible: true },
+  { key: 'enrolled_groups', label: t('studentsTable.columns.groups'), sortable: false, visible: true },
   { key: 'referrals', label: 'Referrals', sortable: false, visible: true },
-  { key: 'ranking', label: t('columns.ranking'), sortable: true, visible: true },
-  { key: 'balance', label: t('columns.balance'), sortable: true, visible: true },
-  { key: 'enrollment_date', label: t('columns.enrolled'), sortable: true, visible: true },
+  { key: 'ranking', label: t('studentsTable.columns.ranking'), sortable: true, visible: true },
+  { key: 'balance', label: t('studentsTable.columns.balance'), sortable: true, visible: true },
+  { key: 'enrollment_date', label: t('studentsTable.columns.enrolled'), sortable: true, visible: true },
   { key: 'actions', label: '', sortable: false, visible: true, width: 'w-12' },
 ]
 
@@ -136,6 +141,9 @@ export function StudentsTable({
   onPageSizeChange,
   loading = false,
   showArchived = false,
+  bulkDeleteLoading = false,
+  bulkStatusLoading = false,
+  bulkReferralLoading = false,
 }: StudentsTableProps) {
   const t = useTranslations('students')
   const [columnConfig, setColumnConfig] = useState<ColumnConfig[]>(() => getDefaultColumns(t))
@@ -323,21 +331,7 @@ export function StudentsTable({
         initial="initial"
         animate="loading"
       >
-        <div className="bg-white rounded-lg border">
-          {Array.from({ length: 5 }).map((_, index) => (
-            <div key={index} className="h-16 border-b border-gray-100 animate-pulse">
-              <div className="flex items-center space-x-4 p-4">
-                <div className="h-4 w-4 bg-gray-200 rounded" />
-                <div className="h-4 w-32 bg-gray-200 rounded" />
-                <div className="h-4 w-24 bg-gray-200 rounded" />
-                <div className="h-4 w-16 bg-gray-200 rounded" />
-                <div className="h-4 w-20 bg-gray-200 rounded" />
-                <div className="flex-1" />
-                <div className="h-8 w-8 bg-gray-200 rounded" />
-              </div>
-            </div>
-          ))}
-        </div>
+        <SkeletonTable rows={8} columns={visibleColumns.length} />
       </motion.div>
     )
   }
@@ -365,10 +359,15 @@ export function StudentsTable({
               {onBulkStatusChange && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm">
+                    <LoadingButton 
+                      variant="outline" 
+                      size="sm"
+                      loading={bulkStatusLoading}
+                      loadingText="Updating..."
+                    >
                       <UserCheck className="h-4 w-4 mr-2" />
                       Change Status
-                    </Button>
+                    </LoadingButton>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent>
                     <DropdownMenuItem onClick={() => onBulkStatusChange(selectedStudents, 'active')}>
@@ -413,10 +412,15 @@ export function StudentsTable({
               {onBulkReferralAction && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm">
+                    <LoadingButton 
+                      variant="outline" 
+                      size="sm"
+                      loading={bulkReferralLoading}
+                      loadingText="Processing..."
+                    >
                       <UserPlus className="h-4 w-4 mr-2" />
                       Referrals
-                    </Button>
+                    </LoadingButton>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent>
                     <DropdownMenuItem onClick={() => onBulkReferralAction(selectedStudents, 'view')}>
@@ -431,14 +435,16 @@ export function StudentsTable({
                 </DropdownMenu>
               )}
 
-              <Button
+              <LoadingButton
                 variant="outline"
                 size="sm"
                 onClick={() => onBulkDelete(selectedStudents)}
+                loading={bulkDeleteLoading}
+                loadingText="Deleting..."
               >
                 <Trash2 className="h-4 w-4 mr-2" />
                 Delete
-              </Button>
+              </LoadingButton>
             </motion.div>
           )}
         </div>

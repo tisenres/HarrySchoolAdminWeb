@@ -230,6 +230,8 @@ export class NotificationService extends BaseService {
    */
   async markAsRead(notificationId: string): Promise<Tables<'notifications'>> {
     const user = await this.getCurrentUser()
+    const organizationId = await this.getCurrentOrganization()
+    const userRole = await this.getCurrentUserRole()
     const supabase = await this.getSupabase()
 
     const updateData: TablesUpdate<'notifications'> = {
@@ -242,7 +244,9 @@ export class NotificationService extends BaseService {
       .from('notifications')
       .update(updateData)
       .eq('id', notificationId)
-      .or(`user_id.eq.${user.id},role_target.cs.{${await this.getCurrentUserRole()}}`)
+      .eq('organization_id', organizationId)
+      .or(`user_id.eq.${user.id},role_target.cs.{${userRole}}`)
+      .is('deleted_at', null)
       .select()
       .single()
 
@@ -258,6 +262,8 @@ export class NotificationService extends BaseService {
    */
   async markAsUnread(notificationId: string): Promise<Tables<'notifications'>> {
     const user = await this.getCurrentUser()
+    const organizationId = await this.getCurrentOrganization()
+    const userRole = await this.getCurrentUserRole()
     const supabase = await this.getSupabase()
 
     const updateData: TablesUpdate<'notifications'> = {
@@ -270,7 +276,9 @@ export class NotificationService extends BaseService {
       .from('notifications')
       .update(updateData)
       .eq('id', notificationId)
-      .or(`user_id.eq.${user.id},role_target.cs.{${await this.getCurrentUserRole()}}`)
+      .eq('organization_id', organizationId)
+      .or(`user_id.eq.${user.id},role_target.cs.{${userRole}}`)
+      .is('deleted_at', null)
       .select()
       .single()
 
@@ -315,30 +323,53 @@ export class NotificationService extends BaseService {
    */
   async deleteNotification(notificationId: string): Promise<Tables<'notifications'>> {
     const user = await this.getCurrentUser()
+    const organizationId = await this.getCurrentOrganization()
+    const userRole = await this.getCurrentUserRole()
     const supabase = await this.getSupabase()
 
-    // First get the notification to log it
-    const { data: notification } = await supabase
+    // First get the notification to verify permissions and log it
+    const { data: notification, error: fetchError } = await supabase
       .from('notifications')
       .select('*')
       .eq('id', notificationId)
-      .or(`user_id.eq.${user.id},role_target.cs.{${await this.getCurrentUserRole()}}`)
+      .eq('organization_id', organizationId)
+      .or(`user_id.eq.${user.id},role_target.cs.{${userRole}}`)
+      .is('deleted_at', null)
       .single()
 
-    const result = await this.softDelete(notificationId)
-
-    if (notification) {
-      await this.logActivity(
-        'DELETE',
-        notificationId,
-        notification.title,
-        notification,
-        null,
-        `Deleted ${notification.type} notification`
-      )
+    if (fetchError || !notification) {
+      throw new Error(`Notification not found or you don't have permission to delete it`)
     }
 
-    return result
+    // Perform the soft delete with proper context
+    const { data: deletedNotification, error: deleteError } = await supabase
+      .from('notifications')
+      .update({
+        deleted_at: new Date().toISOString(),
+        deleted_by: user.id
+      })
+      .eq('id', notificationId)
+      .eq('organization_id', organizationId)
+      .or(`user_id.eq.${user.id},role_target.cs.{${userRole}}`)
+      .is('deleted_at', null)
+      .select()
+      .single()
+
+    if (deleteError) {
+      throw new Error(`Failed to delete notification: ${deleteError.message}`)
+    }
+
+    // Log the deletion
+    await this.logActivity(
+      'DELETE',
+      notificationId,
+      notification.title,
+      notification,
+      null,
+      `Deleted ${notification.type} notification`
+    )
+
+    return deletedNotification
   }
 
   /**

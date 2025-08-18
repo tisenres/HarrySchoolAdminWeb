@@ -5,6 +5,9 @@ import { withAuth } from '@/lib/middleware/api-auth'
 import { createServerClient } from '@/lib/supabase-server'
 import { z } from 'zod'
 
+// Enable caching for GET requests
+export const revalidate = 60 // Cache for 60 seconds
+
 export const GET = withAuth(async (request: NextRequest, context) => {
   const searchParams = request.nextUrl.searchParams
   
@@ -31,7 +34,10 @@ export const GET = withAuth(async (request: NextRequest, context) => {
   const teacherService = new TeacherService('teachers', () => Promise.resolve(supabase))
   const result = await teacherService.getAll(search, pagination)
   
-  return NextResponse.json(result)
+  // Add cache headers for better performance
+  const response = NextResponse.json(result)
+  response.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300')
+  return response
 }, 'admin')
 
 export const POST = withAuth(async (request: NextRequest) => {

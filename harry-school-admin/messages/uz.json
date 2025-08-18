@@ -340,6 +340,24 @@
     "requiresAttention": "e'tibor talab qiladi",
     "allPaymentsUpToDate": "barcha to'lovlar dolzarb",
     "statusOverview": "Holat ko'rinishi",
+    "studentsTable": {
+      "columns": {
+        "studentId": "Talaba ID si",
+        "name": "Ism",
+        "age": "Yosh",
+        "contact": "Aloqa",
+        "parentGuardian": "Ota-ona/Vasiy",
+        "status": "Holat",
+        "payment": "To'lov",
+        "level": "Daraja",
+        "groups": "Guruhlar",
+        "ranking": "Reyting",
+        "balance": "Balans",
+        "enrolled": "Ro'yxatdan o'tgan",
+        "actions": "Amallar",
+        "select": "Tanlash"
+      }
+    },
     "columns": {
       "studentId": "Talaba ID si",
       "name": "Ism",
@@ -661,7 +679,9 @@
         "specializations": "Ixtisosliklar",
         "groups": "Guruhlar",
         "students": "Talabalar",
-        "status": "Holat"
+        "status": "Holat",
+        "actions": "Amallar",
+        "select": "Tanlash"
       },
       "bulkActions": {
         "selected": "o'qituvchi tanlandi",
@@ -714,7 +734,9 @@
         "enrollment": "Ro'yxatga olish",
         "schedule": "Jadval",
         "status": "Holat",
-        "startDate": "Boshlanish sanasi"
+        "startDate": "Boshlanish sanasi",
+        "actions": "Amallar",
+        "select": "Tanlash"
       }
     },
     "studentForm": {

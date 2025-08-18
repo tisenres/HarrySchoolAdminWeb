@@ -54,7 +54,7 @@ import {
   type CreateGroupRequest,
   type UpdateGroupRequest
 } from '@/lib/validations/group'
-import { mockGroupService } from '@/lib/services/mock-group-service'
+import { groupService } from '@/lib/services/group-service'
 
 interface GroupFormProps {
   group?: Group
@@ -139,9 +139,9 @@ export function GroupForm({
       let savedGroup: Group
 
       if (isEditing && 'id' in data) {
-        savedGroup = await mockGroupService.update(data.id, data)
+        savedGroup = await groupService.update(data.id, data)
       } else {
-        savedGroup = await mockGroupService.create(data as CreateGroupRequest)
+        savedGroup = await groupService.create(data as CreateGroupRequest)
       }
 
       onSave(savedGroup)

@@ -58,101 +58,7 @@ import {
 } from 'lucide-react'
 import type { Achievement } from '@/types/ranking'
 import { AchievementForm } from './achievement-form'
-
-// Mock data - Replace with actual API calls
-const mockAchievements: Achievement[] = [
-  {
-    id: '1',
-    organization_id: 'org-1',
-    name: 'Perfect Attendance',
-    description: 'Attended all classes for a full month without any absences',
-    icon_name: '📅',
-    badge_color: '#4F7942',
-    points_reward: 100,
-    coins_reward: 50,
-    achievement_type: 'attendance',
-    is_active: true,
-    created_by: 'admin-1',
-    created_at: '2024-01-15T10:00:00Z',
-    updated_at: '2024-01-15T10:00:00Z'
-  },
-  {
-    id: '2',
-    organization_id: 'org-1',
-    name: 'Homework Champion',
-    description: 'Completed all homework assignments for two consecutive weeks',
-    icon_name: '📚',
-    badge_color: '#8B5CF6',
-    points_reward: 75,
-    coins_reward: 25,
-    achievement_type: 'homework',
-    is_active: true,
-    created_by: 'admin-1',
-    created_at: '2024-01-10T14:30:00Z',
-    updated_at: '2024-01-10T14:30:00Z'
-  },
-  {
-    id: '3',
-    organization_id: 'org-1',
-    name: 'Class Helper',
-    description: 'Consistently helped classmates and showed excellent behavior',
-    icon_name: '🤝',
-    badge_color: '#F59E0B',
-    points_reward: 60,
-    coins_reward: 30,
-    achievement_type: 'behavior',
-    is_active: true,
-    created_by: 'admin-1',
-    created_at: '2024-01-05T09:15:00Z',
-    updated_at: '2024-01-05T09:15:00Z'
-  },
-  {
-    id: '4',
-    organization_id: 'org-1',
-    name: 'Study Streak Master',
-    description: 'Maintained a 10-day consecutive study streak',
-    icon_name: '⚡',
-    badge_color: '#EF4444',
-    points_reward: 120,
-    coins_reward: 60,
-    achievement_type: 'streak',
-    is_active: false,
-    created_by: 'admin-1',
-    created_at: '2024-01-20T16:45:00Z',
-    updated_at: '2024-01-20T16:45:00Z'
-  },
-  {
-    id: '5',
-    organization_id: 'org-1',
-    name: 'Level 5 Scholar',
-    description: 'Reached Level 5 in the ranking system',
-    icon_name: '🎯',
-    badge_color: '#06B6D4',
-    points_reward: 200,
-    coins_reward: 100,
-    achievement_type: 'milestone',
-    is_active: true,
-    created_by: 'admin-1',
-    created_at: '2024-02-01T11:20:00Z',
-    updated_at: '2024-02-01T11:20:00Z'
-  },
-  {
-    id: '6',
-    organization_id: 'org-1',
-    name: 'Student of the Month',
-    description: 'Outstanding performance and dedication throughout the month',
-    icon_name: '👑',
-    badge_color: '#8B5CF6',
-    points_reward: 300,
-    coins_reward: 150,
-    achievement_type: 'special',
-    is_active: true,
-    deleted_at: '2024-02-10T12:00:00Z',
-    created_by: 'admin-1',
-    created_at: '2024-02-05T13:30:00Z',
-    updated_at: '2024-02-05T13:30:00Z'
-  }
-]
+import { achievementService } from '@/lib/services/achievement-service'
 
 export function AchievementManagement() {
   const [achievements, setAchievements] = useState<Achievement[]>([])
@@ -165,12 +71,20 @@ export function AchievementManagement() {
   const [deletingAchievement, setDeletingAchievement] = useState<Achievement | null>(null)
 
   useEffect(() => {
-    // Simulate API call
-    setTimeout(() => {
-      setAchievements(mockAchievements)
-      setLoading(false)
-    }, 1000)
+    loadAchievements()
   }, [])
+
+  const loadAchievements = async () => {
+    try {
+      setLoading(true)
+      const { achievements } = await achievementService.getAchievements({ status: 'all' })
+      setAchievements(achievements)
+    } catch (error) {
+      console.error('Error loading achievements:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   // Filter achievements based on search and filters
   const filteredAchievements = achievements.filter(achievement => {
@@ -240,13 +154,13 @@ export function AchievementManagement() {
   const handleToggleStatus = async (achievement: Achievement) => {
     try {
       setLoading(true)
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500))
+      const updatedAchievement = await achievementService.toggleAchievementStatus(
+        achievement.id, 
+        !achievement.is_active
+      )
       
       setAchievements(prev => prev.map(a => 
-        a.id === achievement.id 
-          ? { ...a, is_active: !a.is_active, updated_at: new Date().toISOString() }
-          : a
+        a.id === achievement.id ? updatedAchievement : a
       ))
     } catch (error) {
       console.error('Error toggling achievement status:', error)
@@ -258,14 +172,8 @@ export function AchievementManagement() {
   const handleArchive = async (achievement: Achievement) => {
     try {
       setLoading(true)
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500))
-      
-      setAchievements(prev => prev.map(a => 
-        a.id === achievement.id 
-          ? { ...a, deleted_at: new Date().toISOString() }
-          : a
-      ))
+      await achievementService.archiveAchievement(achievement.id)
+      await loadAchievements() // Reload to get updated list
     } catch (error) {
       console.error('Error archiving achievement:', error)
     } finally {
@@ -276,13 +184,10 @@ export function AchievementManagement() {
   const handleRestore = async (achievement: Achievement) => {
     try {
       setLoading(true)
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500))
+      const restoredAchievement = await achievementService.restoreAchievement(achievement.id)
       
       setAchievements(prev => prev.map(a => 
-        a.id === achievement.id 
-          ? { ...a, deleted_at: undefined }
-          : a
+        a.id === achievement.id ? restoredAchievement : a
       ))
     } catch (error) {
       console.error('Error restoring achievement:', error)
@@ -296,8 +201,7 @@ export function AchievementManagement() {
     
     try {
       setLoading(true)
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500))
+      await achievementService.deleteAchievement(deletingAchievement.id)
       
       setAchievements(prev => prev.filter(a => a.id !== deletingAchievement.id))
       setDeletingAchievement(null)
@@ -311,18 +215,7 @@ export function AchievementManagement() {
   const handleDuplicate = async (achievement: Achievement) => {
     try {
       setLoading(true)
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500))
-      
-      const duplicatedAchievement: Achievement = {
-        ...achievement,
-        id: `${achievement.id}-copy-${Date.now()}`,
-        name: `${achievement.name} (Copy)`,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        deleted_at: undefined,
-        is_active: false
-      }
+      const duplicatedAchievement = await achievementService.duplicateAchievement(achievement.id)
       
       setAchievements(prev => [duplicatedAchievement, ...prev])
     } catch (error) {
@@ -556,8 +449,14 @@ export function AchievementManagement() {
                                     
                                     <DropdownMenuItem
                                       onClick={() => handleToggleStatus(achievement)}
+                                      disabled={loading}
                                     >
-                                      {achievement.is_active ? (
+                                      {loading ? (
+                                        <>
+                                          <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-solid border-current border-r-transparent" />
+                                          Processing...
+                                        </>
+                                      ) : achievement.is_active ? (
                                         <>
                                           <EyeOff className="h-4 w-4 mr-2" />
                                           Deactivate
@@ -574,10 +473,20 @@ export function AchievementManagement() {
                                     
                                     <DropdownMenuItem
                                       onClick={() => handleArchive(achievement)}
+                                      disabled={loading}
                                       className="text-orange-600"
                                     >
-                                      <Archive className="h-4 w-4 mr-2" />
-                                      Archive
+                                      {loading ? (
+                                        <>
+                                          <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-solid border-current border-r-transparent" />
+                                          Archiving...
+                                        </>
+                                      ) : (
+                                        <>
+                                          <Archive className="h-4 w-4 mr-2" />
+                                          Archive
+                                        </>
+                                      )}
                                     </DropdownMenuItem>
                                   </>
                                 ) : (
@@ -643,6 +552,10 @@ export function AchievementManagement() {
         open={showCreateForm}
         onOpenChange={setShowCreateForm}
         mode="create"
+        onSuccess={() => {
+          setShowCreateForm(false)
+          loadAchievements()
+        }}
       />
 
       {/* Edit Achievement Form */}
@@ -651,6 +564,10 @@ export function AchievementManagement() {
         onOpenChange={(open) => !open && setEditingAchievement(null)}
         mode="edit"
         achievement={editingAchievement || undefined}
+        onSuccess={() => {
+          setEditingAchievement(null)
+          loadAchievements()
+        }}
       />
 
       {/* Delete Confirmation Dialog */}
@@ -667,9 +584,17 @@ export function AchievementManagement() {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
+              disabled={loading}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Delete Permanently
+              {loading ? (
+                <>
+                  <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-solid border-current border-r-transparent" />
+                  Deleting...
+                </>
+              ) : (
+                'Delete Permanently'
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

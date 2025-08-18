@@ -94,13 +94,13 @@ interface ColumnConfig {
 
 const getDefaultColumns = (t: any): ColumnConfig[] => [
   { key: 'select', label: '', sortable: false, visible: true, width: 'w-12' },
-  { key: 'full_name', label: t('columns.name'), sortable: true, visible: true },
-  { key: 'email', label: t('columns.contact'), sortable: false, visible: true },
-  { key: 'employment_status', label: t('columns.employment'), sortable: true, visible: true },
-  { key: 'specializations', label: t('columns.specializations'), sortable: false, visible: true },
-  { key: 'groups_count', label: t('columns.groups'), sortable: false, visible: true },
-  { key: 'students_count', label: t('columns.students'), sortable: false, visible: true },
-  { key: 'is_active', label: t('columns.status'), sortable: true, visible: true },
+  { key: 'full_name', label: t('teachersTable.columns.name'), sortable: true, visible: true },
+  { key: 'email', label: t('teachersTable.columns.contact'), sortable: false, visible: true },
+  { key: 'employment_status', label: t('teachersTable.columns.employment'), sortable: true, visible: true },
+  { key: 'specializations', label: t('teachersTable.columns.specializations'), sortable: false, visible: true },
+  { key: 'groups_count', label: t('teachersTable.columns.groups'), sortable: false, visible: true },
+  { key: 'students_count', label: t('teachersTable.columns.students'), sortable: false, visible: true },
+  { key: 'is_active', label: t('teachersTable.columns.status'), sortable: true, visible: true },
   { key: 'actions', label: '', sortable: false, visible: true, width: 'w-12' },
 ]
 
@@ -619,7 +619,7 @@ export function TeachersTable({
                       return (
                         <TableCell key={col.key}>
                           <div className="text-center">
-                            <span className="font-medium">0</span>
+                            <span className="font-medium">{(teacher as any).active_groups || 0}</span>
                           </div>
                         </TableCell>
                       )
@@ -629,7 +629,7 @@ export function TeachersTable({
                       return (
                         <TableCell key={col.key}>
                           <div className="text-center">
-                            <span className="font-medium">0</span>
+                            <span className="font-medium">{(teacher as any).total_students || 0}</span>
                           </div>
                         </TableCell>
                       )

@@ -358,13 +358,14 @@ export default function GroupsPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={submitting}>Cancel</AlertDialogCancel>
-            <AlertDialogAction
+            <LoadingButton
               onClick={confirmDeleteGroup}
-              disabled={submitting}
+              loading={submitting}
+              loadingText="Deleting..."
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {submitting ? 'Deleting...' : 'Delete Group'}
-            </AlertDialogAction>
+              Delete Group
+            </LoadingButton>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

@@ -125,56 +125,10 @@ export default function StudentsPage() {
     }
   }, [])
 
-  // Initial load
+  // Initial load and data refresh
   useEffect(() => {
-    const loadData = async () => {
-      setLoading(true)
-      setError(null)
-      try {
-        const params = new URLSearchParams({
-          page: currentPage.toString(),
-          limit: pageSize.toString(),
-          sort_by: sortConfig.field,
-          sort_order: sortConfig.direction,
-          ...(filters.search && { query: filters.search }),
-          ...(filters.status && { status: filters.status }),
-          ...(filters.grade_level && { grade_level: filters.grade_level })
-        } as any)
-
-        const response = await fetch(`/api/students?${params}`)
-        
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`)
-        }
-        
-        const result = await response.json()
-        
-        if (!result.success) {
-          throw new Error(result.error || 'Failed to fetch students')
-        }
-        
-        const studentsData = {
-          data: result.data || [],
-          count: result.pagination?.total || 0,
-          total_pages: result.pagination?.total_pages || 1
-        }
-        setStudents(studentsData.data)
-        setTotalCount(studentsData.count)
-        setTotalPages(studentsData.total_pages)
-        setError(null)
-      } catch (error) {
-        console.error('Error loading students:', error)
-        setError(error instanceof Error ? error.message : 'Failed to load students')
-        setStudents([])
-        setTotalCount(0)
-        setTotalPages(1)
-      } finally {
-        setLoading(false)
-      }
-    }
-    
-    loadData()
-  }, [currentPage, pageSize, sortConfig.field, sortConfig.direction, filters.search, filters.status, filters.grade_level])
+    loadStudents()
+  }, [loadStudents])
 
   useEffect(() => {
     loadStatistics()

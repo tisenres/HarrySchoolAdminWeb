@@ -146,11 +146,16 @@ export class TeacherService extends BaseService {
     if (error) {
       throw new Error(`Failed to get teachers: ${error.message}`)
     }
+
+    // Get all teacher counts in a single batch query (skip in development for performance)
+    const enhancedData = process.env.NODE_ENV === 'development' && process.env.DISABLE_TEACHER_COUNTS === 'true'
+      ? data?.map(teacher => ({ ...teacher, active_groups: 0, total_students: 0 })) || []
+      : await this.enhanceTeachersWithCounts(data || [])
     
     const total_pages = Math.ceil((count || 0) / limit)
     
     return {
-      data: data || [],
+      data: enhancedData,
       count: count || 0,
       total_pages,
     }
@@ -434,4 +439,154 @@ export class TeacherService extends BaseService {
     
     return results
   }
+
+  /**
+   * Enhance teachers with counts in a single batch query (much faster)
+   */
+  async enhanceTeachersWithCounts(teachers: any[]): Promise<any[]> {
+    if (teachers.length === 0) return []
+
+    // Skip heavy count queries in development for better performance
+    if (process.env.NODE_ENV === 'development' && process.env.DISABLE_TEACHER_COUNTS === 'true') {
+      return teachers.map(teacher => ({
+        ...teacher,
+        active_groups: 0,
+        total_students: 0
+      }))
+    }
+
+    const organizationId = await this.getCurrentOrganization()
+    const supabase = await this.getSupabase()
+    const teacherIds = teachers.map(t => t.id)
+
+    // Get all group assignments and student counts in one query
+    const { data: assignmentData } = await supabase
+      .from('teacher_group_assignments')
+      .select(`
+        teacher_id,
+        group_id,
+        groups!inner(
+          id,
+          is_active,
+          student_group_enrollments!inner(
+            student_id,
+            students!inner(
+              id,
+              is_active
+            )
+          )
+        )
+      `)
+      .in('teacher_id', teacherIds)
+      .eq('organization_id', organizationId)
+      .is('deleted_at', null)
+
+    // Process the data to count groups and students per teacher
+    const teacherCounts: Record<string, { active_groups: number; total_students: number }> = {}
+    
+    teacherIds.forEach(teacherId => {
+      teacherCounts[teacherId] = { active_groups: 0, total_students: 0 }
+    })
+
+    if (assignmentData) {
+      // Count groups per teacher
+      const groupsPerTeacher: Record<string, Set<string>> = {}
+      const studentsPerTeacher: Record<string, Set<string>> = {}
+
+      assignmentData.forEach((assignment: any) => {
+        const teacherId = assignment.teacher_id
+        
+        if (!groupsPerTeacher[teacherId]) {
+          groupsPerTeacher[teacherId] = new Set()
+          studentsPerTeacher[teacherId] = new Set()
+        }
+
+        groupsPerTeacher[teacherId].add(assignment.group_id)
+
+        // Count students in this group
+        if (assignment.groups?.student_group_enrollments) {
+          assignment.groups.student_group_enrollments.forEach((enrollment: any) => {
+            if (enrollment.students?.is_active) {
+              studentsPerTeacher[teacherId].add(enrollment.student_id)
+            }
+          })
+        }
+      })
+
+      // Update counts
+      Object.keys(groupsPerTeacher).forEach(teacherId => {
+        teacherCounts[teacherId] = {
+          active_groups: groupsPerTeacher[teacherId].size,
+          total_students: studentsPerTeacher[teacherId].size
+        }
+      })
+    }
+
+    // Enhance teachers with their counts
+    return teachers.map(teacher => ({
+      ...teacher,
+      active_groups: teacherCounts[teacher.id]?.active_groups || 0,
+      total_students: teacherCounts[teacher.id]?.total_students || 0
+    }))
+  }
+
+  /**
+   * Get teacher's group and student counts (individual - use enhanceTeachersWithCounts for batch)
+   */
+  async getTeacherCounts(teacherId: string): Promise<{
+    active_groups: number
+    total_students: number
+  }> {
+    const organizationId = await this.getCurrentOrganization()
+    const supabase = await this.getSupabase()
+
+    // Get active groups count
+    const { count: groupsCount } = await supabase
+      .from('teacher_group_assignments')
+      .select('*', { count: 'exact', head: true })
+      .eq('teacher_id', teacherId)
+      .eq('organization_id', organizationId)
+      .is('deleted_at', null)
+
+    // Get total students count across all assigned groups
+    const { data: assignmentData } = await supabase
+      .from('teacher_group_assignments')
+      .select(`
+        group_id,
+        groups!inner(
+          id,
+          student_group_enrollments!inner(
+            student_id,
+            students!inner(
+              id,
+              is_active
+            )
+          )
+        )
+      `)
+      .eq('teacher_id', teacherId)
+      .eq('organization_id', organizationId)
+      .is('deleted_at', null)
+
+    // Count unique active students across all groups
+    const uniqueStudentIds = new Set<string>()
+    if (assignmentData) {
+      assignmentData.forEach((assignment: any) => {
+        if (assignment.groups?.student_group_enrollments) {
+          assignment.groups.student_group_enrollments.forEach((enrollment: any) => {
+            if (enrollment.students?.is_active) {
+              uniqueStudentIds.add(enrollment.student_id)
+            }
+          })
+        }
+      })
+    }
+
+    return {
+      active_groups: groupsCount || 0,
+      total_students: uniqueStudentIds.size
+    }
+  }
 }
+
+export const teacherService = new TeacherService()

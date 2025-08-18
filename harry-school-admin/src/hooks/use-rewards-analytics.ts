@@ -1,36 +1,20 @@
-import { useState, useEffect } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { rewardsService, RewardsAnalytics } from '@/lib/services/rewards-service'
 
 export function useRewardsAnalytics(dateFrom?: Date, dateTo?: Date) {
-  const [analytics, setAnalytics] = useState<RewardsAnalytics | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  const fetchAnalytics = async () => {
-    try {
-      setIsLoading(true)
-      setError(null)
-      const data = await rewardsService.getAnalytics(dateFrom, dateTo)
-      setAnalytics(data)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch analytics')
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    fetchAnalytics()
-  }, [dateFrom, dateTo])
-
-  const refetch = () => {
-    fetchAnalytics()
-  }
+  const { data: analytics, isLoading, error, refetch } = useQuery({
+    queryKey: ['rewards-analytics', dateFrom?.toISOString(), dateTo?.toISOString()],
+    queryFn: async () => {
+      return await rewardsService.getAnalytics(dateFrom, dateTo)
+    },
+    staleTime: 0, // Always fresh for immediate updates
+    gcTime: 5 * 60 * 1000, // Cache for 5 minutes
+  })
 
   return {
     analytics,
     isLoading,
-    error,
+    error: error?.message || null,
     refetch
   }
 }

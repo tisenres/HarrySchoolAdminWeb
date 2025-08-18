@@ -35,7 +35,7 @@ import {
   GROUP_LEVELS, 
   GROUP_STATUSES 
 } from '@/lib/validations/group'
-import { mockTeacherService } from '@/lib/services/mock-teacher-service'
+import { teacherService } from '@/lib/services/teacher-service'
 import { format } from 'date-fns'
 
 interface GroupsFiltersProps {
@@ -58,7 +58,7 @@ export function GroupsFilters({
   useEffect(() => {
     const loadTeachers = async () => {
       try {
-        const response = await mockTeacherService.getAll({}, undefined, 1, 100)
+        const response = await teacherService.getAll({}, undefined, 1, 100)
         setTeachers(response.data.map(t => ({
           id: t.id,
           name: t.full_name

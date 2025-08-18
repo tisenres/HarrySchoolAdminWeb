@@ -5,9 +5,9 @@
  * for database operations and mock services.
  */
 
-import { mockStudentService } from '@/lib/services/mock-student-service'
-import { mockGroupService } from '@/lib/services/mock-group-service'
-import { mockTeacherService } from '@/lib/services/mock-teacher-service'
+import { studentService } from '@/lib/services/student-service'
+import { groupService } from '@/lib/services/group-service'
+import { teacherService } from '@/lib/services/teacher-service'
 import { performanceMonitor, PerformanceProfiler } from './performance-utils'
 import type { StudentFilters, StudentSortConfig } from '@/types/student'
 import type { GroupFilters, GroupSortConfig } from '@/types/group'
@@ -99,25 +99,25 @@ export class PerformanceTestRunner {
     const scenarios: TestScenario[] = [
       {
         name: 'Get all students (no filters)',
-        operation: () => mockStudentService.getAll(),
+        operation: () => studentService.getAll(),
         expectedTime: 100,
         iterations: 10
       },
       {
         name: 'Search students by name',
-        operation: () => mockStudentService.getAll({ search: 'Ali' }),
+        operation: () => studentService.getAll({ search: 'Ali' }),
         expectedTime: 50,
         iterations: 15
       },
       {
         name: 'Filter by status',
-        operation: () => mockStudentService.getAll({ status: ['active'] }),
+        operation: () => studentService.getAll({ status: ['active'] }),
         expectedTime: 75,
         iterations: 10
       },
       {
         name: 'Complex filters (status + payment)',
-        operation: () => mockStudentService.getAll({ 
+        operation: () => studentService.getAll({ 
           status: ['active'], 
           payment_status: ['overdue'] 
         }),
@@ -126,7 +126,7 @@ export class PerformanceTestRunner {
       },
       {
         name: 'Sort by name',
-        operation: () => mockStudentService.getAll(
+        operation: () => studentService.getAll(
           {},
           { field: 'full_name', direction: 'asc' }
         ),
@@ -135,34 +135,34 @@ export class PerformanceTestRunner {
       },
       {
         name: 'Get student statistics',
-        operation: () => mockStudentService.getStatistics(),
+        operation: () => studentService.getStatistics(),
         expectedTime: 100,
         iterations: 5
       },
       {
         name: 'Get student by ID',
         operation: async () => {
-          const all = await mockStudentService.getAll({}, undefined, 1, 5)
-          return mockStudentService.getById(all.data[0]?.id || 'test')
+          const all = await studentService.getAll({}, undefined, 1, 5)
+          return studentService.getById(all.data[0]?.id || 'test')
         },
         expectedTime: 25,
         iterations: 20
       },
       {
         name: 'Pagination (page 5)',
-        operation: () => mockStudentService.getAll({}, undefined, 5, 20),
+        operation: () => studentService.getAll({}, undefined, 5, 20),
         expectedTime: 50,
         iterations: 10
       },
       {
         name: 'Large page size (100 items)',
-        operation: () => mockStudentService.getAll({}, undefined, 1, 100),
+        operation: () => studentService.getAll({}, undefined, 1, 100),
         expectedTime: 150,
         iterations: 5
       },
       {
         name: 'Search with fuzzy matching',
-        operation: () => mockStudentService.getAll({ search: 'Alij' }), // Partial match
+        operation: () => studentService.getAll({ search: 'Alij' }), // Partial match
         expectedTime: 75,
         iterations: 10
       }
@@ -189,25 +189,25 @@ export class PerformanceTestRunner {
     const scenarios: TestScenario[] = [
       {
         name: 'Get all groups (no filters)',
-        operation: () => mockGroupService.getAll(),
+        operation: () => groupService.getAll(),
         expectedTime: 100,
         iterations: 10
       },
       {
         name: 'Search groups by name',
-        operation: () => mockGroupService.getAll({ search: 'English' }),
+        operation: () => groupService.getAll({ search: 'English' }),
         expectedTime: 50,
         iterations: 15
       },
       {
         name: 'Filter by subject',
-        operation: () => mockGroupService.getAll({ subject: ['English'] }),
+        operation: () => groupService.getAll({ subject: ['English'] }),
         expectedTime: 50,
         iterations: 12
       },
       {
         name: 'Filter by level and status',
-        operation: () => mockGroupService.getAll({ 
+        operation: () => groupService.getAll({ 
           level: ['Beginner'], 
           status: ['active'] 
         }),
@@ -216,28 +216,28 @@ export class PerformanceTestRunner {
       },
       {
         name: 'Check available capacity',
-        operation: () => mockGroupService.getAll({ has_capacity: true }),
+        operation: () => groupService.getAll({ has_capacity: true }),
         expectedTime: 60,
         iterations: 10
       },
       {
         name: 'Get group statistics',
-        operation: () => mockGroupService.getStatistics(),
+        operation: () => groupService.getStatistics(),
         expectedTime: 100,
         iterations: 5
       },
       {
         name: 'Get group by ID',
         operation: async () => {
-          const all = await mockGroupService.getAll({}, undefined, 1, 5)
-          return mockGroupService.getById(all.data[0]?.id || 'test')
+          const all = await groupService.getAll({}, undefined, 1, 5)
+          return groupService.getById(all.data[0]?.id || 'test')
         },
         expectedTime: 30,
         iterations: 15
       },
       {
         name: 'Sort by enrollment',
-        operation: () => mockGroupService.getAll(
+        operation: () => groupService.getAll(
           {},
           { field: 'enrollment_percentage', direction: 'desc' }
         ),
@@ -250,14 +250,14 @@ export class PerformanceTestRunner {
           const schedule = [
             { day: 'monday', start_time: '10:00', end_time: '11:30', room: 'Room 101' }
           ]
-          return mockGroupService.checkScheduleConflicts?.(schedule)
+          return groupService.checkScheduleConflicts?.(schedule)
         },
         expectedTime: 50,
         iterations: 20
       },
       {
         name: 'Get filter options',
-        operation: () => mockGroupService.getFilterOptions?.(),
+        operation: () => groupService.getFilterOptions?.(),
         expectedTime: 25,
         iterations: 10
       }
@@ -541,15 +541,15 @@ export class PerformanceTestRunner {
 
     // Test critical operations
     const studentStart = performance.now()
-    await mockStudentService.getAll({ search: 'test' })
+    await studentService.getAll({ search: 'test' })
     const studentSearchTime = performance.now() - studentStart
 
     const groupStart = performance.now()
-    await mockGroupService.getAll({ search: 'test' })
+    await groupService.getAll({ search: 'test' })
     const groupSearchTime = performance.now() - groupStart
 
     const statsStart = performance.now()
-    await mockStudentService.getStatistics()
+    await studentService.getStatistics()
     const statisticsTime = performance.now() - statsStart
 
     // Determine overall health

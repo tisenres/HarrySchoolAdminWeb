@@ -1,65 +1,53 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
-import { useParams, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import { SettingsDashboard } from '@/components/admin/settings/settings-dashboard'
 import { supabase } from '@/lib/supabase/client'
-import { useEffect, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { Loader2 } from 'lucide-react'
 import { User } from '@supabase/supabase-js'
 
 export default function SettingsPage() {
   const t = useTranslations('settings')
-  const params = useParams()
   const searchParams = useSearchParams()
-  const [user, setUser] = useState<User | null>(null)
-  const [organizationId, setOrganizationId] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  // supabase is already imported
-
+  
   // Get initial tab from URL params
   const initialTab = searchParams?.get('tab') || 'overview'
 
-  useEffect(() => {
-    const fetchUserAndProfile = async () => {
-      try {
-        const { data: { user: currentUser } } = await supabase.auth.getUser()
-        
-        if (!currentUser) {
-          setIsLoading(false)
-          return
-        }
-
-        setUser(currentUser)
-
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('organization_id')
-          .eq('id', currentUser.id)
-          .single()
-
-        if (profile) {
-          setOrganizationId(profile.organization_id)
-        }
-      } catch (error) {
-        console.error('Error fetching user profile:', error)
-      } finally {
-        setIsLoading(false)
+  const { data: userProfile, isLoading, error } = useQuery({
+    queryKey: ['user-profile-settings'],
+    queryFn: async () => {
+      const { data: { user: currentUser } } = await supabase.auth.getUser()
+      
+      if (!currentUser) {
+        return null
       }
-    }
 
-    fetchUserAndProfile()
-  }, [supabase])
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('organization_id')
+        .eq('id', currentUser.id)
+        .single()
+
+      return {
+        user: currentUser,
+        organizationId: profile?.organization_id || null
+      }
+    },
+    staleTime: 0, // Always fresh for button responsiveness
+    gcTime: 5 * 60 * 1000, // Cache for 5 minutes
+  })
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     )
   }
 
-  if (!user || !organizationId) {
+  if (error || !userProfile?.user || !userProfile?.organizationId) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
@@ -75,6 +63,8 @@ export default function SettingsPage() {
   return (
     <SettingsDashboard 
       initialTab={initialTab}
+      userId={userProfile.user.id}
+      organizationId={userProfile.organizationId}
     />
   )
 }

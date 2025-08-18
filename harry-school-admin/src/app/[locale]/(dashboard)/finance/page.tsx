@@ -288,8 +288,7 @@ export default async function FinancePage() {
               </div>
             }>
               <TransactionHistory 
-                organizationId={organization.id} 
-                limit={5} 
+                transactions={[]}
                 compact={true}
               />
             </Suspense>

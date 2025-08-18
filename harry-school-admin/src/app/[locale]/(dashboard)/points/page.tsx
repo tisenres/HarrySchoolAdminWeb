@@ -1,7 +1,7 @@
 import { Suspense } from 'react'
 import { Metadata } from 'next'
 import { PointsManagementInterface } from '@/components/admin/points'
-import { mockStudentService } from '@/lib/services/mock-student-service'
+import { studentService } from '@/lib/services/student-service'
 import type { Student } from '@/types/student'
 
 export const metadata: Metadata = {
@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 async function getStudents(): Promise<Student[]> {
   // Simulate API delay
   await new Promise(resolve => setTimeout(resolve, 100))
-  return mockStudentService.getStudents()
+  return studentService.getStudents()
 }
 
 function LoadingSkeleton() {

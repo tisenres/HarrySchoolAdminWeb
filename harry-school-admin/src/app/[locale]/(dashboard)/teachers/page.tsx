@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, lazy, Suspense } from 'react'
 import { Plus, Download, Upload, RefreshCw, AlertCircle } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/button'
@@ -15,11 +15,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle
 } from '@/components/ui/alert-dialog'
-import { TeachersTable } from '@/components/admin/teachers/teachers-table'
-import { TeachersFilters } from '@/components/admin/teachers/teachers-filters'
-import { TeacherForm } from '@/components/admin/teachers/teacher-form'
-import { ImportModal } from '@/components/admin/shared/import-modal'
-import { ExportModal } from '@/components/admin/shared/export-modal'
+
+// Lazy load heavy components
+const TeachersTable = lazy(() => import('@/components/admin/teachers/teachers-table').then(mod => ({ default: mod.TeachersTable })))
+const TeachersFilters = lazy(() => import('@/components/admin/teachers/teachers-filters').then(mod => ({ default: mod.TeachersFilters })))
+const TeacherForm = lazy(() => import('@/components/admin/teachers/teacher-form').then(mod => ({ default: mod.TeacherForm })))
+const ImportModal = lazy(() => import('@/components/admin/shared/import-modal').then(mod => ({ default: mod.ImportModal })))
+const ExportModal = lazy(() => import('@/components/admin/shared/export-modal').then(mod => ({ default: mod.ExportModal })))
+import { SkeletonTable } from '@/components/ui/skeleton-table-new'
 // Import/Export functionality now handled via API routes
 import { ImportResult } from '@/lib/services/import-export-service'
 import { getAvailableFields } from '@/lib/constants/teachers-export-fields'
@@ -81,6 +84,24 @@ export default function TeachersPage() {
     'Conversation',
     'Grammar'
   ]
+
+  // Prefetch next page for better UX
+  useEffect(() => {
+    if (currentPage < totalPages) {
+      const nextPageParams = new URLSearchParams({
+        page: (currentPage + 1).toString(),
+        limit: pageSize.toString(),
+        sort_by: sortConfig.field,
+        sort_order: sortConfig.direction,
+      })
+      
+      // Prefetch next page
+      fetch(`/api/teachers?${nextPageParams}`, {
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+      }).catch(() => {}) // Ignore errors for prefetch
+    }
+  }, [currentPage, totalPages, pageSize, sortConfig])
 
   // Load teachers data using mock service
   useEffect(() => {
@@ -461,12 +482,14 @@ export default function TeachersPage() {
 
   if (showEditForm) {
     return (
-      <TeacherForm
-        {...(editingTeacher && { teacher: editingTeacher })}
-        onSubmit={handleFormSubmit}
-        onCancel={handleFormCancel}
-        mode={editingTeacher ? 'edit' : 'create'}
-      />
+      <Suspense fallback={<div className="flex items-center justify-center min-h-[400px]">Loading form...</div>}>
+        <TeacherForm
+          {...(editingTeacher && { teacher: editingTeacher })}
+          onSubmit={handleFormSubmit}
+          onCancel={handleFormCancel}
+          mode={editingTeacher ? 'edit' : 'create'}
+        />
+      </Suspense>
     )
   }
 
@@ -561,36 +584,44 @@ export default function TeachersPage() {
       </div>
 
       {/* Filters */}
-      <TeachersFilters
-        filters={filters}
-        onFiltersChange={handleFiltersChange}
-        availableSpecializations={availableSpecializations}
-        loading={loading}
-        totalCount={totalCount}
-      />
+      <Suspense fallback={<Card className="p-4">Loading filters...</Card>}>
+        <TeachersFilters
+          filters={filters}
+          onFiltersChange={handleFiltersChange}
+          availableSpecializations={availableSpecializations}
+          loading={loading}
+          totalCount={totalCount}
+        />
+      </Suspense>
 
       {/* Table */}
-      <Card>
-        <TeachersTable
-          teachers={filteredTeachers}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          onBulkDelete={handleBulkDelete}
-          onBulkStatusChange={handleBulkStatusChange}
-          onExport={handleExport}
-          selectedTeachers={selectedTeachers}
-          onSelectionChange={setSelectedTeachers}
-          sortConfig={sortConfig}
-          onSortChange={handleSortChange}
-          currentPage={currentPage}
-          totalPages={totalPages}
-          pageSize={pageSize}
-          totalCount={totalCount}
-          onPageChange={handlePageChange}
-          onPageSizeChange={handlePageSizeChange}
-          loading={loading}
-        />
-      </Card>
+      {loading ? (
+        <SkeletonTable rows={pageSize} />
+      ) : (
+        <Card>
+          <Suspense fallback={<SkeletonTable rows={pageSize} />}>
+            <TeachersTable
+              teachers={filteredTeachers}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              onBulkDelete={handleBulkDelete}
+              onBulkStatusChange={handleBulkStatusChange}
+              onExport={handleExport}
+              selectedTeachers={selectedTeachers}
+              onSelectionChange={setSelectedTeachers}
+              sortConfig={sortConfig}
+              onSortChange={handleSortChange}
+              currentPage={currentPage}
+              totalPages={totalPages}
+              pageSize={pageSize}
+              totalCount={totalCount}
+              onPageChange={handlePageChange}
+              onPageSizeChange={handlePageSizeChange}
+              loading={loading}
+            />
+          </Suspense>
+        </Card>
+      )}
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
@@ -629,29 +660,37 @@ export default function TeachersPage() {
       </AlertDialog>
 
       {/* Import Modal */}
-      <ImportModal
-        isOpen={showImportModal}
-        onClose={() => setShowImportModal(false)}
-        title="Import Teachers"
-        description="Upload an Excel or CSV file to import teacher data into the system."
-        dataType="teachers"
-        onImport={handleImportFile}
-        onDownloadTemplate={handleDownloadTemplate}
-      />
+      {showImportModal && (
+        <Suspense fallback={null}>
+          <ImportModal
+            isOpen={showImportModal}
+            onClose={() => setShowImportModal(false)}
+            title="Import Teachers"
+            description="Upload an Excel or CSV file to import teacher data into the system."
+            dataType="teachers"
+            onImport={handleImportFile}
+            onDownloadTemplate={handleDownloadTemplate}
+          />
+        </Suspense>
+      )}
 
       {/* Export Modal */}
-      <ExportModal
-        isOpen={showExportModal}
-        onClose={() => setShowExportModal(false)}
-        title="Export Teachers"
-        description="Export teacher data to Excel or CSV format with customizable field selection."
-        dataType="teachers"
-        totalRecords={totalCount}
-        filteredRecords={filteredTeachers.length}
-        availableFields={getAvailableFields()}
-        onExport={handleExportFile}
-        isExporting={exporting}
-      />
+      {showExportModal && (
+        <Suspense fallback={null}>
+          <ExportModal
+            isOpen={showExportModal}
+            onClose={() => setShowExportModal(false)}
+            title="Export Teachers"
+            description="Export teacher data to Excel or CSV format with customizable field selection."
+            dataType="teachers"
+            totalRecords={totalCount}
+            filteredRecords={filteredTeachers.length}
+            availableFields={getAvailableFields()}
+            onExport={handleExportFile}
+            isExporting={exporting}
+          />
+        </Suspense>
+      )}
     </div>
   )
 }

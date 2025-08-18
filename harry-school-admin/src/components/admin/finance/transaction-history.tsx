@@ -44,11 +44,16 @@ type Transaction = Database['public']['Tables']['financial_transactions']['Row']
 }
 
 interface TransactionHistoryProps {
-  transactions: Transaction[]
+  transactions?: Transaction[]
   onApprove?: (transaction: Transaction) => void
+  compact?: boolean
 }
 
-export function TransactionHistory({ transactions, onApprove }: TransactionHistoryProps) {
+export function TransactionHistory({ 
+  transactions = [], 
+  onApprove,
+  compact = false
+}: TransactionHistoryProps) {
   const [searchTerm, setSearchTerm] = useState('')
   const [typeFilter, setTypeFilter] = useState<string>('all')
   const [categoryFilter, setCategoryFilter] = useState<string>('all')
@@ -116,10 +121,20 @@ export function TransactionHistory({ transactions, onApprove }: TransactionHisto
 
   const categories = [...new Set(transactions.map(t => t.category).filter(Boolean))]
 
+  // Show simple message when no transactions
+  if (transactions.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-muted-foreground">No transactions found</p>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
+      {!compact && (
+        <div className="grid gap-4 md:grid-cols-3">
+          <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Income</CardTitle>
             <ArrowDownRight className="h-4 w-4 text-green-600" />
@@ -156,9 +171,11 @@ export function TransactionHistory({ transactions, onApprove }: TransactionHisto
             </div>
           </CardContent>
         </Card>
-      </div>
+        </div>
+      )}
 
-      <Card>
+      {!compact && (
+        <Card>
         <CardHeader>
           <CardTitle>Transaction History</CardTitle>
           <CardDescription>
@@ -296,7 +313,8 @@ export function TransactionHistory({ transactions, onApprove }: TransactionHisto
             </Table>
           </div>
         </CardContent>
-      </Card>
+        </Card>
+      )}
     </div>
   )
 }

@@ -340,6 +340,24 @@
     "requiresAttention": "требует внимания",
     "allPaymentsUpToDate": "все платежи актуальны",
     "statusOverview": "Обзор статуса",
+    "studentsTable": {
+      "columns": {
+        "studentId": "ID студента",
+        "name": "Имя",
+        "age": "Возраст",
+        "contact": "Контакт",
+        "parentGuardian": "Родитель/Опекун",
+        "status": "Статус",
+        "payment": "Оплата",
+        "level": "Уровень",
+        "groups": "Группы",
+        "ranking": "Рейтинг",
+        "balance": "Баланс",
+        "enrolled": "Зачислен",
+        "actions": "Действия",
+        "select": "Выбрать"
+      }
+    },
     "columns": {
       "studentId": "ID студента",
       "name": "Имя",
@@ -661,7 +679,9 @@
         "specializations": "Специализации",
         "groups": "Группы",
         "students": "Студенты",
-        "status": "Статус"
+        "status": "Статус",
+        "actions": "Действия",
+        "select": "Выбрать"
       },
       "bulkActions": {
         "selected": "преподаватель выбран",
@@ -714,7 +734,9 @@
         "enrollment": "Зачисление",
         "schedule": "Расписание",
         "status": "Статус",
-        "startDate": "Дата начала"
+        "startDate": "Дата начала",
+        "actions": "Действия",
+        "select": "Выбрать"
       }
     },
     "studentForm": {

@@ -1,8 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
+import { useQuery } from '@tanstack/react-query'
+import { debounce } from 'lodash'
 import {
   Table,
   TableBody,
@@ -23,6 +25,8 @@ import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Progress } from '@/components/ui/progress'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { LoadingButton } from '@/components/ui/loading-button'
+import { SkeletonTable } from '@/components/ui/skeleton-table'
 import {
   MoreHorizontal,
   Edit,
@@ -36,7 +40,7 @@ import {
   ArrowDown,
   Eye
 } from 'lucide-react'
-import { mockGroupService } from '@/lib/services/mock-group-service'
+import { groupService } from '@/lib/services/group-service'
 import type { GroupTableRow, GroupFilters, GroupSortConfig } from '@/types/group'
 import { cn } from '@/lib/utils'
 import { ClientOnly } from '@/components/ui/client-only'
@@ -46,18 +50,18 @@ interface GroupsTableProps {
   onSelectionChange?: (selectedIds: string[]) => void
   onEdit?: (group: GroupTableRow) => void
   onDelete?: (group: GroupTableRow) => void
+  loading?: boolean
 }
 
 export function GroupsTable({
   filters,
   onSelectionChange,
   onEdit,
-  onDelete
+  onDelete,
+  loading: externalLoading = false
 }: GroupsTableProps) {
   const router = useRouter()
   const t = useTranslations('groupsTable')
-  const [groups, setGroups] = useState<GroupTableRow[]>([])
-  const [loading, setLoading] = useState(true)
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [sortConfig, setSortConfig] = useState<GroupSortConfig>({
     field: 'name',
@@ -70,33 +74,36 @@ export function GroupsTable({
     count: 0
   })
 
-  // Load groups data
-  const loadGroups = async () => {
-    try {
-      setLoading(true)
-      const response = await mockGroupService.getAll(
+  // Use React Query for responsive data fetching
+  const { data: groupsData, isLoading: groupsLoading, error: groupsError } = useQuery({
+    queryKey: ['groups', filters, sortConfig, pagination.current_page, pagination.page_size],
+    queryFn: async () => {
+      return await groupService.getAll(
         filters,
         sortConfig,
         pagination.current_page,
         pagination.page_size
       )
-      setGroups(response.data)
-      setPagination({
-        current_page: response.current_page,
-        total_pages: response.total_pages,
-        page_size: response.page_size,
-        count: response.count
-      })
-    } catch (error) {
-      console.error('Failed to load groups:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
+    },
+    staleTime: 0, // Always refetch when query key changes for responsive UI
+    gcTime: 3 * 60 * 1000, // Keep in cache for 3 minutes
+    refetchOnWindowFocus: false,
+  })
 
+  const groups = groupsData?.data || []
+  const loading = groupsLoading || externalLoading
+
+  // Update pagination when data changes
   useEffect(() => {
-    loadGroups()
-  }, [filters, sortConfig, pagination.current_page])
+    if (groupsData) {
+      setPagination({
+        current_page: groupsData.current_page,
+        total_pages: groupsData.total_pages,
+        page_size: groupsData.page_size,
+        count: groupsData.count
+      })
+    }
+  }, [groupsData])
 
   // Handle selection
   const handleSelectAll = (checked: boolean) => {
@@ -165,9 +172,7 @@ export function GroupsTable({
   if (loading) {
     return (
       <div className="space-y-4">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <div key={i} className="h-16 bg-muted animate-pulse rounded" />
-        ))}
+        <SkeletonTable rows={5} columns={10} />
       </div>
     )
   }
@@ -417,7 +422,7 @@ export function GroupsTable({
             Showing {groups.length} of {pagination.count} groups
           </div>
           <div className="flex items-center gap-2">
-            <Button
+            <LoadingButton
               variant="outline"
               size="sm"
               disabled={pagination.current_page === 1}
@@ -425,26 +430,28 @@ export function GroupsTable({
                 ...prev, 
                 current_page: prev.current_page - 1 
               }))}
+              loading={false}
             >
               Previous
-            </Button>
+            </LoadingButton>
             <div className="flex items-center gap-1">
               {Array.from({ length: Math.min(5, pagination.total_pages) }, (_, i) => {
                 const page = i + 1
                 return (
-                  <Button
+                  <LoadingButton
                     key={page}
                     variant={page === pagination.current_page ? 'default' : 'outline'}
                     size="sm"
                     className="w-8 h-8 p-0"
                     onClick={() => setPagination(prev => ({ ...prev, current_page: page }))}
+                    loading={false}
                   >
                     {page}
-                  </Button>
+                  </LoadingButton>
                 )
               })}
             </div>
-            <Button
+            <LoadingButton
               variant="outline"
               size="sm"
               disabled={pagination.current_page === pagination.total_pages}
@@ -452,9 +459,10 @@ export function GroupsTable({
                 ...prev, 
                 current_page: prev.current_page + 1 
               }))}
+              loading={false}
             >
               Next
-            </Button>
+            </LoadingButton>
           </div>
         </div>
       )}

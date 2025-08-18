@@ -6,7 +6,7 @@
  */
 
 import { render, screen, waitFor } from '@testing-library/react'
-import { mockTeacherService } from '@/lib/services/mock-teacher-service'
+import { teacherService } from '@/lib/services/teacher-service'
 import TeachersPage from '@/app/dashboard/teachers/page'
 
 // Mock the Next.js router
@@ -47,7 +47,7 @@ jest.mock('lucide-react', () => ({
 describe('Teachers Page Integration', () => {
   beforeEach(() => {
     // Reset mock service to ensure clean state
-    mockTeacherService.reset()
+    teacherService.reset()
   })
 
   it('should render the Teachers page without server-side errors', async () => {
@@ -114,8 +114,8 @@ describe('Teachers Page Integration', () => {
 
   it('should use mock service for data operations', async () => {
     // Spy on the mock service to ensure it's being used
-    const getAllSpy = jest.spyOn(mockTeacherService, 'getAll')
-    const getStatisticsSpy = jest.spyOn(mockTeacherService, 'getStatistics')
+    const getAllSpy = jest.spyOn(teacherService, 'getAll')
+    const getStatisticsSpy = jest.spyOn(teacherService, 'getStatistics')
     
     render(<TeachersPage />)
     

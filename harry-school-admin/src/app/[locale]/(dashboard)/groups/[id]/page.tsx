@@ -23,7 +23,7 @@ import {
 import { GroupProfile } from '@/components/admin/groups/group-profile'
 import { GroupForm } from '@/components/admin/groups/group-form'
 import { ArrowLeft, Edit, Trash2, UserPlus, Users } from 'lucide-react'
-import { mockGroupService } from '@/lib/services/mock-group-service'
+import { groupService } from '@/lib/services/group-service'
 import type { GroupWithDetails, Group } from '@/types/group'
 
 export default function GroupDetailPage() {
@@ -47,7 +47,7 @@ export default function GroupDetailPage() {
   const loadGroup = async () => {
     try {
       setLoading(true)
-      const groupData = await mockGroupService.getById(groupId)
+      const groupData = await groupService.getById(groupId)
       
       if (!groupData) {
         router.push('/dashboard/groups')
@@ -90,7 +90,7 @@ export default function GroupDetailPage() {
 
     try {
       setSubmitting(true)
-      await mockGroupService.delete(group.id)
+      await groupService.delete(group.id)
       router.push('/dashboard/groups')
     } catch (error) {
       console.error('Failed to delete group:', error)
