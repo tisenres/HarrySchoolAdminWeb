@@ -442,17 +442,17 @@
     "studentsTable": {
       "columns": {
         "studentId": "Student ID",
-        "name": "Name",
+        "name": "Student Name",
         "age": "Age",
-        "contact": "Contact",
+        "contact": "Contact Information",
         "parentGuardian": "Parent/Guardian",
         "status": "Status",
-        "payment": "Payment",
+        "payment": "Payment Status",
         "level": "Level",
         "groups": "Groups",
         "ranking": "Ranking",
         "balance": "Balance",
-        "enrolled": "Enrolled",
+        "enrolled": "Enrollment Date",
         "actions": "Actions",
         "select": "Select"
       }
@@ -830,8 +830,8 @@
     "teachersTable": {
       "columns": {
         "name": "Name",
-        "contact": "Contact",
-        "employment": "Employment",
+        "contact": "Contact Information",
+        "employment": "Employment Type",
         "specializations": "Specializations",
         "groups": "Groups",
         "students": "Students",
@@ -883,7 +883,7 @@
     "groupsTable": {
       "columns": {
         "groupName": "Group Name",
-        "code": "Code",
+        "code": "Group Code",
         "subject": "Subject",
         "level": "Level",
         "teacher": "Teacher",

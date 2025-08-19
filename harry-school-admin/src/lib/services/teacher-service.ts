@@ -441,7 +441,8 @@ export class TeacherService extends BaseService {
   }
 
   /**
-   * Enhance teachers with counts in a single batch query (much faster)
+   * Enhance teachers with counts using optimized queries
+   * OPTIMIZED VERSION: Uses separate, simpler queries instead of complex joins
    */
   async enhanceTeachersWithCounts(teachers: any[]): Promise<any[]> {
     if (teachers.length === 0) return []
@@ -459,68 +460,80 @@ export class TeacherService extends BaseService {
     const supabase = await this.getSupabase()
     const teacherIds = teachers.map(t => t.id)
 
-    // Get all group assignments and student counts in one query
-    const { data: assignmentData } = await supabase
+    // OPTIMIZATION 1: Use two separate, simpler queries instead of complex join
+    
+    // Query 1: Get group counts per teacher (much faster without joins)
+    const { data: groupAssignments } = await supabase
       .from('teacher_group_assignments')
-      .select(`
-        teacher_id,
-        group_id,
-        groups!inner(
-          id,
-          is_active,
-          student_group_enrollments!inner(
-            student_id,
-            students!inner(
-              id,
-              is_active
-            )
-          )
-        )
-      `)
+      .select('teacher_id, group_id')
       .in('teacher_id', teacherIds)
       .eq('organization_id', organizationId)
       .is('deleted_at', null)
 
-    // Process the data to count groups and students per teacher
-    const teacherCounts: Record<string, { active_groups: number; total_students: number }> = {}
+    // Query 2: Get student enrollments for these groups (separate query is faster)
+    const groupIds = [...new Set(groupAssignments?.map(g => g.group_id) || [])]
+    let studentEnrollments: any[] = []
     
+    if (groupIds.length > 0) {
+      // Break down into chunks to avoid hitting URL length limits
+      const chunkSize = 50
+      const chunks = []
+      for (let i = 0; i < groupIds.length; i += chunkSize) {
+        chunks.push(groupIds.slice(i, i + chunkSize))
+      }
+      
+      const enrollmentPromises = chunks.map(chunk => 
+        supabase
+          .from('student_group_enrollments')
+          .select('group_id, student_id, students!inner(id, is_active)')
+          .in('group_id', chunk)
+          .is('deleted_at', null)
+      )
+      
+      const results = await Promise.all(enrollmentPromises)
+      studentEnrollments = results.flatMap(result => result.data || [])
+    }
+
+    // OPTIMIZATION 2: Process data more efficiently using Maps
+    const teacherCounts: Record<string, { active_groups: number; total_students: number }> = {}
+    const teacherToGroups = new Map<string, Set<string>>()
+    const groupToStudents = new Map<string, Set<string>>()
+    
+    // Initialize counts
     teacherIds.forEach(teacherId => {
       teacherCounts[teacherId] = { active_groups: 0, total_students: 0 }
+      teacherToGroups.set(teacherId, new Set())
     })
 
-    if (assignmentData) {
-      // Count groups per teacher
-      const groupsPerTeacher: Record<string, Set<string>> = {}
-      const studentsPerTeacher: Record<string, Set<string>> = {}
+    // Build teacher -> groups mapping
+    groupAssignments?.forEach(assignment => {
+      teacherToGroups.get(assignment.teacher_id)?.add(assignment.group_id)
+    })
 
-      assignmentData.forEach((assignment: any) => {
-        const teacherId = assignment.teacher_id
-        
-        if (!groupsPerTeacher[teacherId]) {
-          groupsPerTeacher[teacherId] = new Set()
-          studentsPerTeacher[teacherId] = new Set()
+    // Build group -> students mapping (only active students)
+    studentEnrollments.forEach(enrollment => {
+      if (enrollment.students?.is_active) {
+        if (!groupToStudents.has(enrollment.group_id)) {
+          groupToStudents.set(enrollment.group_id, new Set())
         }
+        groupToStudents.get(enrollment.group_id)?.add(enrollment.student_id)
+      }
+    })
 
-        groupsPerTeacher[teacherId].add(assignment.group_id)
-
-        // Count students in this group
-        if (assignment.groups?.student_group_enrollments) {
-          assignment.groups.student_group_enrollments.forEach((enrollment: any) => {
-            if (enrollment.students?.is_active) {
-              studentsPerTeacher[teacherId].add(enrollment.student_id)
-            }
-          })
-        }
+    // Calculate final counts
+    teacherToGroups.forEach((groups, teacherId) => {
+      const uniqueStudents = new Set<string>()
+      
+      groups.forEach(groupId => {
+        const studentsInGroup = groupToStudents.get(groupId)
+        studentsInGroup?.forEach(studentId => uniqueStudents.add(studentId))
       })
-
-      // Update counts
-      Object.keys(groupsPerTeacher).forEach(teacherId => {
-        teacherCounts[teacherId] = {
-          active_groups: groupsPerTeacher[teacherId].size,
-          total_students: studentsPerTeacher[teacherId].size
-        }
-      })
-    }
+      
+      teacherCounts[teacherId] = {
+        active_groups: groups.size,
+        total_students: uniqueStudents.size
+      }
+    })
 
     // Enhance teachers with their counts
     return teachers.map(teacher => ({
@@ -585,6 +598,43 @@ export class TeacherService extends BaseService {
     return {
       active_groups: groupsCount || 0,
       total_students: uniqueStudentIds.size
+    }
+  }
+
+  /**
+   * Get teacher statistics for dashboard
+   */
+  async getStats() {
+    const organizationId = await this.getCurrentOrganization()
+    const supabase = await this.getSupabase()
+
+    // Get total teachers count
+    const { count: total } = await supabase
+      .from('teachers')
+      .select('*', { count: 'exact', head: true })
+      .eq('organization_id', organizationId)
+      .is('deleted_at', null)
+
+    // Get active teachers count  
+    const { count: active } = await supabase
+      .from('teachers')
+      .select('*', { count: 'exact', head: true })
+      .eq('organization_id', organizationId)
+      .eq('is_active', true)
+      .is('deleted_at', null)
+
+    // Get full-time teachers count
+    const { count: fullTime } = await supabase
+      .from('teachers')
+      .select('*', { count: 'exact', head: true })
+      .eq('organization_id', organizationId)
+      .eq('employment_type', 'full_time')
+      .is('deleted_at', null)
+
+    return {
+      total: total || 0,
+      active: active || 0,
+      full_time: fullTime || 0
     }
   }
 }

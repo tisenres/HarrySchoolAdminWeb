@@ -199,12 +199,12 @@ export function NotificationDropdown({
                 </SelectContent>
               </Select>
 
-              <Select onValueChange={(value) => handleTypeFilter(value ? [value] : [])}>
+              <Select onValueChange={(value) => handleTypeFilter(value !== 'all' ? [value] : [])}>
                 <SelectTrigger className="h-8 text-xs">
                   <SelectValue placeholder="Type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Types</SelectItem>
+                  <SelectItem value="all">All Types</SelectItem>
                   {NOTIFICATION_TYPES.map(type => (
                     <SelectItem key={type.value} value={type.value}>
                       {type.label}

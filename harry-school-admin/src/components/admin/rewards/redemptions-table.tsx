@@ -51,7 +51,7 @@ export default function RedemptionsTable() {
   
   // Filters
   const [searchTerm, setSearchTerm] = useState('')
-  const [statusFilter, setStatusFilter] = useState<string>('')
+  const [statusFilter, setStatusFilter] = useState<string>('all')
   const [dateFilter, setDateFilter] = useState<string>('')
   
   // Modal states
@@ -66,7 +66,7 @@ export default function RedemptionsTable() {
       const { redemptions: data, pagination } = await rewardsService.getRedemptions({
         page: currentPage,
         limit: 20,
-        status: statusFilter || undefined,
+        status: statusFilter !== 'all' ? statusFilter : undefined,
         date_from: dateFilter ? new Date(dateFilter) : undefined,
         sort_by: 'redeemed_at',
         sort_order: 'desc'
@@ -191,7 +191,7 @@ export default function RedemptionsTable() {
             <SelectValue placeholder={t('filters.status')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">{t('filters.all')}</SelectItem>
+            <SelectItem value="all">{t('filters.all')}</SelectItem>
             <SelectItem value="pending">{t('status.pending')}</SelectItem>
             <SelectItem value="approved">{t('status.approved')}</SelectItem>
             <SelectItem value="delivered">{t('status.delivered')}</SelectItem>

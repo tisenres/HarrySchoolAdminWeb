@@ -343,17 +343,17 @@
     "studentsTable": {
       "columns": {
         "studentId": "Talaba ID si",
-        "name": "Ism",
+        "name": "Talaba ismi",
         "age": "Yosh",
-        "contact": "Aloqa",
+        "contact": "Aloqa ma'lumotlari",
         "parentGuardian": "Ota-ona/Vasiy",
         "status": "Holat",
-        "payment": "To'lov",
+        "payment": "To'lov holati",
         "level": "Daraja",
         "groups": "Guruhlar",
         "ranking": "Reyting",
         "balance": "Balans",
-        "enrolled": "Ro'yxatdan o'tgan",
+        "enrolled": "Ro'yxatga olingan sana",
         "actions": "Amallar",
         "select": "Tanlash"
       }
@@ -674,8 +674,8 @@
     "teachersTable": {
       "columns": {
         "name": "Ism",
-        "contact": "Aloqa",
-        "employment": "Ishga joylashish",
+        "contact": "Aloqa ma'lumotlari",
+        "employment": "Ish turi",
         "specializations": "Ixtisosliklar",
         "groups": "Guruhlar",
         "students": "Talabalar",
@@ -727,11 +727,11 @@
     "groupsTable": {
       "columns": {
         "groupName": "Guruh nomi",
-        "code": "Kod",
+        "code": "Guruh kodi",
         "subject": "Fan",
         "level": "Daraja",
         "teacher": "O'qituvchi",
-        "enrollment": "Ro'yxatga olish",
+        "enrollment": "Talabalar soni",
         "schedule": "Jadval",
         "status": "Holat",
         "startDate": "Boshlanish sanasi",

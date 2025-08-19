@@ -73,8 +73,8 @@ export function EnrollmentManager({
   onOpenChange,
 }: EnrollmentManagerProps) {
   const [searchTerm, setSearchTerm] = useState('')
-  const [filterLevel, setFilterLevel] = useState<string>('')
-  const [filterSubject, setFilterSubject] = useState<string>('')
+  const [filterLevel, setFilterLevel] = useState<string>('all')
+  const [filterSubject, setFilterSubject] = useState<string>('all')
   const [processingGroupId, setProcessingGroupId] = useState<string | null>(null)
 
   const filteredGroups = availableGroups.filter(group => {
@@ -82,8 +82,8 @@ export function EnrollmentManager({
                          group.group_code.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          group.subject.toLowerCase().includes(searchTerm.toLowerCase())
     
-    const matchesLevel = !filterLevel || group.level === filterLevel
-    const matchesSubject = !filterSubject || group.subject === filterSubject
+    const matchesLevel = filterLevel === 'all' || group.level === filterLevel
+    const matchesSubject = filterSubject === 'all' || group.subject === filterSubject
     
     return matchesSearch && matchesLevel && matchesSubject
   })
@@ -241,7 +241,7 @@ export function EnrollmentManager({
                     <SelectValue placeholder="Filter by subject" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All subjects</SelectItem>
+                    <SelectItem value="all">All subjects</SelectItem>
                     {subjects.map((subject) => (
                       <SelectItem key={subject} value={subject}>
                         {subject}
@@ -255,7 +255,7 @@ export function EnrollmentManager({
                     <SelectValue placeholder="Filter by level" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All levels</SelectItem>
+                    <SelectItem value="all">All levels</SelectItem>
                     {levels.map((level) => (
                       <SelectItem key={level} value={level}>
                         {level}

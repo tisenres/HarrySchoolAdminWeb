@@ -41,19 +41,27 @@ export async function GET(request: NextRequest) {
     const archiveData = []
 
     for (const tableName of tables) {
-      // Build select query based on table
+      // Build select query based on table with profiles relation for deleted_by user info
       let selectQuery = 'id, deleted_at, deleted_by'
+      let profilesQuery = ''
+      
       if (tableName === 'teachers') {
         selectQuery += ', full_name, specialization, phone, email'
+        profilesQuery = ', profiles!deleted_by(full_name, email)'
       } else if (tableName === 'students') {
         selectQuery += ', full_name, date_of_birth, phone, parent_phone, status'
+        profilesQuery = ', profiles!deleted_by(full_name, email)'
       } else if (tableName === 'groups') {
         selectQuery += ', name, description, max_capacity, schedule'
+        profilesQuery = ', profiles!deleted_by(full_name, email)'
       }
+      
+      // Only add profiles join if deleted_by is not null
+      const fullSelectQuery = selectQuery + profilesQuery
 
       let query = supabase
         .from(tableName)
-        .select(selectQuery)
+        .select(fullSelectQuery)
         .eq('organization_id', profile.organization_id)
         .not('deleted_at', 'is', null)
         .order('deleted_at', { ascending: false })
@@ -67,14 +75,18 @@ export async function GET(request: NextRequest) {
       if (error) throw error
 
       // Format the data with table information
-      // Also handle missing profile data for deleted_by
-      const formattedData = data?.map(item => ({
-        ...item,
-        table: tableName,
-        type: tableName.slice(0, -1), // Remove 's' from plural
-        // Add a placeholder for deleted_by user if not available
-        deleted_by_user: item.profiles || { full_name: 'System', email: 'system@harryschool.uz' }
-      })) || []
+      const formattedData = data?.map(item => {
+        // Extract the profiles relation data
+        const profileData = item.profiles
+        delete item.profiles // Remove the nested object from the main data
+        
+        return {
+          ...item,
+          table: tableName,
+          type: tableName.slice(0, -1), // Remove 's' from plural
+          profiles: profileData || { full_name: 'Unknown', email: null }
+        }
+      }) || []
 
       archiveData.push(...formattedData)
     }

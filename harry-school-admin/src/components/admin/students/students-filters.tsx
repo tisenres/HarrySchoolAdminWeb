@@ -329,7 +329,7 @@ export function StudentsFilters({
                     <SelectValue placeholder="Select level" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All levels</SelectItem>
+                    <SelectItem value="all">All levels</SelectItem>
                     {levelOptions.map((level) => (
                       <SelectItem key={level} value={level}>
                         {level}
@@ -352,7 +352,7 @@ export function StudentsFilters({
                     <SelectValue placeholder="Select subject" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All subjects</SelectItem>
+                    <SelectItem value="all">All subjects</SelectItem>
                     {subjectOptions.map((subject) => (
                       <SelectItem key={subject} value={subject}>
                         {subject}

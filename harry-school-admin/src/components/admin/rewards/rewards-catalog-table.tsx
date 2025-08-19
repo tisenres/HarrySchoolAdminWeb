@@ -59,9 +59,9 @@ export default function RewardsCatalogTable({ onEditReward }: RewardsCatalogTabl
   
   // Filters
   const [searchTerm, setSearchTerm] = useState('')
-  const [typeFilter, setTypeFilter] = useState<string>('')
-  const [categoryFilter, setCategoryFilter] = useState<string>('')
-  const [statusFilter, setStatusFilter] = useState<string>('')
+  const [typeFilter, setTypeFilter] = useState<string>('all')
+  const [categoryFilter, setCategoryFilter] = useState<string>('all')
+  const [statusFilter, setStatusFilter] = useState<string>('all')
   
   // Modal states
   const [editingReward, setEditingReward] = useState<RewardWithStats | null>(null)
@@ -94,9 +94,9 @@ export default function RewardsCatalogTable({ onEditReward }: RewardsCatalogTabl
           page: currentPage,
           limit: 20,
           search: searchTerm || undefined,
-          reward_type: typeFilter || undefined,
-          reward_category: categoryFilter || undefined,
-          is_active: statusFilter ? statusFilter === 'active' : undefined,
+          reward_type: typeFilter !== 'all' ? typeFilter : undefined,
+          reward_category: categoryFilter !== 'all' ? categoryFilter : undefined,
+          is_active: statusFilter !== 'all' ? statusFilter === 'active' : undefined,
           sort_by: 'display_order',
           sort_order: 'asc'
         })
@@ -128,9 +128,9 @@ export default function RewardsCatalogTable({ onEditReward }: RewardsCatalogTabl
         page: currentPage,
         limit: 20,
         search: searchTerm || undefined,
-        reward_type: typeFilter || undefined,
-        reward_category: categoryFilter || undefined,
-        is_active: statusFilter ? statusFilter === 'active' : undefined,
+        reward_type: typeFilter !== 'all' ? typeFilter : undefined,
+        reward_category: categoryFilter !== 'all' ? categoryFilter : undefined,
+        is_active: statusFilter !== 'all' ? statusFilter === 'active' : undefined,
         sort_by: 'display_order',
         sort_order: 'asc'
       })
@@ -251,7 +251,7 @@ export default function RewardsCatalogTable({ onEditReward }: RewardsCatalogTabl
             <SelectValue placeholder={t('filters.type')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">{t('filters.all')}</SelectItem>
+            <SelectItem value="all">{t('filters.all')}</SelectItem>
             {rewardTypes.map((type) => (
               <SelectItem key={type.value} value={type.value}>
                 {type.label}
@@ -265,7 +265,7 @@ export default function RewardsCatalogTable({ onEditReward }: RewardsCatalogTabl
             <SelectValue placeholder={t('filters.category')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">{t('filters.all')}</SelectItem>
+            <SelectItem value="all">{t('filters.all')}</SelectItem>
             {rewardCategories.map((category) => (
               <SelectItem key={category.value} value={category.value}>
                 {category.label}
@@ -279,7 +279,7 @@ export default function RewardsCatalogTable({ onEditReward }: RewardsCatalogTabl
             <SelectValue placeholder={t('filters.status')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">{t('filters.all')}</SelectItem>
+            <SelectItem value="all">{t('filters.all')}</SelectItem>
             <SelectItem value="active">{t('status.active')}</SelectItem>
             <SelectItem value="inactive">{t('status.inactive')}</SelectItem>
           </SelectContent>

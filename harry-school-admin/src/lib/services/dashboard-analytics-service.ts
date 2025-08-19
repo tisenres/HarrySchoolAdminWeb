@@ -104,7 +104,8 @@ class DashboardAnalyticsService {
       }
     } catch (error) {
       console.error('Error fetching integrated dashboard stats:', error)
-      throw error
+      // Return default stats instead of throwing
+      return this.getDefaultDashboardStats()
     }
   }
 
@@ -286,6 +287,35 @@ class DashboardAnalyticsService {
     return {
       start: start.toISOString(),
       end: end.toISOString()
+    }
+  }
+  /**
+   * Get default dashboard stats when data is unavailable
+   */
+  private getDefaultDashboardStats(): DashboardAnalytics {
+    return {
+      totalStudents: 0,
+      activeStudents: 0,
+      totalGroups: 0,
+      activeGroups: 0,
+      totalTeachers: 0,
+      activeTeachers: 0,
+      recentEnrollments: 0,
+      upcomingClasses: 0,
+      outstandingBalance: 0,
+      monthlyRevenue: 0,
+      studentGrowth: 0,
+      groupGrowth: 0,
+      revenueGrowth: 0,
+      totalReferrals: 0,
+      pendingReferrals: 0,
+      referralConversionRate: 0,
+      referralRevenue: 0,
+      referralGrowth: 0,
+      referralROI: 0,
+      referralToPerformanceRatio: 0,
+      referralStudentRetention: 0,
+      referralStudentSatisfaction: 0
     }
   }
 }

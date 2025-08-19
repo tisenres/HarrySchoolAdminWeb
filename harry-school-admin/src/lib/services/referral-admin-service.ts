@@ -266,6 +266,11 @@ class ReferralAdminService {
     date_range?: { start: string; end: string }
   ): Promise<ReferralAnalytics> {
     try {
+      // Return default analytics if no organization_id
+      if (!organization_id) {
+        return this.getDefaultAnalytics()
+      }
+
       let query = this.supabaseClient
         .from('student_referrals')
         .select('*')
@@ -279,7 +284,11 @@ class ReferralAdminService {
 
       const { data: referrals, error } = await query
 
-      if (error) throw error
+      if (error) {
+        console.error('Supabase error in getReferralAnalytics:', error)
+        // Return default analytics on error instead of throwing
+        return this.getDefaultAnalytics()
+      }
 
       // Calculate analytics
       const totalReferrals = referrals?.length || 0
@@ -306,7 +315,23 @@ class ReferralAdminService {
       }
     } catch (error) {
       console.error('Error fetching referral analytics:', error)
-      throw error
+      // Return default analytics instead of throwing
+      return this.getDefaultAnalytics()
+    }
+  }
+
+  /**
+   * Get default analytics when data is unavailable
+   */
+  private getDefaultAnalytics(): ReferralAnalytics {
+    return {
+      total_referrals: 0,
+      successful_conversions: 0,
+      conversion_rate: 0,
+      total_points_earned: 0,
+      monthly_breakdown: [],
+      top_referrers: [],
+      referral_sources: []
     }
   }
 

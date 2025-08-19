@@ -343,17 +343,17 @@
     "studentsTable": {
       "columns": {
         "studentId": "ID студента",
-        "name": "Имя",
+        "name": "Имя студента",
         "age": "Возраст",
-        "contact": "Контакт",
+        "contact": "Контактная информация",
         "parentGuardian": "Родитель/Опекун",
         "status": "Статус",
-        "payment": "Оплата",
+        "payment": "Статус оплаты",
         "level": "Уровень",
         "groups": "Группы",
         "ranking": "Рейтинг",
         "balance": "Баланс",
-        "enrolled": "Зачислен",
+        "enrolled": "Дата зачисления",
         "actions": "Действия",
         "select": "Выбрать"
       }
@@ -674,8 +674,8 @@
     "teachersTable": {
       "columns": {
         "name": "Имя",
-        "contact": "Контакт",
-        "employment": "Трудоустройство",
+        "contact": "Контактная информация",
+        "employment": "Тип занятости",
         "specializations": "Специализации",
         "groups": "Группы",
         "students": "Студенты",
@@ -727,11 +727,11 @@
     "groupsTable": {
       "columns": {
         "groupName": "Название группы",
-        "code": "Код",
+        "code": "Код группы",
         "subject": "Предмет",
         "level": "Уровень",
         "teacher": "Преподаватель",
-        "enrollment": "Зачисление",
+        "enrollment": "Количество учеников",
         "schedule": "Расписание",
         "status": "Статус",
         "startDate": "Дата начала",

@@ -51,8 +51,8 @@ export default function StudentRewardsInterface({ studentId, isReadOnly = false 
   
   // Filters
   const [searchTerm, setSearchTerm] = useState('')
-  const [typeFilter, setTypeFilter] = useState<string>('')
-  const [categoryFilter, setCategoryFilter] = useState<string>('')
+  const [typeFilter, setTypeFilter] = useState<string>('all')
+  const [categoryFilter, setCategoryFilter] = useState<string>('all')
   
   // Modal states
   const [selectedReward, setSelectedReward] = useState<RewardsCatalogItem | null>(null)
@@ -105,8 +105,8 @@ export default function StudentRewardsInterface({ studentId, isReadOnly = false 
       reward.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (reward.description && reward.description.toLowerCase().includes(searchTerm.toLowerCase()))
     
-    const matchesType = !typeFilter || reward.reward_type === typeFilter
-    const matchesCategory = !categoryFilter || reward.reward_category === categoryFilter
+    const matchesType = typeFilter === 'all' || reward.reward_type === typeFilter
+    const matchesCategory = categoryFilter === 'all' || reward.reward_category === categoryFilter
     
     return matchesSearch && matchesType && matchesCategory
   })
@@ -288,7 +288,7 @@ export default function StudentRewardsInterface({ studentId, isReadOnly = false 
                 <SelectValue placeholder={t('filters.type')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">{t('filters.all')}</SelectItem>
+                <SelectItem value="all">{t('filters.all')}</SelectItem>
                 {rewardTypes.map((type) => (
                   <SelectItem key={type.value} value={type.value}>
                     {type.label}
@@ -302,7 +302,7 @@ export default function StudentRewardsInterface({ studentId, isReadOnly = false 
                 <SelectValue placeholder={t('filters.category')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">{t('filters.all')}</SelectItem>
+                <SelectItem value="all">{t('filters.all')}</SelectItem>
                 {rewardCategories.map((category) => (
                   <SelectItem key={category.value} value={category.value}>
                     {category.label}

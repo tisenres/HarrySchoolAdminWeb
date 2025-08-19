@@ -135,7 +135,7 @@ export function PaymentForm({ students = [], invoices = [], onSubmit, defaultVal
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="">No invoice</SelectItem>
+                        <SelectItem value="none">No invoice</SelectItem>
                         {invoices.map((invoice) => (
                           <SelectItem key={invoice.id} value={invoice.id}>
                             {invoice.invoice_number} - ${invoice.total_amount - (invoice.paid_amount || 0)} remaining

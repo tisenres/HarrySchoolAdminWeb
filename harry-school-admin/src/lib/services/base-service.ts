@@ -32,7 +32,7 @@ export abstract class BaseService {
   }
 
   /**
-   * Get the current authenticated user
+   * Get the current authenticated user with caching
    */
   protected async getCurrentUser() {
     const supabase = await this.getSupabase()
@@ -42,20 +42,22 @@ export abstract class BaseService {
       throw new Error('User not authenticated')
     }
     
+    // Cache the user data
+    authCache.setUser(user.id, user)
+    
     return user
   }
 
   /**
-   * Get the current user's organization ID
+   * Get the current user's organization ID with enhanced caching
    */
   protected async getCurrentOrganization() {
     const user = await this.getCurrentUser()
     
-    // Check cache first
-    const cacheKey = `org:${user.id}`
-    const cached = authCache.get<string>(cacheKey)
-    if (cached) {
-      return cached
+    // Check organization cache first
+    const cachedOrg = authCache.getOrganization(user.id)
+    if (cachedOrg) {
+      return cachedOrg
     }
     
     const supabase = await this.getSupabase()
@@ -71,8 +73,8 @@ export abstract class BaseService {
       throw new Error('User profile not found or user not associated with an organization')
     }
     
-    // Cache the result for 5 minutes
-    authCache.set(cacheKey, data.organization_id, 300000)
+    // Cache the organization data
+    authCache.setOrganization(user.id, data.organization_id)
     
     return data.organization_id
   }
