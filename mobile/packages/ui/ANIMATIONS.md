@@ -15,15 +15,22 @@ A comprehensive animation system designed for educational mobile applications wi
 ```
 packages/ui/
 ├── theme/
-│   └── animations.ts           # Core animation system
+│   ├── animations.ts           # Core animation system
+│   └── animationConfig.ts      # Adaptive configuration manager
 ├── components/
 │   ├── AnimatedButton.tsx      # Enhanced button with micro-interactions
 │   ├── VocabularyCard.tsx      # Flip card for vocabulary learning
 │   ├── ProgressBar.tsx         # Animated progress tracking
 │   ├── RankingBadge.tsx        # Achievement badges with celebrations
-│   └── AnimatedTabBar.tsx      # Navigation with bounce effects
+│   ├── AnimatedTabBar.tsx      # Navigation with bounce effects
+│   ├── AttendanceButton.tsx    # Quick teacher attendance marking
+│   ├── AchievementBadge.tsx    # Student milestone celebrations
+│   ├── PointsCounter.tsx       # Animated points with celebrations
+│   ├── LoadingSpinner.tsx      # Educational-themed loading states
+│   └── QuickActionButton.tsx   # Teacher efficiency actions
 └── examples/
-    └── AnimationExamples.tsx   # Complete usage examples
+    ├── AnimationExamples.tsx           # Basic usage examples
+    └── EducationalAnimationExamples.tsx # Educational micro-interactions
 ```
 
 ## 🎭 Animation Categories
@@ -72,7 +79,18 @@ const { animatedStyle: shakeStyle, shake } = animations.feedback.useValidationSh
 const connectionStyle = animations.feedback.useConnectionPulse(isConnected);
 ```
 
-### 5. Student Engagement
+### 5. Teacher Efficiency Animations
+- **Quick Attendance**: Ultra-fast marking animations (100-150ms)
+- **Form Submission**: Instant feedback for rapid workflows
+- **Skeleton Loading**: Minimal distraction loading states
+- **Tab Switching**: Efficient navigation transitions
+
+```typescript
+const { animatedStyle, checkStyle, markAttendance } = animations.teacher.useAttendanceCheck();
+const { animatedStyle: submitStyle, submitSuccess } = animations.teacher.useQuickSubmit();
+```
+
+### 6. Student Engagement
 - **Point Earning**: Celebratory animations with count-up effects
 - **Level Up**: Dramatic scaling with rotation and particles
 - **Streak Maintenance**: Glowing effects for consistent performance
@@ -81,6 +99,28 @@ const connectionStyle = animations.feedback.useConnectionPulse(isConnected);
 ```typescript
 const { animatedStyle, earnPoints } = animations.engagement.usePointEarning(250);
 const { animatedStyle: levelStyle, levelUp } = animations.engagement.useLevelUp();
+```
+
+### 7. Educational Milestones
+- **Lesson Completion**: Special celebration sequences
+- **Perfect Score**: Dramatic confetti and sparkle effects
+- **Weekly Goals**: Progress fill with achievement sparkles
+- **First-Time Achievements**: Enhanced celebration animations
+
+```typescript
+const { animatedStyle, completLesson } = animations.milestone.useLessonCompletion();
+const { animatedStyle: perfectStyle, celebratePerfectScore } = animations.milestone.usePerfectScore();
+```
+
+### 8. Vocabulary Learning Specific
+- **Word Mastery**: Progress-based glow effects
+- **Pronunciation Feedback**: Color-coded success/error states
+- **Translation Reveal**: Smooth slide-up animations
+- **Learning Progress**: Contextual progress indicators
+
+```typescript
+const { progressStyle, glowStyle } = animations.vocabulary.useWordMastery(masteryLevel);
+const { animatedStyle, giveFeedback } = animations.vocabulary.usePronunciationFeedback();
 ```
 
 ## ⚙️ Configuration Options
@@ -115,6 +155,64 @@ export const easingCurves = {
   playful: Easing.bezier(0.68, -0.55, 0.265, 1.55), // Back ease out
   gentle: Easing.bezier(0.25, 0.1, 0.25, 1),     // Gentle ease
 };
+```
+
+## 🚀 Adaptive Animation Configuration
+
+The animation system automatically adapts based on user context, device performance, battery level, and network conditions for optimal experience.
+
+### Context-Based Profiles
+
+```typescript
+import { EducationalPresets, useAnimationConfig } from '../theme/animationConfig';
+
+// Set context for teacher efficiency
+EducationalPresets.TeacherEfficiency();
+
+// Set context for student engagement
+EducationalPresets.StudentEngaging();
+
+// Use adaptive configuration in components
+const { profile, getAdjustedTiming, isFeatureEnabled } = useAnimationConfig();
+
+// Respect configuration in animations
+const duration = getAdjustedTiming(300); // Automatically adjusted for context
+const enableParticles = isFeatureEnabled('enableParticleEffects');
+```
+
+### Available Profiles
+
+**Teacher Profiles:**
+- `TeacherEfficiency`: Ultra-fast animations (50% faster), minimal effects
+- `TeacherBalanced`: Moderate speed with essential animations
+
+**Student Profiles:**
+- `StudentEngaging`: Full animations with celebrations and effects
+- `StudentBalanced`: Good balance of engagement and performance
+- `StudentFocused`: Reduced animations to minimize distractions
+
+### Automatic Adaptations
+
+The system automatically adjusts based on:
+
+- **Device Performance**: Reduces complex animations on lower-end devices
+- **Battery Level**: Scales down effects when battery is low
+- **Network Conditions**: Adjusts animations that might trigger data usage
+- **Accessibility Settings**: Respects reduced motion preferences
+
+```typescript
+// Example of adaptive behavior
+const animationConfig = useAnimationConfig();
+
+// This will be automatically adjusted based on current conditions
+const celebrationStyle = animations.milestone.useLessonCompletion();
+
+// Check if complex animations are enabled
+if (animationConfig.isFeatureEnabled('enableComplexAnimations')) {
+  // Show full celebration
+} else {
+  // Show simple success indicator
+}
 ```
 
 ## 🎨 Usage Examples
@@ -178,6 +276,78 @@ import { AnimatedTabBar } from '@harry-school/ui';
   onTabPress={navigateToScreen}
   variant="primary"
   indicatorType="line"
+/>
+```
+
+### Teacher Efficiency Components
+```typescript
+import { AttendanceButton, QuickActionButton } from '@harry-school/ui';
+
+// Quick attendance marking
+<AttendanceButton
+  studentId="student-123"
+  studentName="Alice Johnson"
+  currentStatus="present"
+  onStatusChange={handleAttendanceChange}
+  size="small"
+/>
+
+// Rapid teacher actions
+<QuickActionButton
+  action="approve"
+  onPress={handleApproval}
+  size="small"
+  variant="primary"
+  batchMode={true}
+  batchCount={5}
+/>
+```
+
+### Student Achievement System
+```typescript
+import { AchievementBadge, PointsCounter } from '@harry-school/ui';
+
+// Milestone celebration
+<AchievementBadge
+  type="perfect"
+  title="Perfect Score"
+  description="100% correct answers"
+  isUnlocked={true}
+  triggerUnlock={justUnlocked}
+  celebrationLevel="dramatic"
+  onUnlockComplete={handleCelebrationComplete}
+/>
+
+// Animated points counter
+<PointsCounter
+  currentPoints={1500}
+  previousPoints={1200}
+  maxPoints={2000}
+  variant="celebration"
+  celebrateOnIncrease={true}
+  showStreakMultiplier={true}
+  streakMultiplier={3}
+  onPointsAnimationComplete={handlePointsComplete}
+/>
+```
+
+### Educational Loading States
+```typescript
+import { LoadingSpinner } from '@harry-school/ui';
+
+// Context-aware loading
+<LoadingSpinner
+  context="teacher"
+  variant="minimal"
+  size="small"
+  message="Saving grades..."
+/>
+
+<LoadingSpinner
+  context="student"
+  variant="books"
+  size="medium"
+  message="Preparing your lesson..."
 />
 ```
 

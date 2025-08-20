@@ -12,3 +12,10 @@ export { VocabularyCard } from './VocabularyCard';
 export { ProgressBar } from './ProgressBar';
 export { RankingBadge } from './RankingBadge';
 export { AnimatedTabBar } from './AnimatedTabBar';
+
+// Educational Micro-Interaction Components
+export { AttendanceButton } from './AttendanceButton';
+export { AchievementBadge } from './AchievementBadge';
+export { PointsCounter } from './PointsCounter';
+export { LoadingSpinner } from './LoadingSpinner';
+export { QuickActionButton } from './QuickActionButton';
