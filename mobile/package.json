@@ -1,0 +1,37 @@
+{
+  "name": "@harry-school/mobile",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Harry School Mobile Apps Monorepo",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "start": "turbo run start",
+    "test": "turbo run test",
+    "lint": "turbo run lint",
+    "type-check": "turbo run type-check",
+    "clean": "turbo run clean",
+    "teacher:start": "cd apps/teacher && npm start",
+    "teacher:ios": "cd apps/teacher && npm run ios",
+    "teacher:android": "cd apps/teacher && npm run android",
+    "student:start": "cd apps/student && npm start",
+    "student:ios": "cd apps/student && npm run ios",
+    "student:android": "cd apps/student && npm run android",
+    "expo:start": "turbo run expo:start",
+    "expo:build": "turbo run expo:build"
+  },
+  "devDependencies": {
+    "turbo": "^1.10.7",
+    "@types/node": "^20.5.0",
+    "typescript": "^5.0.0"
+  },
+  "packageManager": "npm@9.8.1",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
+}

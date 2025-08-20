@@ -283,10 +283,10 @@ EOF
 "Use the code-reviewer to validate code quality before commits, then use the test-runner to execute pre-commit test suite"
 
 # Pre-deployment validation
-"Use the security-auditor to scan for vulnerabilities, use the performance-engineer to validate performance benchmarks, then use the deployment-engineer to proceed with deployment"
+"Use the security-auditor to scan for vulnerabilities, use the performance-engineer to validate performance benchmarks, then use the deployment-strategist to proceed with deployment"
 
 # Post-deployment monitoring
-"Use the deployment-engineer to monitor deployment health, use the performance-engineer to track performance metrics, and use the test-runner to execute smoke tests"
+"Use the deployment-strategist to monitor deployment health, use the performance-engineer to track performance metrics, and use the test-runner to execute smoke tests"
 ```
 
 **Quality Gates Implementation**
@@ -411,7 +411,7 @@ EOF
 "Use the code-reviewer to identify root cause, coordinate with original implementer for resolution, use the test-automator to create regression prevention tests, and use the security-auditor for security impact assessment"
 
 # Performance degradation response
-"Use the performance-engineer to identify performance bottleneck, coordinate with database-optimizer for query optimization, coordinate with frontend-developer for UI improvements, and use the deployment-engineer for production optimization"
+"Use the performance-engineer to identify performance bottleneck, coordinate with database-optimizer for query optimization, coordinate with frontend-developer for UI improvements, and use the deployment-strategist for production optimization"
 ```
 
 ### 13. Success Measurement & Optimization
@@ -448,7 +448,7 @@ EOF
 "Use the ux-researcher to conduct final user acceptance testing with school administrators"
 "Use the security-auditor to perform comprehensive security audit and penetration testing"  
 "Use the performance-engineer to validate production-level performance with realistic data volumes"
-"Use the deployment-engineer to complete production deployment with monitoring and backup systems"
+"Use the deployment-strategist to complete production deployment with monitoring and backup systems"
 "Use the api-documenter to finalize all documentation including user manuals and API references"
 ```
 
@@ -456,7 +456,7 @@ EOF
 ```bash
 # Client handoff documentation
 "Use the api-documenter to create comprehensive administrator training materials"
-"Use the deployment-engineer to document production environment setup and maintenance procedures"
+"Use the deployment-strategist to document production environment setup and maintenance procedures"
 "Use the security-auditor to create security procedures and incident response documentation"
 "Use the ux-researcher to create user feedback collection and improvement process documentation"
 ```

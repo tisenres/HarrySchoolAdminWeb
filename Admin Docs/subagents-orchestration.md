@@ -85,7 +85,7 @@
 "Use the code-reviewer to review PR changes via github MCP server and coordinate with other agents"
 
 # Release management
-"Use the deployment-engineer to manage releases and version tags via github MCP server"
+"Use the deployment-strategist to manage releases and version tags via github MCP server"
 ```# Harry School CRM - Subagent Team Configuration
 
 ## Core Development Team (6 Essential Agents)
@@ -178,7 +178,7 @@
 - Profile and optimize large data tables
 - Set up monitoring and performance metrics
 
-### 8. **deployment-engineer**
+### 8. **deployment-strategist**
 **Role**: CI/CD, Vercel deployment, environment management
 - Configure multi-environment setup (dev/staging/prod)
 - Set up automated deployments with Vercel
@@ -219,10 +219,10 @@
 6. **test-runner**: Execute automated tests in CI/CD pipeline
 
 ### Phase 3: Advanced Features (Weeks 7-8)
-**Primary Agents**: performance-engineer, deployment-engineer, debugger, ui-designer
+**Primary Agents**: performance-engineer, deployment-strategist, debugger, ui-designer
 1. **performance-engineer**: Optimize for large datasets and real-time features
 2. **ui-designer**: Refine visual design and ensure consistency
-3. **deployment-engineer**: Set up production deployment pipeline
+3. **deployment-strategist**: Set up production deployment pipeline
 4. **debugger**: Handle complex integration issues
 
 ### Phase 4: Documentation & Launch (Weeks 9-10)
@@ -286,7 +286,7 @@ backend-architect → database-optimizer → security-auditor → frontend-devel
 ### Deployment Commands
 ```bash
 # Deployment setup
-"Use the deployment-engineer to configure the Vercel production deployment"
+"Use the deployment-strategist to configure the Vercel production deployment"
 
 # Documentation
 "Use the api-documenter to create the API reference for teachers endpoints"

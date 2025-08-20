@@ -1,281 +1,267 @@
-# Harry School CRM & Mobile Apps
+# Harry School CRM Development Guide
 
-## Project Overview
+## 🎯 Project Overview
 
-**Harry School CRM** is a comprehensive educational management ecosystem consisting of:
-- **Admin Panel**: Web-based management system for school administrators
+**Harry School CRM** is a comprehensive educational management ecosystem for a private education center in Tashkent, consisting of:
+- **Admin Panel**: Web-based management system (Next.js + Vercel)
 - **Teacher App**: Mobile application for educators (React Native + Expo)
 - **Student App**: Mobile application for learners (React Native + Expo)
 
-All three applications share a unified backend (Supabase) and work together to provide a seamless educational experience.
+## 🛠 Technology Stack
 
-## Architecture & Tech Stack
+| Component | Technology |
+|-----------|------------|
+| **Web Frontend** | Next.js 14+ (App Router), TypeScript, shadcn/ui, Tailwind CSS |
+| **Mobile Apps** | React Native, Expo SDK 49+, TypeScript, NativeWind |
+| **Backend** | Supabase (PostgreSQL, Auth, RLS, Storage) |
+| **State Management** | Zustand (client), React Query (server) |
+| **AI Services** | OpenAI GPT-4, Whisper API |
+| **Deployment** | Vercel (web), EAS Build (mobile) |
+| **Development** | Claude Code with MCP servers + Subagents |
 
-### Admin Panel (Web)
-- **Frontend**: Next.js 14+ with App Router, TypeScript
-- **UI Framework**: shadcn/ui + Tailwind CSS
-- **State Management**: Zustand (client) + React Query (server state)
-- **Internationalization**: next-intl (English, Russian, Uzbek Latin)
-- **Deployment**: Vercel with automated CI/CD
+## 📁 Context Management Strategy
 
-### Mobile Apps (Teacher & Student)
-- **Framework**: React Native + Expo SDK 49+
-- **Language**: TypeScript 5.0+
-- **Navigation**: React Navigation 6.0+
-- **UI Library**: NativeWind (Tailwind for RN) + Custom Design System
-- **State Management**: Zustand + React Query
-- **Animations**: React Native Reanimated + Lottie
+### Shared Context File
+All agents use `/docs/tasks/context.md` for maintaining project continuity.
 
-### Shared Backend
-- **Database**: Supabase (PostgreSQL)
-- **Authentication**: Supabase Auth (no self-registration)
-- **Real-time**: Supabase Realtime subscriptions
-- **Storage**: Supabase Storage for files
-- **AI Services**: OpenAI GPT-4 + Whisper API
+```markdown
+# Project Context: [Feature Name]
+Last Updated: [timestamp]
 
-### Development Environment
-- **IDE**: Claude Code with MCP servers
-- **Monorepo**: Turbo for mobile apps
-- **Version Control**: Git
-- **Testing**: Jest + React Testing Library + Detox
+## Current Status
+- Phase: [planning/development/testing/complete]
+- Active Agent: [agent-name]
 
-## Core Modules
+## Completed Work
+- [timestamp] [agent-name]: [summary]
 
-### Admin Panel Features
-1. **Teachers** - Full CRUD with specializations and performance tracking
-2. **Students** - Complete lifecycle management with ranking system
-3. **Groups** - Class management with scheduling
-4. **Rankings** - Unified point system for students and teachers
-5. **Feedback** - Bidirectional feedback system
-6. **Settings** - User management and configuration
+## Research Reports
+- backend-architecture.md
+- frontend-design.md
+- ai-integration.md
 
-### Teacher App Features
-1. **Dashboard** - Daily overview and quick actions
-2. **Groups Management** - Student rosters and performance
-3. **Attendance** - Quick marking with multiple states
-4. **Schedule** - Class timetable and planning
-5. **Feedback System** - Create and track student feedback
-6. **AI Tasks** - Generate and assign homework with AI
-7. **Analytics** - Performance insights and trends
+## Next Steps
+- [ ] Task 1
+- [ ] Task 2
+```
 
-### Student App Features
-1. **Dashboard** - Ranking, schedule, and achievements
-2. **Home Tasks** - Interactive lessons (text, quiz, speaking, listening, writing)
-3. **Vocabulary** - Flashcards and translator
-4. **Schedule** - Classes and attendance
-5. **Ranking System** - Points, coins, leaderboards
-6. **Rewards Catalog** - Redeem earned coins
-7. **Referral Program** - Invite friends for rewards
-8. **Extra Learning** - Request additional lessons/homework
-9. **Feedback** - Rate teachers and courses
+### Agent Workflow
 
-## MCP Server Configuration
+1. **Before Work**: Read `/docs/tasks/context.md`
+2. **During Work**: Research and plan (never implement)
+3. **After Work**: Update context file and save research
+
+## 🤖 Subagent Team
+
+### Core Development Agents
+| Agent | Specialization | Color |
+|-------|---------------|--------|
+| `backend-architect` | Database schemas, API design, RLS policies | Blue |
+| `frontend-developer` | React components, state management | Yellow |
+| `mobile-developer` | React Native architecture, offline-first | Orange |
+| `ui-designer` | Design systems, visual specifications | Pink |
+| `whimsy-injector` | Animations, micro-interactions | Purple |
+
+### Quality & Security Agents
+| Agent | Specialization | Color |
+|-------|---------------|--------|
+| `security-auditor` | Security analysis, compliance | Red |
+| `test-automator` | Test strategies, coverage planning | Purple |
+| `test-runner` | CI/CD pipelines, execution plans | Cyan |
+| `database-optimizer` | Query optimization, indexing | Green |
+| `performance-analyzer` | Web/mobile performance, caching | Yellow |
+
+### Coordination & Deployment Agents
+| Agent | Specialization | Color |
+|-------|---------------|--------|
+| `sprint-prioritizer` | Task breakdown, agent coordination | Pink |
+| `ux-researcher` | User workflows, information architecture | Green |
+| `ai-engineer` | LLM integration, prompt engineering | Blue |
+| `deployment-strategist` | Vercel/EAS deployment, CI/CD | Blue |
+
+## 🔧 MCP Server Configuration
 
 ```json
 {
   "mcpServers": {
     "supabase": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-supabase"],
-      "env": {
-        "SUPABASE_URL": "${NEXT_PUBLIC_SUPABASE_URL}",
-        "SUPABASE_SERVICE_ROLE_KEY": "${SUPABASE_SERVICE_ROLE_KEY}"
-      }
-    },
-    "filesystem": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-filesystem", "./"]
-    },
-    "git": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-git"]
-    },
-    "github": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-github"],
-      "env": {
-        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
-      }
-    },
-    "browser": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-puppeteer"]
-    },
-    "memory": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-memory"]
+      "args": ["@supabase/mcp-server-supabase@latest", "--project-ref=xlcsegukheumsadygmgh"]
     },
     "context7": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-context7"],
-      "env": {
-        "CONTEXT7_API_KEY": "${CONTEXT7_API_KEY}"
-      }
+      "args": ["@upstash/context7-mcp@latest"]
     },
-    "playwright": {
+    "filesystem": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-playwright"]
+      "args": ["@modelcontextprotocol/server-filesystem", "./"]
+    },
+    "github": {
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-github"]
+    },
+    "playwright-enhanced": {
+      "command": "npx",
+      "args": ["@executeautomation/playwright-mcp-server"]
+    },
+    "browser": {
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-puppeteer"]
+    },
+    "memory": {
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-memory"]
+    },
+    "shadcn-ui": {
+      "command": "npx",
+      "args": ["@jpisnice/shadcn-ui-mcp-server"]
     }
   }
 }
 ```
 
-## Subagent Team Structure
+## 📋 Development Workflow
 
-### Mobile Development Team
-- `mobile-architect` - React Native architecture, navigation, state management
-- `ui-designer` - Mobile UI/UX, animations, design system
-- `api-integrator` - Supabase integration, real-time features
-- `ai-specialist` - OpenAI/Whisper integration, task generation
-- `performance-optimizer` - Mobile performance, caching, offline support
-- `test-automator` - Jest, Detox, E2E testing for mobile
-
-### Existing Teams (Admin Panel)
-- `backend-architect` - Database schema, API design
-- `frontend-developer` - React components, admin interfaces
-- `security-auditor` - RLS policies, authentication
-- `database-optimizer` - Query optimization, indexing
-
-### Cross-Platform Team
-- `ux-researcher` - User workflows across all platforms
-- `sprint-prioritizer` - Feature coordination across apps
-- `deployment-engineer` - CI/CD, app store deployment
-
-## Claude Code Commands with Subagents and MCP Servers
-
-### Mobile App Development Commands
-
+### 1️⃣ Planning Phase
 ```bash
-# Initial Setup with Mobile Architect and MCP Servers
-"Use the mobile-architect to create a React Native Expo monorepo structure for Teacher and Student apps. Use the filesystem MCP server to organize the folder structure, then use git MCP server to initialize version control with proper .gitignore."
-
-# UI Design System with Context Documentation
-"Use the ui-designer to create a premium mobile design system with primary color #1d7452. Store design specifications in context7 MCP server for reference, then use filesystem MCP server to organize components in packages/ui."
-
-# Database Schema Extension
-"Use the backend-architect to extend the existing schema for mobile features. Use supabase MCP server to create tables for home_tasks, vocabulary_words, student_vocabulary, and extra_lesson_requests with proper RLS policies."
-
-# Student App Dashboard with Real-time
-"Use the mobile-architect and ui-designer together to implement the Student Dashboard. Use supabase MCP server for real-time subscriptions to ranking updates, then store component patterns in context7 MCP server."
-
-# AI Integration with OpenAI
-"Use the ai-specialist to implement OpenAI GPT-4 integration for task generation. Create task generation service with proper prompts, store AI patterns in context7 MCP server, then test with supabase MCP server for data persistence."
-
-# Teacher Attendance System with Offline Support
-"Use the mobile-architect to build the attendance marking system. Implement offline queue with memory MCP server for temporary storage, then sync with supabase MCP server when online."
-
-# Vocabulary Module with Animations
-"Use the ui-designer and mobile-architect to create the vocabulary flashcard system. Use filesystem MCP server to organize vocabulary assets, implement swipe animations, and store progress in supabase MCP server."
-
-# Real-time Features Implementation
-"Use the api-integrator to implement Supabase real-time subscriptions. Use supabase MCP server for notifications and ranking updates, then document patterns in context7 MCP server."
-
-# Performance Optimization and Testing
-"Use the performance-optimizer to implement caching with MMKV. Use playwright MCP server for E2E testing, then store performance benchmarks in context7 MCP server."
-
-# Testing Setup with Automated Runs
-"Use the test-automator to set up Jest and Detox tests. Use playwright MCP server for browser testing, github MCP server for CI/CD integration, then store test reports in context7 MCP server."
+# Create context and plan sprint
+"Create context file at /docs/tasks/context.md for [feature]"
+"Use sprint-prioritizer to plan research tasks"
 ```
 
-### Cross-Platform Coordination Commands
-
+### 2️⃣ Research Phase
 ```bash
-# Morning Sprint Planning
-"Use the sprint-prioritizer to plan today's mobile development priorities. Use memory MCP server to retrieve yesterday's progress, check PR status with github MCP server, then document sprint plan in context7 MCP server."
+# Architecture research
+"Use backend-architect to design database schema"
+"Use frontend-developer to plan component architecture"
+"Use mobile-developer to design offline-first strategy"
 
-# Design Consistency Check
-"Use the ui-designer to ensure design consistency between Admin Panel, Teacher App, and Student App. Use browser MCP server to compare implementations, then create unified design language document in context7 MCP server."
+# UX and design research
+"Use ux-researcher to analyze user workflows"
+"Use ui-designer to create design specifications"
+"Use whimsy-injector to plan micro-interactions"
 
-# Database Performance Optimization
-"Use the database-optimizer with supabase MCP server to analyze query performance from mobile apps. Create indexes for frequently accessed mobile data, then store optimization patterns in context7 MCP server."
-
-# Security Audit for Mobile
-"Use the security-auditor to review mobile app authentication and token storage. Test RLS policies with supabase MCP server, review code with github MCP server, then document security findings in context7 MCP server."
-
-# End-to-End Feature Testing
-"Use the test-runner with playwright MCP server to test complete user flows across Admin Panel and Mobile Apps. Verify data consistency through supabase MCP server, then store test results in context7 MCP server."
-
-# Weekly Progress Review
-"Use memory MCP server to compile week's accomplishments, review PRs with github MCP server, analyze performance metrics from supabase MCP server, then create comprehensive report in context7 MCP server."
-
-# Documentation and Knowledge Sharing
-"Use the api-documenter to create API documentation for mobile endpoints. Store in context7 MCP server, version control with git MCP server, then share patterns across team using memory MCP server."
-
-# Performance Monitoring
-"Use the performance-engineer to analyze mobile app metrics. Monitor API response times with supabase MCP server, run performance tests with playwright MCP server, then track improvements in context7 MCP server."
-
-# Deployment Preparation
-"Use the deployment-engineer to prepare mobile apps for store submission. Use filesystem MCP server to organize build artifacts, github MCP server for release tags, then document deployment process in context7 MCP server."
-
-# UX Research and Validation
-"Use the ux-researcher to validate mobile app workflows. Use browser MCP server for competitive analysis, test with real users using playwright MCP server, then store findings in context7 MCP server."
+# Quality research
+"Use security-auditor to assess security requirements"
+"Use test-automator to plan testing strategy"
+"Use performance-analyzer to identify optimizations"
 ```
 
-### Advanced MCP Integration Patterns
-
+### 3️⃣ Implementation Phase
 ```bash
-# Complete Feature Development with Full MCP Integration
-"Develop the Student Vocabulary module using:
-1. ui-designer for flashcard UI design (store in context7)
-2. mobile-architect for state management architecture
-3. supabase MCP for vocabulary tables and progress tracking
-4. filesystem MCP for organizing vocabulary assets
-5. git MCP for version control
-6. playwright MCP for E2E testing
-7. memory MCP for caching frequently used words
-8. context7 MCP for documentation and patterns"
-
-# AI-Powered Homework System
-"Implement AI homework generation using:
-1. ai-specialist for OpenAI integration design
-2. backend-architect for task storage schema (supabase MCP)
-3. mobile-architect for task rendering components
-4. filesystem MCP for organizing task types
-5. context7 MCP for prompt engineering documentation
-6. github MCP for collaborative development
-7. playwright MCP for testing AI responses"
-
-# Real-time Ranking System
-"Build the unified ranking system using:
-1. backend-architect for ranking schema (supabase MCP)
-2. api-integrator for real-time subscriptions
-3. ui-designer for leaderboard animations
-4. performance-optimizer for efficient updates
-5. memory MCP for caching leaderboard data
-6. context7 MCP for ranking algorithm documentation
-7. playwright MCP for performance testing"
-
-# Offline-First Architecture
-"Implement comprehensive offline support using:
-1. mobile-architect for offline queue design
-2. memory MCP for temporary data storage
-3. filesystem MCP for cached content
-4. supabase MCP for sync strategies
-5. test-automator for offline scenario testing
-6. context7 MCP for sync conflict resolution docs"
-
-# Security Implementation
-"Secure both mobile apps using:
-1. security-auditor for threat assessment
-2. supabase MCP for RLS policy implementation
-3. github MCP for security code reviews
-4. filesystem MCP for security certificates
-5. context7 MCP for security documentation
-6. playwright MCP for security testing"
+# Main agent implements based on research
+"Implement [feature] using research from /docs/tasks/"
 ```
 
-### Daily Workflow Commands
-
+### 4️⃣ Deployment Phase
 ```bash
-# Morning Setup
-"Use memory MCP server to load yesterday's context, check github MCP server for overnight PRs, review tasks in context7 MCP server, then plan today's mobile development priorities."
-
-# Development Session
-"Use the mobile-architect with filesystem MCP server to implement new features, test with supabase MCP server for data persistence, commit changes with git MCP server, then document patterns in context7 MCP server."
-
-# Testing Session
-"Use test-automator with playwright MCP server to run E2E tests, verify data integrity with supabase MCP server, check coverage reports, then store results in context7 MCP server."
-
-# End of Day Review
-"Use memory MCP server to save today's progress, push changes with github MCP server, update documentation in context7 MCP server, then plan tomorrow's tasks."
+# Deployment preparation
+"Use deployment-strategist to plan release strategy"
+"Use test-runner to configure CI/CD pipeline"
 ```
+
+## 🚀 Quick Commands
+
+### Feature Development
+```bash
+# Complete feature with all agents
+"Plan and research the student enrollment feature using relevant subagents, then implement based on their research"
+```
+
+### Performance Optimization
+```bash
+# Optimize existing feature
+"Use performance-analyzer to analyze the student list performance, then implement optimizations"
+```
+
+### Security Audit
+```bash
+# Security review
+"Use security-auditor to review the authentication system, then implement necessary security improvements"
+```
+
+### Mobile Development
+```bash
+# Mobile feature
+"Use mobile-developer to plan offline attendance marking, then implement for the Teacher app"
+```
+
+## 📊 Development Phases
+
+| Phase | Duration | Focus | Key Agents |
+|-------|----------|-------|------------|
+| **Foundation** | Weeks 1-2 | Database, Auth, UI Framework | backend-architect, security-auditor, ui-designer |
+| **Core Modules** | Weeks 3-6 | Teachers, Students, Groups | frontend-developer, backend-architect |
+| **Advanced** | Weeks 7-8 | Notifications, Search, Performance | performance-analyzer, database-optimizer |
+| **Polish** | Weeks 9-10 | Testing, Deployment | test-automator, deployment-strategist |
+
+## ✅ Best Practices
+
+### DO
+- ✅ Always use context file (`/docs/tasks/context.md`)
+- ✅ Let subagents research, main agent implements
+- ✅ Document all research in `/docs/tasks/`
+- ✅ Use appropriate MCP servers for each task
+- ✅ Update context after each work session
+
+### DON'T
+- ❌ Let subagents implement code
+- ❌ Skip reading context file
+- ❌ Lose research between sessions
+- ❌ Ignore previous decisions
+- ❌ Forget to update context
+
+## 🎯 Success Metrics
+
+- **Code Coverage**: ≥90%
+- **Performance**: LCP <2.5s, FID <100ms
+- **Bundle Size**: <500KB initial
+- **API Response**: <200ms
+- **Mobile FPS**: 60 FPS
+- **Security**: OWASP compliant
+
+## 📚 Core Features
+
+### Admin Panel
+- Teachers Management (CRUD + specializations)
+- Students Management (enrollment, ranking)
+- Groups Management (scheduling, capacity)
+- Settings (users, configuration, archives)
+
+### Teacher App
+- Dashboard & Quick Actions
+- Attendance Marking (offline-capable)
+- Student Performance Tracking
+- AI-powered Homework Generation
+
+### Student App
+- Interactive Lessons (quiz, speaking, writing)
+- Vocabulary System (flashcards, translator)
+- Ranking & Achievements
+- Rewards Catalog
+
+## 🔐 Key Configurations
+
+### Database
+- Multi-tenant with organization isolation
+- Soft delete pattern (deleted_at, deleted_by)
+- Comprehensive audit trails
+- RLS policies on all tables
+
+### Authentication
+- Admin-only access (no self-registration)
+- Role hierarchy (superadmin, admin)
+- Supabase Auth with JWT
+- Session management
+
+### Internationalization
+- English (default)
+- Russian
+- Uzbek (Latin)
+
+## 📝 Notes
+
+- **Primary Color**: #1d7452
+- **Target Users**: Harry School administrators and teachers
+- **Location**: Tashkent, Uzbekistan
+- **Scale**: 500+ students, 25+ groups, 50+ teachers

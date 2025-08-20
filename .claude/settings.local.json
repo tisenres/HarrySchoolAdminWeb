@@ -117,5 +117,6 @@
       "Bash(git push origin main --force)",
       "Bash(git reset --hard)"
     ]
-  }
+  },
+  "outputStyle": "default"
 }
