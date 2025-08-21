@@ -1,9 +1,7 @@
 /**
  * Navigation Index for Harry School Student App
  * 
- * Central export point for all navigation components and types.
- * This file provides a clean interface for importing navigation elements
- * throughout the application.
+ * Simplified export file for initial development
  */
 
 // =====================================================
@@ -11,91 +9,14 @@
 // =====================================================
 
 export { RootNavigator } from './RootNavigator';
-export { AuthNavigator, AuthNavigatorWithErrorBoundary } from './AuthNavigator';
 export { MainTabNavigator } from './MainTabNavigator';
 
 // =====================================================
-// STACK NAVIGATORS
+// NAVIGATION SERVICES (Available)
 // =====================================================
 
-export { HomeStackNavigator } from './HomeStackNavigator';
-export { LessonsStackNavigator } from './LessonsStackNavigator';
-export { ScheduleStackNavigator } from './ScheduleStackNavigator';
-export { VocabularyStackNavigator } from './VocabularyStackNavigator';
-export { ProfileStackNavigator } from './ProfileStackNavigator';
-
-// =====================================================
-// NAVIGATION TYPES
-// =====================================================
-
-export type {
-  // Root navigation types
-  RootStackParamList,
-  RootStackScreenProps,
-  
-  // Auth navigation types
-  AuthStackParamList,
-  AuthStackScreenProps,
-  
-  // Main tab navigation types
-  MainTabParamList,
-  MainTabScreenProps,
-  
-  // Stack navigation types
-  HomeStackParamList,
-  HomeStackScreenProps,
-  LessonsStackParamList,
-  LessonsStackScreenProps,
-  ScheduleStackParamList,
-  ScheduleStackScreenProps,
-  VocabularyStackParamList,
-  VocabularyStackScreenProps,
-  ProfileStackParamList,
-  ProfileStackScreenProps,
-  
-  // Utility types
-  NavigationAnalytics,
-  DeepLinkParams,
-  NavigationState,
-  AccessibilityNavigationProps,
-  OfflineNavigationState,
-  SupportedLanguage,
-  NavigationStrings,
-  NavigationGuard,
-  ProgressData,
-  
-  // Re-exported React Navigation types
-  NativeStackScreenProps,
-  BottomTabScreenProps,
-  CompositeScreenProps,
-  NavigatorScreenParams,
-} from './types';
-
-// =====================================================
-// NAVIGATION UTILITIES AND HOOKS
-// =====================================================
-
-// These will be implemented in separate files
-export { useNavigationAnalytics } from '../hooks/useNavigationAnalytics';
-export { useProgressPreservation } from '../hooks/useProgressPreservation';
-export { useDeepLinking } from '../hooks/useDeepLinking';
-export { useOfflineNavigation } from '../hooks/useOfflineNavigation';
-export { useTabAccessibility } from '../hooks/useTabAccessibility';
-export { useNotificationBadges } from '../hooks/useNotificationBadges';
-
-// =====================================================
-// NAVIGATION SERVICES
-// =====================================================
-
-export { navigationAnalytics } from '../services/navigation-analytics';
-export { progressPreservation } from '../services/progress-preservation';
-export { tabAnalytics } from '../services/tab-analytics';
-export { authAnalytics } from '../services/auth-analytics';
-export { homeAnalytics } from '../services/home-analytics';
-export { lessonsAnalytics } from '../services/lessons-analytics';
-export { scheduleAnalytics } from '../services/schedule-analytics';
-export { vocabularyAnalytics } from '../services/vocabulary-analytics';
-export { profileAnalytics } from '../services/profile-analytics';
+export { deepLinkingService } from '../services/deepLinking.service';
+export { navigationService } from './NavigationService';
 
 // =====================================================
 // NAVIGATION CONSTANTS
@@ -328,7 +249,6 @@ export const SCREEN_NAMES = {
 // =====================================================
 
 export default {
-  RootNavigator,
   NAVIGATION_CONSTANTS,
   NAVIGATION_GUARDS,
   SCREEN_NAMES,

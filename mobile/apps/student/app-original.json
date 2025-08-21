@@ -1,0 +1,38 @@
+{
+  "expo": {
+    "name": "Harry School Student",
+    "slug": "harry-school-student",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": false,
+    "jsEngine": "hermes",
+    "primaryColor": "#1d7452",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#1d7452"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.harryschool.student"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#1d7452"
+      },
+      "edgeToEdgeEnabled": true,
+      "package": "com.harryschool.student"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "harry-school-student"
+      }
+    }
+  }
+}

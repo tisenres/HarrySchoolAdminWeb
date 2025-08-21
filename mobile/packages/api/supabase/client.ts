@@ -5,6 +5,10 @@ import type { Database } from '../types/database';
 import { OfflineQueue } from './offline-queue';
 import { ErrorHandler } from './error-handler';
 import { SecurityManager } from './security';
+import { PerformanceManager } from './performance';
+import CacheManager from './cache';
+import RealtimeService from './services/realtime.service';
+import StorageService from './services/storage.service';
 import type { 
   SupabaseConfig, 
   SupabaseResponse, 
@@ -22,6 +26,10 @@ class MobileSupabaseClient {
   private offlineQueue: OfflineQueue;
   private errorHandler: ErrorHandler;
   private securityManager: SecurityManager;
+  private performanceManager: PerformanceManager;
+  private cacheManager: CacheManager;
+  private realtimeService: RealtimeService | null = null;
+  private storageService: StorageService | null = null;
   private connectionStatus: ConnectionStatus = 'connecting';
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
@@ -35,6 +43,8 @@ class MobileSupabaseClient {
     this.offlineQueue = new OfflineQueue();
     this.errorHandler = new ErrorHandler();
     this.securityManager = new SecurityManager();
+    this.performanceManager = new PerformanceManager();
+    this.cacheManager = new CacheManager();
     this.initializeClient();
     this.setupAppStateHandling();
     this.setupHealthCheck();
@@ -87,6 +97,11 @@ class MobileSupabaseClient {
 
       // Test connection
       await this.testConnection();
+      
+      // Initialize services after client is ready
+      this.realtimeService = new RealtimeService(this);
+      this.storageService = new StorageService(this);
+      
       this.updateConnectionStatus('connected');
       this.resetReconnectAttempts();
 
@@ -252,6 +267,34 @@ class MobileSupabaseClient {
     return () => this.listeners.delete(callback);
   }
 
+  public getErrorHandler(): ErrorHandler {
+    return this.errorHandler;
+  }
+
+  public getSecurityManager(): SecurityManager {
+    return this.securityManager;
+  }
+
+  public getPerformanceManager(): PerformanceManager {
+    return this.performanceManager;
+  }
+
+  public getCacheManager(): CacheManager {
+    return this.cacheManager;
+  }
+
+  public getRealtimeService(): RealtimeService | null {
+    return this.realtimeService;
+  }
+
+  public getStorageService(): StorageService | null {
+    return this.storageService;
+  }
+
+  public getOfflineQueue(): OfflineQueue {
+    return this.offlineQueue;
+  }
+
   public async query<T>(
     queryFn: (client: SupabaseClient<Database>) => Promise<SupabaseResponse<T>>,
     retryOptions?: RetryOptions
@@ -367,6 +410,12 @@ class MobileSupabaseClient {
     this.clearSessionRefresh();
     this.listeners.clear();
     this.offlineQueue.cleanup();
+    this.performanceManager?.cleanup();
+    this.cacheManager?.cleanup();
+    this.realtimeService?.cleanup();
+    this.storageService?.cleanup();
+    this.securityManager?.cleanup();
+    this.client = null;
   }
 }
 

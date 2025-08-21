@@ -1,379 +1,340 @@
 /**
  * Navigation Types for Harry School Student App
  * 
- * Defines TypeScript types for all navigation stacks and screens
- * Based on UX research for educational mobile apps (ages 10-18)
+ * Type-safe navigation parameter definitions based on UX research findings
+ * Supports age-appropriate navigation patterns and educational workflows
  */
 
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
-import type { CompositeScreenProps, NavigatorScreenParams } from '@react-navigation/native';
+import { NavigationProp, RouteProp } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 
-// =====================================================
-// ROOT NAVIGATION TYPES
-// =====================================================
+// Age group for UI adaptations
+export type StudentAgeGroup = '10-12' | '13-15' | '16-18';
+
+// User data interfaces
+export interface StudentProfile {
+  id: string;
+  name: string;
+  ageGroup: StudentAgeGroup;
+  grade: string;
+  preferences: {
+    language: 'en' | 'ru' | 'uz';
+    theme: 'light' | 'dark' | 'auto';
+    accessibility: {
+      largeText: boolean;
+      highContrast: boolean;
+      reducedMotion: boolean;
+    };
+  };
+}
+
+// ============================================================================
+// ROOT NAVIGATION
+// ============================================================================
 
 export type RootStackParamList = {
-  Auth: NavigatorScreenParams<AuthStackParamList> | undefined;
-  Main: NavigatorScreenParams<MainTabParamList> | undefined;
-  // Modal screens that overlay the main navigation
-  StudentProfile: { studentId: string };
-  TeacherProfile: { teacherId: string };
-  LessonDetails: { lessonId: string };
-  AssignmentDetails: { assignmentId: string };
-  VocabularyTest: { wordIds: string[] };
-  RewardsShop: undefined;
-  Notifications: undefined;
-  Settings: undefined;
-  HelpSupport: undefined;
-  LanguageSelector: undefined;
-  BiometricSetup: undefined;
-  PinSetup: undefined;
+  // Authentication Flow
+  Onboarding: undefined;
+  Login: {
+    initialRole?: 'student';
+    returnTo?: keyof MainTabParamList;
+  };
+  
+  // Main Application
+  MainTabs: {
+    initialTab?: keyof MainTabParamList;
+    student?: StudentProfile;
+  };
+  
+  // Global Modals
+  Settings: {
+    section?: 'general' | 'privacy' | 'notifications' | 'about';
+  };
+  FullscreenActivity: {
+    activityId: string;
+    lessonId: string;
+    type: 'quiz' | 'video' | 'interactive' | 'assessment';
+  };
+  OfflineSync: undefined;
+  ParentalConsent: {
+    studentId: string;
+    feature: string;
+  };
 };
 
-export type RootStackScreenProps<Screen extends keyof RootStackParamList> =
-  NativeStackScreenProps<RootStackParamList, Screen>;
+export type RootNavigationProp = StackNavigationProp<RootStackParamList>;
 
-// =====================================================
-// AUTH NAVIGATION TYPES
-// =====================================================
-
-export type AuthStackParamList = {
-  Welcome: undefined;
-  SignIn: undefined;
-  ForgotPassword: undefined;
-  BiometricLogin: undefined;
-  PinLogin: undefined;
-  OnboardingStart: undefined;
-  OnboardingPersonalization: undefined;
-  OnboardingGoals: undefined;
-  OnboardingComplete: undefined;
-};
-
-export type AuthStackScreenProps<Screen extends keyof AuthStackParamList> =
-  NativeStackScreenProps<AuthStackParamList, Screen>;
-
-// =====================================================
-// MAIN TAB NAVIGATION TYPES (5-Tab Bottom Navigation)
-// =====================================================
+// ============================================================================
+// MAIN TAB NAVIGATION
+// ============================================================================
 
 export type MainTabParamList = {
-  HomeTab: NavigatorScreenParams<HomeStackParamList> | undefined;
-  LessonsTab: NavigatorScreenParams<LessonsStackParamList> | undefined;
-  ScheduleTab: NavigatorScreenParams<ScheduleStackParamList> | undefined;
-  VocabularyTab: NavigatorScreenParams<VocabularyStackParamList> | undefined;
-  ProfileTab: NavigatorScreenParams<ProfileStackParamList> | undefined;
+  Home: undefined;
+  Lessons: {
+    courseId?: string;
+    resumeLesson?: string;
+  };
+  Schedule: {
+    date?: string;
+    viewType?: 'day' | 'week' | 'month';
+  };
+  Vocabulary: {
+    practiceMode?: 'flashcards' | 'games' | 'translator';
+    wordListId?: string;
+  };
+  Profile: {
+    section?: 'achievements' | 'progress' | 'settings';
+  };
 };
 
-export type MainTabScreenProps<Screen extends keyof MainTabParamList> =
-  BottomTabScreenProps<MainTabParamList, Screen>;
+export type MainTabNavigationProp = BottomTabNavigationProp<MainTabParamList>;
 
-// =====================================================
-// HOME STACK NAVIGATION TYPES (40% usage priority)
-// =====================================================
+// ============================================================================
+// HOME STACK NAVIGATION
+// ============================================================================
 
 export type HomeStackParamList = {
-  HomeDashboard: undefined;
-  RankingLeaderboard: { period?: 'daily' | 'weekly' | 'monthly' | 'all-time' };
-  AchievementDetails: { achievementId: string };
-  DailyGoals: undefined;
-  QuickActions: undefined;
-  AnnouncementDetails: { announcementId: string };
-  UpcomingClasses: undefined;
-  RecentActivity: undefined;
-  StudyStreak: undefined;
-  FriendActivity: { friendId?: string };
+  Dashboard: undefined;
+  QuickActions: {
+    action?: 'homework' | 'practice' | 'games' | 'progress';
+  };
+  ProgressOverview: {
+    subject?: string;
+    timeframe?: 'week' | 'month' | 'semester';
+  };
+  Achievements: {
+    category?: 'academic' | 'engagement' | 'streaks' | 'social';
+  };
+  Notifications: undefined;
+  News: {
+    category?: 'school' | 'class' | 'general';
+  };
+  WeeklyReport: {
+    weekId: string;
+  };
 };
 
-export type HomeStackScreenProps<Screen extends keyof HomeStackParamList> =
-  CompositeScreenProps<
-    NativeStackScreenProps<HomeStackParamList, Screen>,
-    MainTabScreenProps<'HomeTab'>
-  >;
+export type HomeNavigationProp = StackNavigationProp<HomeStackParamList>;
 
-// =====================================================
-// LESSONS STACK NAVIGATION TYPES (35% usage priority)
-// =====================================================
+// ============================================================================
+// LESSONS STACK NAVIGATION
+// ============================================================================
 
 export type LessonsStackParamList = {
-  LessonsOverview: undefined;
-  ActiveLessons: undefined;
-  CompletedLessons: undefined;
-  LessonContent: { 
-    lessonId: string; 
-    moduleId: string;
-    startTime?: number; // For resuming lessons
+  CourseList: {
+    filter?: 'active' | 'completed' | 'upcoming';
+    searchQuery?: string;
   };
-  InteractiveLearning: {
+  CourseDetail: {
+    courseId: string;
+    resumeFromLesson?: string;
+  };
+  LessonDetail: {
     lessonId: string;
-    activityType: 'text' | 'quiz' | 'speaking' | 'listening' | 'writing';
+    courseId: string;
+    previousLessonId?: string;
+    nextLessonId?: string;
+  };
+  InteractiveActivity: {
     activityId: string;
+    lessonId: string;
+    type: 'quiz' | 'video' | 'reading' | 'practice' | 'assessment';
   };
-  LessonProgress: { lessonId: string };
-  HomeworkTasks: undefined;
-  AIGeneratedTasks: { subject?: string; difficulty?: 'easy' | 'medium' | 'hard' };
-  TaskSubmission: { 
-    taskId: string; 
-    taskType: 'homework' | 'ai-generated' | 'extra';
+  QuizResults: {
+    quizId: string;
+    score: number;
+    totalQuestions: number;
+    reviewMode?: boolean;
   };
-  LessonFeedback: { lessonId: string; rating?: number };
-  ExtraLearning: undefined;
-  RequestAdditionalLesson: { subject?: string };
+  LessonProgress: {
+    courseId: string;
+    currentLessonId: string;
+  };
+  DownloadedContent: {
+    courseId?: string;
+  };
+  StudyPlanner: {
+    courseId?: string;
+    dueDate?: string;
+  };
 };
 
-export type LessonsStackScreenProps<Screen extends keyof LessonsStackParamList> =
-  CompositeScreenProps<
-    NativeStackScreenProps<LessonsStackParamList, Screen>,
-    MainTabScreenProps<'LessonsTab'>
-  >;
+export type LessonsNavigationProp = StackNavigationProp<LessonsStackParamList>;
 
-// =====================================================
-// SCHEDULE STACK NAVIGATION TYPES (15% usage priority)
-// =====================================================
+// ============================================================================
+// SCHEDULE STACK NAVIGATION
+// ============================================================================
 
 export type ScheduleStackParamList = {
-  ScheduleOverview: undefined;
-  DailySchedule: { date?: string }; // ISO date string
-  WeeklySchedule: { week?: string }; // ISO week string
-  MonthlySchedule: { month?: string }; // ISO month string
-  ClassDetails: { classId: string; date: string };
-  AttendanceHistory: undefined;
-  UpcomingAssignments: undefined;
-  AssignmentCalendar: undefined;
-  ExamSchedule: undefined;
-  StudyPlanner: undefined;
-  TimeBlocker: { date: string };
-  ScheduleSettings: undefined;
+  Calendar: {
+    initialDate?: string;
+    viewType?: 'day' | 'week' | 'month';
+  };
+  ClassDetail: {
+    classId: string;
+    date: string;
+  };
+  Assignment: {
+    assignmentId: string;
+    courseId: string;
+    dueDate: string;
+  };
+  Homework: {
+    homeworkId: string;
+    subjectId: string;
+    completed?: boolean;
+  };
+  ExamPrep: {
+    examId: string;
+    subject: string;
+    examDate: string;
+  };
+  AttendanceHistory: {
+    subjectId?: string;
+    month?: string;
+  };
+  Timetable: {
+    weekId?: string;
+    dayOfWeek?: number;
+  };
 };
 
-export type ScheduleStackScreenProps<Screen extends keyof ScheduleStackParamList> =
-  CompositeScreenProps<
-    NativeStackScreenProps<ScheduleStackParamList, Screen>,
-    MainTabScreenProps<'ScheduleTab'>
-  >;
+export type ScheduleNavigationProp = StackNavigationProp<ScheduleStackParamList>;
 
-// =====================================================
-// VOCABULARY STACK NAVIGATION TYPES (8% usage priority)
-// =====================================================
+// ============================================================================
+// VOCABULARY STACK NAVIGATION
+// ============================================================================
 
 export type VocabularyStackParamList = {
-  VocabularyDashboard: undefined;
-  FlashcardSession: {
-    setId?: string;
-    wordIds?: string[];
-    sessionType: 'review' | 'learn' | 'test';
+  WordLists: {
+    category?: 'recent' | 'favorites' | 'difficult' | 'mastered';
+    searchQuery?: string;
   };
-  VocabularyTranslator: undefined;
-  PersonalDictionary: undefined;
-  WordDetails: { wordId: string };
-  VocabularyStats: undefined;
-  LearningCategories: undefined;
-  CategoryWords: { categoryId: string; categoryName: string };
-  VocabularyGames: undefined;
-  WordOfTheDay: undefined;
-  SpellingPractice: { wordIds: string[] };
-  PronunciationPractice: { wordIds: string[] };
-  VocabularyQuiz: { 
-    quizType: 'multiple-choice' | 'spelling' | 'pronunciation' | 'translation';
-    wordIds: string[];
+  Flashcards: {
+    wordListId: string;
+    practiceMode: 'new' | 'review' | 'difficult';
+    sessionLength?: number;
+  };
+  Translator: {
+    sourceLanguage?: 'en' | 'ru' | 'uz';
+    targetLanguage?: 'en' | 'ru' | 'uz';
+    initialText?: string;
+  };
+  VocabularyGames: {
+    gameType: 'matching' | 'spelling' | 'pronunciation' | 'context';
+    wordListId?: string;
+    difficulty?: 'easy' | 'medium' | 'hard';
+  };
+  WordDetail: {
+    wordId: string;
+    wordListId?: string;
+    showExamples?: boolean;
+  };
+  PracticeSession: {
+    sessionId: string;
+    wordListId: string;
+    duration?: number;
+  };
+  VocabularyProgress: {
+    timeframe?: 'week' | 'month' | 'all';
+    subject?: string;
+  };
+  PronunciationPractice: {
+    wordId: string;
+    attempts?: number;
   };
 };
 
-export type VocabularyStackScreenProps<Screen extends keyof VocabularyStackParamList> =
-  CompositeScreenProps<
-    NativeStackScreenProps<VocabularyStackParamList, Screen>,
-    MainTabScreenProps<'VocabularyTab'>
-  >;
+export type VocabularyNavigationProp = StackNavigationProp<VocabularyStackParamList>;
 
-// =====================================================
-// PROFILE STACK NAVIGATION TYPES (2% usage priority)
-// =====================================================
+// ============================================================================
+// PROFILE STACK NAVIGATION
+// ============================================================================
 
 export type ProfileStackParamList = {
   ProfileOverview: undefined;
-  EditProfile: undefined;
-  ProgressTracking: undefined;
-  AchievementGallery: undefined;
-  BadgeCollection: undefined;
-  LearningStats: undefined;
-  ReferralProgram: undefined;
-  InviteFriends: undefined;
-  RedeemRewards: undefined;
-  RewardHistory: undefined;
-  PointsHistory: undefined;
-  CoinBalance: undefined;
-  FeedbackHistory: undefined;
-  TeacherRatings: undefined;
-  CourseRatings: undefined;
-  AccountSettings: undefined;
-  PrivacySettings: undefined;
-  ParentalControls: undefined;
-  DataExport: undefined;
-  DeleteAccount: undefined;
+  EditProfile: {
+    section?: 'basic' | 'preferences' | 'privacy';
+  };
+  AchievementDetail: {
+    achievementId: string;
+    category: 'academic' | 'engagement' | 'streaks' | 'social';
+  };
+  ProgressReports: {
+    reportType?: 'academic' | 'engagement' | 'overall';
+    timeframe?: 'week' | 'month' | 'semester';
+  };
+  Settings: {
+    category?: 'app' | 'privacy' | 'notifications' | 'parental';
+  };
+  ParentalControls: {
+    feature?: 'screen_time' | 'content_filter' | 'social_features';
+  };
+  DataExport: {
+    dataType?: 'progress' | 'achievements' | 'all';
+  };
+  Support: {
+    issueType?: 'technical' | 'academic' | 'account' | 'feedback';
+  };
+  About: undefined;
+  PrivacyPolicy: undefined;
+  TermsOfService: undefined;
 };
 
-export type ProfileStackScreenProps<Screen extends keyof ProfileStackParamList> =
-  CompositeScreenProps<
-    NativeStackScreenProps<ProfileStackParamList, Screen>,
-    MainTabScreenProps<'ProfileTab'>
-  >;
+export type ProfileNavigationProp = StackNavigationProp<ProfileStackParamList>;
 
-// =====================================================
-// NAVIGATION ANALYTICS TYPES
-// =====================================================
+// ============================================================================
+// COMBINED NAVIGATION TYPES
+// ============================================================================
 
-export interface NavigationAnalytics {
-  screenName: string;
-  timeSpent: number;
-  tapCount: number;
-  scrollDepth: number;
-  exitMethod: 'back' | 'tab' | 'gesture' | 'deep-link';
-  timestamp: number;
-  userRole: 'student';
-  organizationId: string;
-}
+export type AppNavigationProp = 
+  | RootNavigationProp
+  | MainTabNavigationProp
+  | HomeNavigationProp
+  | LessonsNavigationProp
+  | ScheduleNavigationProp
+  | VocabularyNavigationProp
+  | ProfileNavigationProp;
 
-// =====================================================
-// DEEP LINKING TYPES
-// =====================================================
+// Route props for screen components
+export type HomeRouteProps<T extends keyof HomeStackParamList> = RouteProp<HomeStackParamList, T>;
+export type LessonsRouteProps<T extends keyof LessonsStackParamList> = RouteProp<LessonsStackParamList, T>;
+export type ScheduleRouteProps<T extends keyof ScheduleStackParamList> = RouteProp<ScheduleStackParamList, T>;
+export type VocabularyRouteProps<T extends keyof VocabularyStackParamList> = RouteProp<VocabularyStackParamList, T>;
+export type ProfileRouteProps<T extends keyof ProfileStackParamList> = RouteProp<ProfileStackParamList, T>;
 
-export type DeepLinkParams = {
-  // Lesson deep links
-  'lesson': { lessonId: string; moduleId?: string };
-  'homework': { taskId: string };
-  'quiz': { quizId: string };
-  
-  // Social deep links
-  'referral': { referrerCode: string };
-  'friend-profile': { friendId: string };
-  
-  // Achievement deep links
-  'achievement': { achievementId: string };
-  'badge': { badgeId: string };
-  
-  // Schedule deep links
-  'class': { classId: string; date: string };
-  'assignment': { assignmentId: string };
-  
-  // Vocabulary deep links
-  'vocabulary-set': { setId: string };
-  'word': { wordId: string };
-  
-  // Notification deep links
-  'notification': { notificationId: string };
-};
-
-// =====================================================
-// NAVIGATION STATE TYPES
-// =====================================================
-
+// Navigation state for offline support
 export interface NavigationState {
-  isOnline: boolean;
-  currentRoute: string;
-  tabHistory: string[];
-  lastActiveTab: keyof MainTabParamList;
-  interruptionContext?: {
-    screenName: string;
-    params: Record<string, any>;
+  routeName: string;
+  params?: any;
+  timestamp: number;
+  offline?: boolean;
+}
+
+// Deep linking types
+export interface DeepLinkConfig {
+  screens: {
+    [key: string]: string | { path: string; params?: any };
+  };
+}
+
+// Analytics event types for navigation tracking
+export interface NavigationAnalytics {
+  screen_view: {
+    screen_name: string;
+    screen_class: string;
+    student_age_group: StudentAgeGroup;
     timestamp: number;
-    autoSaveData?: Record<string, any>;
+  };
+  navigation_action: {
+    action: 'navigate' | 'go_back' | 'reset' | 'replace';
+    from_screen: string;
+    to_screen: string;
+    params?: any;
   };
 }
 
-// =====================================================
-// ACCESSIBILITY NAVIGATION TYPES
-// =====================================================
-
-export interface AccessibilityNavigationProps {
-  accessibilityLabel: string;
-  accessibilityHint?: string;
-  accessibilityRole: 'button' | 'tab' | 'link' | 'menuitem';
-  accessibilityState?: {
-    selected?: boolean;
-    disabled?: boolean;
-  };
-  testID?: string;
-}
-
-// =====================================================
-// OFFLINE NAVIGATION TYPES
-// =====================================================
-
-export interface OfflineNavigationState {
-  availableOfflineScreens: string[];
-  cachedScreenData: Record<string, any>;
-  pendingNavigationActions: Array<{
-    action: 'navigate' | 'goBack' | 'reset';
-    params: any;
-    timestamp: number;
-  }>;
-}
-
-// =====================================================
-// MULTILINGUAL NAVIGATION TYPES
-// =====================================================
-
-export type SupportedLanguage = 'en' | 'ru' | 'uz';
-
-export interface NavigationStrings {
-  tabs: {
-    home: string;
-    lessons: string;
-    schedule: string;
-    vocabulary: string;
-    profile: string;
-  };
-  headers: Record<string, string>;
-  buttons: Record<string, string>;
-  accessibility: Record<string, string>;
-}
-
-// =====================================================
-// NAVIGATION GUARDS TYPES
-// =====================================================
-
-export interface NavigationGuard {
-  screenName: string;
-  condition: () => boolean | Promise<boolean>;
-  redirectTo?: string;
-  redirectParams?: Record<string, any>;
-  onBlock?: () => void;
-}
-
-// =====================================================
-// PROGRESS PRESERVATION TYPES
-// =====================================================
-
-export interface ProgressData {
-  screenName: string;
-  formData?: Record<string, any>;
-  scrollPosition?: number;
-  inputValues?: Record<string, any>;
-  mediaPlaybackPosition?: number;
-  quizProgress?: {
-    currentQuestion: number;
-    answers: Record<number, any>;
-    timeSpent: number;
-  };
-  lessonProgress?: {
-    currentStep: number;
-    completedSteps: number[];
-    timeSpent: number;
-  };
-}
-
-// =====================================================
-// EXPORT ALL NAVIGATION PROP TYPES
-// =====================================================
-
-export type {
-  NativeStackScreenProps,
-  BottomTabScreenProps,
-  CompositeScreenProps,
-  NavigatorScreenParams,
-} from '@react-navigation/native';
-
-// Declare global type for React Navigation
 declare global {
   namespace ReactNavigation {
     interface RootParamList extends RootStackParamList {}

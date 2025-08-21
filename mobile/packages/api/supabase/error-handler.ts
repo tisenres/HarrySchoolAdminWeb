@@ -1,5 +1,6 @@
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import NetInfo from '@react-native-netinfo/netinfo';
 
 interface ErrorLog {
   id: string;
@@ -12,6 +13,18 @@ interface ErrorLog {
   platform: string;
   retryCount?: number;
   resolved?: boolean;
+  networkState?: {
+    type: string;
+    isConnected: boolean;
+    isInternetReachable: boolean;
+  };
+  educationalContext?: {
+    userId?: string;
+    userType?: 'student' | 'teacher' | 'admin';
+    organizationId?: string;
+    currentScreen?: string;
+    workflow?: string;
+  };
 }
 
 interface UserFriendlyError {
@@ -39,6 +52,13 @@ export class ErrorHandler {
     // Authentication errors  
     AUTH_ERROR: /auth|unauthorized|forbidden|token|session/i,
     EXPIRED_TOKEN: /expired|invalid.*token|jwt/i,
+    BIOMETRIC_ERROR: /biometric|face.*id|touch.*id|fingerprint/i,
+    
+    // Educational context errors
+    EDUCATIONAL_DATA_ERROR: /student|teacher|group|attendance|task/i,
+    RANKING_ERROR: /ranking|points|level|achievement/i,
+    VOCABULARY_ERROR: /vocabulary|word|translation/i,
+    HOMEWORK_ERROR: /homework|assignment|task.*completion/i,
     
     // Database errors
     RLS_ERROR: /row.*level.*security|rls|policy/i,
@@ -53,8 +73,12 @@ export class ErrorHandler {
     MAINTENANCE: /maintenance|temporarily.*unavailable/i,
   };
 
+  private networkState: any = null;
+  private educationalContext: ErrorLog['educationalContext'] = {};
+
   constructor() {
     this.cleanupOldLogs();
+    this.initializeNetworkMonitoring();
   }
 
   /**
@@ -72,12 +96,19 @@ export class ErrorHandler {
       platform: Platform.OS,
       retryCount: 0,
       resolved: false,
+      networkState: await this.getNetworkState(),
+      educationalContext: { ...this.educationalContext },
     };
 
     await this.storeErrorLog(errorLog);
     
     // Send to analytics/crash reporting if available
     this.reportToAnalytics(errorLog);
+    
+    // Auto-resolve certain error types
+    if (this.shouldAutoResolve(errorLog)) {
+      await this.markErrorResolved(errorLog.id);
+    }
     
     return errorLog.id;
   }
@@ -128,8 +159,43 @@ export class ErrorHandler {
     if (this.matchesPattern(errorMessage, 'RLS_ERROR') || errorCode === 403) {
       return {
         title: 'Access Denied',
-        message: 'You don\'t have permission to perform this action.',
+        message: this.getContextualAccessMessage(),
         severity: 'medium',
+      };
+    }
+    
+    if (this.matchesPattern(errorMessage, 'BIOMETRIC_ERROR')) {
+      return {
+        title: 'Biometric Authentication Failed',
+        message: 'Please try using your passcode or password instead.',
+        action: { label: 'Use Password', type: 'retry' },
+        severity: 'medium',
+      };
+    }
+    
+    if (this.matchesPattern(errorMessage, 'EDUCATIONAL_DATA_ERROR')) {
+      return {
+        title: 'Educational Data Error',
+        message: 'There was a problem loading your educational data. Please try again.',
+        action: { label: 'Retry', type: 'retry' },
+        severity: 'medium',
+      };
+    }
+    
+    if (this.matchesPattern(errorMessage, 'VOCABULARY_ERROR')) {
+      return {
+        title: 'Vocabulary Loading Error',
+        message: 'Unable to load vocabulary data. You can continue practicing with cached words.',
+        action: { label: 'Continue Offline', type: 'retry' },
+        severity: 'low',
+      };
+    }
+    
+    if (this.matchesPattern(errorMessage, 'HOMEWORK_ERROR')) {
+      return {
+        title: 'Homework Submission Issue',
+        message: 'Your homework will be saved and submitted when connection is restored.',
+        severity: 'low',
       };
     }
     
@@ -353,6 +419,95 @@ export class ErrorHandler {
     }
   }
 
+  /**
+   * Set educational context for error reporting
+   */
+  setEducationalContext(context: Partial<ErrorLog['educationalContext']>): void {
+    this.educationalContext = { ...this.educationalContext, ...context };
+  }
+
+  /**
+   * Clear educational context
+   */
+  clearEducationalContext(): void {
+    this.educationalContext = {};
+  }
+
+  /**
+   * Get contextual access denied message based on user type
+   */
+  private getContextualAccessMessage(): string {
+    const userType = this.educationalContext.userType;
+    
+    switch (userType) {
+      case 'student':
+        return 'This feature is only available to teachers and administrators.';
+      case 'teacher':
+        return 'This action requires administrator privileges.';
+      case 'admin':
+        return 'You don\'t have sufficient permissions for this action.';
+      default:
+        return 'You don\'t have permission to perform this action.';
+    }
+  }
+
+  /**
+   * Check if error should be auto-resolved
+   */
+  private shouldAutoResolve(errorLog: ErrorLog): boolean {
+    // Auto-resolve temporary network errors
+    if (this.matchesPattern(errorLog.message, 'NETWORK_ERROR') && errorLog.networkState?.isConnected) {
+      return true;
+    }
+    
+    // Auto-resolve cache-related errors
+    if (errorLog.type.includes('CACHE') && errorLog.context?.fallbackUsed) {
+      return true;
+    }
+    
+    // Auto-resolve non-critical educational errors
+    if (this.matchesPattern(errorLog.message, 'VOCABULARY_ERROR') && errorLog.context?.offlineMode) {
+      return true;
+    }
+    
+    return false;
+  }
+
+  /**
+   * Initialize network state monitoring
+   */
+  private async initializeNetworkMonitoring(): Promise<void> {
+    try {
+      this.networkState = await NetInfo.fetch();
+      
+      NetInfo.addEventListener(state => {
+        this.networkState = state;
+      });
+    } catch (error) {
+      // Network monitoring failed, continue without it
+      console.warn('Network monitoring initialization failed:', error);
+    }
+  }
+
+  /**
+   * Get current network state
+   */
+  private async getNetworkState(): Promise<ErrorLog['networkState']> {
+    if (this.networkState) {
+      return {
+        type: this.networkState.type,
+        isConnected: this.networkState.isConnected,
+        isInternetReachable: this.networkState.isInternetReachable,
+      };
+    }
+    
+    return {
+      type: 'unknown',
+      isConnected: false,
+      isInternetReachable: false,
+    };
+  }
+
   private reportToAnalytics(errorLog: ErrorLog): void {
     // In a real app, you'd integrate with your analytics service
     // For now, we'll just log to console in development
@@ -362,12 +517,14 @@ export class ErrorHandler {
         message: errorLog.message,
         platform: errorLog.platform,
         timestamp: new Date(errorLog.timestamp).toISOString(),
+        educationalContext: errorLog.educationalContext,
+        networkState: errorLog.networkState,
       });
     }
     
     // Example integrations:
     // - Firebase Crashlytics
-    // - Sentry
+    // - Sentry  
     // - Bugsnag
     // - Custom analytics endpoint
   }
