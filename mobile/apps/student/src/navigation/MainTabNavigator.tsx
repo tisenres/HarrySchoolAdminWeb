@@ -1,133 +1,153 @@
-/**
- * MainTabNavigator for Harry School Student App
- * 
- * Simplified version for initial development
- */
-
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Ionicons } from '@expo/vector-icons';
+import { View, Text, StyleSheet } from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 
 // Import screens
-import { DashboardScreen } from '../screens/DashboardScreen';
-// import { DeepLinkTester } from '../components/DeepLinkTester';
+import DashboardScreen from '../screens/DashboardScreen';
+import LessonsScreen from '../screens/LessonsScreen';
+import ScheduleScreen from '../screens/ScheduleScreen';
+import VocabularyScreen from '../screens/VocabularyScreen';
+import ProfileScreen from '../screens/ProfileScreen';
 
-type MainTabParamList = {
-  Home: undefined;
-  Lessons: undefined;
-  Schedule: undefined;
-  Vocabulary: undefined;
-  Profile: undefined;
-};
+import { MainTabParamList } from '../types';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
-// Simple placeholder screen component
-const PlaceholderScreen: React.FC<{ title: string }> = ({ title }) => (
-  <View style={styles.container}>
-    <Text style={styles.title}>Harry School</Text>
-    <Text style={styles.subtitle}>{title}</Text>
-    <Text style={styles.description}>Coming soon...</Text>
+const COLORS = {
+  primary: '#1d7452',
+  secondary: '#2d9e6a',
+  gold: '#f7c52d',
+  background: '#ffffff',
+  text: '#333333',
+  gray: '#8e8e93',
+  lightGray: '#f2f2f7',
+};
+
+interface TabBarIconProps {
+  name: string;
+  color: string;
+  size: number;
+  focused: boolean;
+}
+
+const TabBarIcon: React.FC<TabBarIconProps> = ({ name, color, size, focused }) => (
+  <View style={[styles.iconContainer, focused && styles.iconContainerFocused]}>
+    <Icon name={name} size={size} color={color} />
+    {focused && <View style={styles.focusIndicator} />}
   </View>
 );
 
-export const MainTabNavigator: React.FC = () => {
+export default function MainTabNavigator() {
   return (
     <Tab.Navigator
-      initialRouteName="Home"
       screenOptions={({ route }) => ({
-        headerShown: false,
-        tabBarIcon: ({ focused, color, size }) => {
-          let iconName: keyof typeof Ionicons.glyphMap;
-
+        tabBarIcon: ({ color, size, focused }) => {
+          let iconName = '';
+          
           switch (route.name) {
             case 'Home':
-              iconName = focused ? 'home' : 'home-outline';
+              iconName = 'dashboard';
               break;
             case 'Lessons':
-              iconName = focused ? 'book' : 'book-outline';
+              iconName = 'school';
               break;
             case 'Schedule':
-              iconName = focused ? 'calendar' : 'calendar-outline';
+              iconName = 'schedule';
               break;
             case 'Vocabulary':
-              iconName = focused ? 'library' : 'library-outline';
+              iconName = 'book';
               break;
             case 'Profile':
-              iconName = focused ? 'person' : 'person-outline';
+              iconName = 'person';
               break;
-            default:
-              iconName = 'help-outline';
           }
-
-          return <Ionicons name={iconName} size={size} color={color} />;
+          
+          return <TabBarIcon name={iconName} color={color} size={size} focused={focused} />;
         },
-        tabBarActiveTintColor: '#1d7452',
-        tabBarInactiveTintColor: 'gray',
+        tabBarActiveTintColor: COLORS.primary,
+        tabBarInactiveTintColor: COLORS.gray,
         tabBarStyle: {
+          backgroundColor: COLORS.background,
+          borderTopColor: COLORS.lightGray,
+          borderTopWidth: 1,
+          paddingBottom: 5,
+          paddingTop: 5,
           height: 60,
-          paddingBottom: 8,
-          paddingTop: 8,
+        },
+        tabBarLabelStyle: {
+          fontSize: 12,
+          fontWeight: '600',
+        },
+        headerStyle: {
+          backgroundColor: COLORS.primary,
+          elevation: 0,
+          shadowOpacity: 0,
+        },
+        headerTintColor: COLORS.background,
+        headerTitleStyle: {
+          fontWeight: 'bold',
+          fontSize: 18,
         },
       })}
     >
       <Tab.Screen 
         name="Home" 
         component={DashboardScreen}
-        options={{ title: 'Home' }}
+        options={{
+          title: '🏠 Dashboard',
+          headerShown: false,
+        }}
       />
       <Tab.Screen 
-        name="Lessons"
-        options={{ title: 'Lessons' }}
-      >
-        {() => <PlaceholderScreen title="Lessons" />}
-      </Tab.Screen>
+        name="Lessons" 
+        component={LessonsScreen}
+        options={{
+          title: '📚 Lessons',
+        }}
+      />
       <Tab.Screen 
-        name="Schedule"
-        options={{ title: 'Schedule' }}
-      >
-        {() => <PlaceholderScreen title="Schedule" />}
-      </Tab.Screen>
+        name="Schedule" 
+        component={ScheduleScreen}
+        options={{
+          title: '📅 Schedule',
+        }}
+      />
       <Tab.Screen 
-        name="Vocabulary"
-        options={{ title: 'Words' }}
-      >
-        {() => <PlaceholderScreen title="Vocabulary" />}
-      </Tab.Screen>
+        name="Vocabulary" 
+        component={VocabularyScreen}
+        options={{
+          title: '📖 Words',
+        }}
+      />
       <Tab.Screen 
-        name="Profile"
-        options={{ title: 'Profile' }}
-      >
-        {() => <PlaceholderScreen title="Profile" />}
-      </Tab.Screen>
+        name="Profile" 
+        component={ProfileScreen}
+        options={{
+          title: '👤 Profile',
+        }}
+      />
     </Tab.Navigator>
   );
-};
+}
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
+  iconContainer: {
     alignItems: 'center',
-    backgroundColor: '#fff',
-    padding: 20,
+    justifyContent: 'center',
+    padding: 4,
   },
-  title: {
-    fontSize: 32,
-    fontWeight: '700',
-    color: '#1d7452',
-    marginBottom: 8,
+  iconContainerFocused: {
+    backgroundColor: `${COLORS.primary}15`,
+    borderRadius: 12,
+    paddingHorizontal: 16,
   },
-  subtitle: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: '#374151',
-    marginBottom: 16,
-  },
-  description: {
-    fontSize: 16,
-    color: '#6b7280',
-    textAlign: 'center',
+  focusIndicator: {
+    position: 'absolute',
+    bottom: -8,
+    width: 4,
+    height: 4,
+    backgroundColor: COLORS.primary,
+    borderRadius: 2,
   },
 });

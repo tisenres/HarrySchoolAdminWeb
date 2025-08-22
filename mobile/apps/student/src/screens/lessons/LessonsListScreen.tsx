@@ -1,403 +1,462 @@
-/**
- * LessonsListScreen.tsx
- * Main entry point for Home Tasks with age-adaptive filtering and AI recommendations
- */
-
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React from 'react';
 import {
   View,
-  FlatList,
-  RefreshControl,
+  Text,
   StyleSheet,
-  AccessibilityInfo,
-  Platform,
+  SafeAreaView,
+  ScrollView,
+  TouchableOpacity,
 } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
 
-// Component imports
-import { Header, Card, Badge, LoadingSpinner } from '@harry-school/ui';
-import { TaskProgress } from '../../components/tasks/common/TaskProgress';
-import { TaskFilterBar } from '../../components/tasks/common/TaskFilterBar';
-import { EmptyTasksState } from '../../components/tasks/common/EmptyTasksState';
+import { COLORS, TYPOGRAPHY, SPACING, BORDER_RADIUS, SHADOWS } from '../../constants/design';
 
-// Hook imports
-import { useTasksData } from '../../hooks/tasks/useTasksData';
-import { useAdaptiveContent } from '../../hooks/content/useAdaptiveContent';
-import { useTaskSync } from '../../hooks/tasks/useTaskSync';
-import { useAuth } from '@harry-school/shared/hooks';
-
-// Type imports
-import type { LessonsNavigationProp, LessonsRouteProps, StudentAgeGroup } from '../../navigation/types';
-
-interface LessonsListScreenProps {
-  navigation: LessonsNavigationProp;
-  route: LessonsRouteProps<'TasksList'>;
-}
-
-interface TaskItem {
+interface Lesson {
   id: string;
   title: string;
+  description: string;
   type: 'text' | 'quiz' | 'speaking' | 'listening' | 'writing';
-  difficulty: 'easy' | 'medium' | 'hard';
-  estimatedDuration: number; // minutes
-  status: 'pending' | 'in_progress' | 'completed' | 'overdue';
-  progress: number; // 0-100
-  aiRecommended: boolean;
-  dueDate?: string;
-  culturalContext?: string;
-  lastAttempt?: string;
+  difficulty: 'beginner' | 'intermediate' | 'advanced';
+  duration: number;
+  points: number;
+  isCompleted: boolean;
+  isLocked: boolean;
+  progress: number;
 }
 
-// Age-specific configurations based on UX research
-const AGE_CONFIGS = {
-  '10-12': {
-    cardSize: 'large',
-    showDifficulty: false,
-    prioritizeVisual: true,
-    gamificationLevel: 'high',
-    maxTasksPerPage: 6,
-    filterOptions: ['type', 'status'],
+const mockLessons: Lesson[] = [
+  {
+    id: '1',
+    title: 'Present Simple Tense',
+    description: 'Learn the basics of present simple tense with interactive exercises',
+    type: 'text',
+    difficulty: 'beginner',
+    duration: 25,
+    points: 100,
+    isCompleted: true,
+    isLocked: false,
+    progress: 100,
   },
-  '13-15': {
-    cardSize: 'medium', 
-    showDifficulty: true,
-    prioritizeVisual: false,
-    gamificationLevel: 'medium',
-    maxTasksPerPage: 8,
-    filterOptions: ['type', 'status', 'difficulty', 'due_date'],
+  {
+    id: '2',
+    title: 'Vocabulary Quiz: Daily Routines',
+    description: 'Test your knowledge of daily routine vocabulary',
+    type: 'quiz',
+    difficulty: 'beginner',
+    duration: 15,
+    points: 150,
+    isCompleted: true,
+    isLocked: false,
+    progress: 100,
   },
-  '16-18': {
-    cardSize: 'compact',
-    showDifficulty: true,
-    prioritizeVisual: false,
-    gamificationLevel: 'low',
-    maxTasksPerPage: 12,
-    filterOptions: ['type', 'status', 'difficulty', 'due_date', 'priority'],
+  {
+    id: '3',
+    title: 'Speaking Practice: Introductions',
+    description: 'Practice introducing yourself with AI feedback',
+    type: 'speaking',
+    difficulty: 'intermediate',
+    duration: 20,
+    points: 200,
+    isCompleted: false,
+    isLocked: false,
+    progress: 60,
   },
-} as const;
+  {
+    id: '4',
+    title: 'Listening: Restaurant Conversation',
+    description: 'Listen to a restaurant conversation and answer questions',
+    type: 'listening',
+    difficulty: 'intermediate',
+    duration: 30,
+    points: 250,
+    isCompleted: false,
+    isLocked: false,
+    progress: 0,
+  },
+  {
+    id: '5',
+    title: 'Writing: My Favorite Hobby',
+    description: 'Write a short essay about your favorite hobby',
+    type: 'writing',
+    difficulty: 'advanced',
+    duration: 40,
+    points: 300,
+    isCompleted: false,
+    isLocked: true,
+    progress: 0,
+  },
+];
 
-export const LessonsListScreen: React.FC<LessonsListScreenProps> = ({
-  navigation,
-  route,
-}) => {
-  // Hooks
-  const insets = useSafeAreaInsets();
-  const { user } = useAuth();
-  const ageGroup = user?.profile?.ageGroup || '13-15';
-  
-  // State
-  const [activeFilter, setActiveFilter] = useState<string>('all');
-  const [refreshing, setRefreshing] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-
-  // Custom hooks
-  const {
-    tasks,
-    loading,
-    error,
-    refetch,
-  } = useTasksData({
-    lessonId: route.params.lessonId,
-    courseId: route.params.courseId,
-    filter: activeFilter,
-  });
-
-  const { adaptiveLayout, componentSizing } = useAdaptiveContent(ageGroup);
-  const { syncStatus, triggerSync } = useTaskSync();
-
-  // Age-specific configuration
-  const config = AGE_CONFIGS[ageGroup];
-
-  // Filtered and sorted tasks based on age group preferences
-  const processedTasks = useMemo(() => {
-    let filteredTasks = tasks;
-
-    // Apply search filter
-    if (searchQuery) {
-      filteredTasks = filteredTasks.filter(task =>
-        task.title.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-
-    // Apply status filter
-    if (activeFilter !== 'all') {
-      filteredTasks = filteredTasks.filter(task =>
-        task.status === activeFilter || 
-        (activeFilter === 'ai_recommended' && task.aiRecommended)
-      );
-    }
-
-    // Age-specific sorting
-    const sortedTasks = filteredTasks.sort((a, b) => {
-      if (ageGroup === '10-12') {
-        // Elementary: prioritize AI recommended, then by fun factor
-        if (a.aiRecommended && !b.aiRecommended) return -1;
-        if (!a.aiRecommended && b.aiRecommended) return 1;
-        return a.type.localeCompare(b.type); // Group by type
-      } else if (ageGroup === '13-15') {
-        // Middle school: balance due dates and recommendations
-        if (a.status === 'overdue' && b.status !== 'overdue') return -1;
-        if (a.status !== 'overdue' && b.status === 'overdue') return 1;
-        if (a.aiRecommended && !b.aiRecommended) return -1;
-        if (!a.aiRecommended && b.aiRecommended) return 1;
-        return new Date(a.dueDate || '').getTime() - new Date(b.dueDate || '').getTime();
-      } else {
-        // High school: prioritize by due date and difficulty
-        if (a.status === 'overdue' && b.status !== 'overdue') return -1;
-        if (a.status !== 'overdue' && b.status === 'overdue') return 1;
-        const dueDateDiff = new Date(a.dueDate || '').getTime() - new Date(b.dueDate || '').getTime();
-        if (dueDateDiff !== 0) return dueDateDiff;
-        return a.difficulty.localeCompare(b.difficulty);
-      }
-    });
-
-    return sortedTasks.slice(0, config.maxTasksPerPage);
-  }, [tasks, searchQuery, activeFilter, ageGroup, config.maxTasksPerPage]);
-
-  // Handle task selection
-  const handleTaskPress = useCallback((task: TaskItem) => {
-    // Navigate to appropriate task screen based on type
-    const screenMap = {
-      text: 'TextTask',
-      quiz: 'QuizTask', 
-      speaking: 'SpeakingTask',
-      listening: 'ListeningTask',
-      writing: 'WritingTask',
-    } as const;
-
-    navigation.navigate(screenMap[task.type], {
-      taskId: task.id,
-      lessonId: route.params.lessonId,
-      ...(task.type === 'speaking' && { maxDuration: task.estimatedDuration * 60 }),
-      ...(task.type === 'writing' && { wordLimit: ageGroup === '10-12' ? 100 : ageGroup === '13-15' ? 300 : 500 }),
-    });
-  }, [navigation, route.params.lessonId, ageGroup]);
-
-  // Refresh handler
-  const handleRefresh = useCallback(async () => {
-    setRefreshing(true);
-    await refetch();
-    await triggerSync();
-    setRefreshing(false);
-  }, [refetch, triggerSync]);
-
-  // Render task card with age-appropriate styling
-  const renderTaskCard = useCallback(({ item: task }: { item: TaskItem }) => (
-    <TaskCard
-      task={task}
-      onPress={() => handleTaskPress(task)}
-      ageGroup={ageGroup}
-      config={config}
-      componentSizing={componentSizing}
-    />
-  ), [handleTaskPress, ageGroup, config, componentSizing]);
-
-  if (loading && !refreshing) {
-    return <LoadingSpinner />;
+const getLessonTypeIcon = (type: string) => {
+  switch (type) {
+    case 'text': return 'book';
+    case 'quiz': return 'help-circle';
+    case 'speaking': return 'mic';
+    case 'listening': return 'headset';
+    case 'writing': return 'create';
+    default: return 'book';
   }
-
-  return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
-      <Header
-        title="Home Tasks"
-        subtitle={`${processedTasks.length} tasks available`}
-        showBack
-        onBack={() => navigation.goBack()}
-        rightComponent={
-          <Badge 
-            text={syncStatus === 'synced' ? 'Synced' : 'Syncing...'}
-            variant={syncStatus === 'synced' ? 'success' : 'warning'}
-          />
-        }
-      />
-
-      <TaskFilterBar
-        activeFilter={activeFilter}
-        onFilterChange={setActiveFilter}
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        filterOptions={config.filterOptions}
-        ageGroup={ageGroup}
-      />
-
-      <FlatList
-        data={processedTasks}
-        renderItem={renderTaskCard}
-        keyExtractor={(item) => item.id}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
-        }
-        contentContainerStyle={styles.listContainer}
-        showsVerticalScrollIndicator={false}
-        ListEmptyComponent={
-          <EmptyTasksState
-            filter={activeFilter}
-            onRefresh={handleRefresh}
-            ageGroup={ageGroup}
-          />
-        }
-        accessible={true}
-        accessibilityLabel="Home tasks list"
-        accessibilityHint="Browse and select tasks to complete"
-      />
-    </View>
-  );
 };
 
-// Task Card Component with age-adaptive design
-const TaskCard: React.FC<{
-  task: TaskItem;
-  onPress: () => void;
-  ageGroup: StudentAgeGroup;
-  config: typeof AGE_CONFIGS[keyof typeof AGE_CONFIGS];
-  componentSizing: any;
-}> = ({ task, onPress, ageGroup, config, componentSizing }) => {
-  const getTaskIcon = useCallback((type: string) => {
-    const icons = {
-      text: '📚',
-      quiz: '🧩',
-      speaking: '🎙️',
-      listening: '👂',
-      writing: '✍️',
-    };
-    return icons[type as keyof typeof icons] || '📝';
-  }, []);
+const getLessonTypeColor = (type: string) => {
+  switch (type) {
+    case 'text': return COLORS.primary;
+    case 'quiz': return COLORS.warning;
+    case 'speaking': return COLORS.error;
+    case 'listening': return COLORS.info;
+    case 'writing': return COLORS.purple;
+    default: return COLORS.primary;
+  }
+};
 
-  const getStatusColor = useCallback((status: string) => {
-    const colors = {
-      pending: '#3B82F6',
-      in_progress: '#F59E0B',
-      completed: '#10B981',
-      overdue: '#EF4444',
-    };
-    return colors[status as keyof typeof colors] || '#6B7280';
-  }, []);
+const getDifficultyColor = (difficulty: string) => {
+  switch (difficulty) {
+    case 'beginner': return COLORS.success;
+    case 'intermediate': return COLORS.warning;
+    case 'advanced': return COLORS.error;
+    default: return COLORS.success;
+  }
+};
+
+export default function LessonsListScreen() {
+  const completedLessons = mockLessons.filter(l => l.isCompleted).length;
+  const totalPoints = mockLessons.filter(l => l.isCompleted).reduce((sum, l) => sum + l.points, 0);
 
   return (
-    <Card
-      style={[
-        styles.taskCard,
-        componentSizing?.cardSize?.[config.cardSize] || {},
-        task.aiRecommended && styles.aiRecommended,
-      ]}
-      onPress={onPress}
-      accessible={true}
-      accessibilityLabel={`${task.title}, ${task.type} task, ${task.status}`}
-      accessibilityHint="Tap to start this task"
-    >
-      <View style={styles.taskHeader}>
-        <View style={styles.taskIcon}>
-          <Text style={[styles.iconText, componentSizing?.iconSize || {}]}>
-            {getTaskIcon(task.type)}
-          </Text>
-        </View>
-        <View style={styles.taskInfo}>
-          <Text style={[styles.taskTitle, componentSizing?.titleSize || {}]}>
-            {task.title}
-          </Text>
-          <View style={styles.taskMeta}>
-            <Badge
-              text={task.type}
-              variant="secondary"
-              size={ageGroup === '10-12' ? 'large' : 'small'}
-            />
-            {config.showDifficulty && (
-              <Badge
-                text={task.difficulty}
-                variant={task.difficulty === 'hard' ? 'danger' : 'neutral'}
-                size="small"
-              />
-            )}
-            {task.aiRecommended && ageGroup !== '16-18' && (
-              <Badge text="AI Pick" variant="success" size="small" />
-            )}
+    <SafeAreaView style={styles.container}>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        {/* Header Stats */}
+        <LinearGradient
+          colors={[COLORS.primary, COLORS.primaryLight]}
+          style={styles.headerCard}
+        >
+          <Text style={styles.headerTitle}>Your Learning Progress</Text>
+          <View style={styles.statsRow}>
+            <View style={styles.statItem}>
+              <Text style={styles.statValue}>{completedLessons}</Text>
+              <Text style={styles.statLabel}>Completed</Text>
+            </View>
+            <View style={styles.statDivider} />
+            <View style={styles.statItem}>
+              <Text style={styles.statValue}>{mockLessons.length}</Text>
+              <Text style={styles.statLabel}>Total Lessons</Text>
+            </View>
+            <View style={styles.statDivider} />
+            <View style={styles.statItem}>
+              <Text style={styles.statValue}>{totalPoints}</Text>
+              <Text style={styles.statLabel}>Points Earned</Text>
+            </View>
           </View>
-        </View>
-        <View style={styles.taskStatus}>
-          <View
-            style={[
-              styles.statusIndicator,
-              { backgroundColor: getStatusColor(task.status) },
-            ]}
-          />
-        </View>
-      </View>
+          
+          <View style={styles.progressSection}>
+            <Text style={styles.progressLabel}>Overall Progress</Text>
+            <View style={styles.progressBar}>
+              <View 
+                style={[
+                  styles.progressFill,
+                  { width: `${(completedLessons / mockLessons.length) * 100}%` }
+                ]}
+              />
+            </View>
+            <Text style={styles.progressText}>
+              {Math.round((completedLessons / mockLessons.length) * 100)}% Complete
+            </Text>
+          </View>
+        </LinearGradient>
 
-      <TaskProgress
-        progress={task.progress}
-        estimatedDuration={task.estimatedDuration}
-        ageGroup={ageGroup}
-      />
-
-      {task.culturalContext && ageGroup === '10-12' && (
-        <Text style={styles.culturalNote}>{task.culturalContext}</Text>
-      )}
-    </Card>
+        {/* Lessons List */}
+        <View style={styles.lessonsContainer}>
+          <Text style={styles.sectionTitle}>Available Lessons</Text>
+          
+          {mockLessons.map((lesson, index) => {
+            const typeColor = getLessonTypeColor(lesson.type);
+            const difficultyColor = getDifficultyColor(lesson.difficulty);
+            
+            return (
+              <TouchableOpacity
+                key={lesson.id}
+                style={[
+                  styles.lessonCard,
+                  lesson.isLocked && styles.lockedCard
+                ]}
+                disabled={lesson.isLocked}
+                activeOpacity={0.7}
+              >
+                <View style={styles.lessonHeader}>
+                  <View style={[styles.lessonTypeIcon, { backgroundColor: `${typeColor}20` }]}>
+                    <Ionicons 
+                      name={getLessonTypeIcon(lesson.type) as any} 
+                      size={24} 
+                      color={lesson.isLocked ? COLORS.gray400 : typeColor}
+                    />
+                  </View>
+                  
+                  <View style={styles.lessonInfo}>
+                    <Text style={[
+                      styles.lessonTitle,
+                      lesson.isLocked && styles.lockedText
+                    ]}>
+                      {lesson.title}
+                    </Text>
+                    <Text style={[
+                      styles.lessonDescription,
+                      lesson.isLocked && styles.lockedDescription
+                    ]}>
+                      {lesson.description}
+                    </Text>
+                  </View>
+                  
+                  <View style={styles.lessonStatus}>
+                    {lesson.isCompleted ? (
+                      <View style={styles.completedBadge}>
+                        <Ionicons name="checkmark-circle" size={24} color={COLORS.success} />
+                      </View>
+                    ) : lesson.isLocked ? (
+                      <Ionicons name="lock-closed" size={20} color={COLORS.gray400} />
+                    ) : lesson.progress > 0 ? (
+                      <View style={styles.progressIndicator}>
+                        <Text style={styles.progressPercentage}>{lesson.progress}%</Text>
+                      </View>
+                    ) : (
+                      <Ionicons name="play-circle" size={24} color={typeColor} />
+                    )}
+                  </View>
+                </View>
+                
+                <View style={styles.lessonFooter}>
+                  <View style={styles.lessonMeta}>
+                    <View style={styles.metaItem}>
+                      <Ionicons name="time" size={14} color={COLORS.textSecondary} />
+                      <Text style={styles.metaText}>{lesson.duration} min</Text>
+                    </View>
+                    
+                    <View style={styles.metaItem}>
+                      <Ionicons name="star" size={14} color={COLORS.gold} />
+                      <Text style={styles.metaText}>{lesson.points} pts</Text>
+                    </View>
+                    
+                    <View style={[
+                      styles.difficultyBadge,
+                      { backgroundColor: `${difficultyColor}20` }
+                    ]}>
+                      <Text style={[styles.difficultyText, { color: difficultyColor }]}>
+                        {lesson.difficulty}
+                      </Text>
+                    </View>
+                  </View>
+                  
+                  {!lesson.isCompleted && !lesson.isLocked && lesson.progress > 0 && (
+                    <View style={styles.lessonProgressBar}>
+                      <View 
+                        style={[
+                          styles.lessonProgressFill,
+                          { 
+                            width: `${lesson.progress}%`,
+                            backgroundColor: typeColor 
+                          }
+                        ]}
+                      />
+                    </View>
+                  )}
+                </View>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.background,
   },
-  listContainer: {
-    padding: 16,
-    paddingBottom: 32,
+  
+  // Header
+  headerCard: {
+    margin: SPACING.base,
+    padding: SPACING.xl,
+    borderRadius: BORDER_RADIUS.xl,
+    ...SHADOWS.lg,
   },
-  taskCard: {
-    marginBottom: 16,
-    padding: 16,
-    borderRadius: 12,
-    backgroundColor: '#FFFFFF',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+  headerTitle: {
+    fontSize: TYPOGRAPHY.xl,
+    fontWeight: TYPOGRAPHY.bold,
+    color: COLORS.white,
+    textAlign: 'center',
+    marginBottom: SPACING.lg,
   },
-  aiRecommended: {
-    borderLeftWidth: 4,
-    borderLeftColor: '#10B981',
+  statsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: SPACING.lg,
   },
-  taskHeader: {
+  statItem: {
+    alignItems: 'center',
+  },
+  statValue: {
+    fontSize: TYPOGRAPHY['2xl'],
+    fontWeight: TYPOGRAPHY.bold,
+    color: COLORS.white,
+  },
+  statLabel: {
+    fontSize: TYPOGRAPHY.sm,
+    color: COLORS.white,
+    opacity: 0.9,
+    marginTop: SPACING.xs,
+  },
+  statDivider: {
+    width: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+  },
+  progressSection: {
+    marginTop: SPACING.base,
+  },
+  progressLabel: {
+    fontSize: TYPOGRAPHY.base,
+    color: COLORS.white,
+    marginBottom: SPACING.sm,
+    textAlign: 'center',
+  },
+  progressBar: {
+    height: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    borderRadius: BORDER_RADIUS.full,
+    overflow: 'hidden',
+    marginBottom: SPACING.sm,
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: COLORS.white,
+    borderRadius: BORDER_RADIUS.full,
+  },
+  progressText: {
+    fontSize: TYPOGRAPHY.sm,
+    color: COLORS.white,
+    textAlign: 'center',
+    opacity: 0.9,
+  },
+  
+  // Lessons
+  lessonsContainer: {
+    padding: SPACING.base,
+  },
+  sectionTitle: {
+    fontSize: TYPOGRAPHY.xl,
+    fontWeight: TYPOGRAPHY.bold,
+    color: COLORS.text,
+    marginBottom: SPACING.base,
+    paddingHorizontal: SPACING.sm,
+  },
+  lessonCard: {
+    backgroundColor: COLORS.white,
+    borderRadius: BORDER_RADIUS.lg,
+    padding: SPACING.base,
+    marginBottom: SPACING.base,
+    ...SHADOWS.sm,
+  },
+  lockedCard: {
+    opacity: 0.6,
+  },
+  lessonHeader: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginBottom: 12,
+    marginBottom: SPACING.base,
   },
-  taskIcon: {
-    marginRight: 12,
+  lessonTypeIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: SPACING.base,
   },
-  iconText: {
-    fontSize: 24,
-  },
-  taskInfo: {
+  lessonInfo: {
     flex: 1,
   },
-  taskTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1F2937',
-    marginBottom: 8,
+  lessonTitle: {
+    fontSize: TYPOGRAPHY.base,
+    fontWeight: TYPOGRAPHY.semiBold,
+    color: COLORS.text,
+    marginBottom: SPACING.xs,
   },
-  taskMeta: {
+  lockedText: {
+    color: COLORS.gray500,
+  },
+  lessonDescription: {
+    fontSize: TYPOGRAPHY.sm,
+    color: COLORS.textSecondary,
+    lineHeight: 20,
+  },
+  lockedDescription: {
+    color: COLORS.gray400,
+  },
+  lessonStatus: {
+    alignItems: 'center',
+    marginLeft: SPACING.sm,
+  },
+  completedBadge: {
+    width: 32,
+    height: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  progressIndicator: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: COLORS.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  progressPercentage: {
+    fontSize: TYPOGRAPHY.xs,
+    fontWeight: TYPOGRAPHY.bold,
+    color: COLORS.white,
+  },
+  lessonFooter: {
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border,
+    paddingTop: SPACING.sm,
+  },
+  lessonMeta: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
+    alignItems: 'center',
+    marginBottom: SPACING.sm,
   },
-  taskStatus: {
-    alignItems: 'flex-end',
+  metaItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: SPACING.lg,
   },
-  statusIndicator: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+  metaText: {
+    fontSize: TYPOGRAPHY.xs,
+    color: COLORS.textSecondary,
+    marginLeft: SPACING.xs,
+    fontWeight: TYPOGRAPHY.medium,
   },
-  culturalNote: {
-    fontSize: 12,
-    color: '#6B7280',
-    fontStyle: 'italic',
-    marginTop: 8,
+  difficultyBadge: {
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: SPACING.xs,
+    borderRadius: BORDER_RADIUS.sm,
+    marginLeft: 'auto',
+  },
+  difficultyText: {
+    fontSize: TYPOGRAPHY.xs,
+    fontWeight: TYPOGRAPHY.semiBold,
+    textTransform: 'capitalize',
+  },
+  lessonProgressBar: {
+    height: 4,
+    backgroundColor: COLORS.gray200,
+    borderRadius: BORDER_RADIUS.full,
+    overflow: 'hidden',
+  },
+  lessonProgressFill: {
+    height: '100%',
+    borderRadius: BORDER_RADIUS.full,
   },
 });

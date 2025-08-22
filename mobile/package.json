@@ -1,37 +1,110 @@
 {
-  "name": "@harry-school/mobile",
-  "private": true,
+  "name": "harry-school-mobile",
   "version": "1.0.0",
-  "description": "Harry School Mobile Apps Monorepo",
+  "description": "Harry School CRM Mobile Applications - Student and Teacher Apps",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:ci": "jest --coverage --watchAll=false --passWithNoTests",
+    "test:student": "cd apps/student && npm test",
+    "test:teacher": "cd apps/teacher && npm test",
+    "test:student:coverage": "cd apps/student && npm run test:coverage",
+    "test:teacher:coverage": "cd apps/teacher && npm run test:coverage",
+    "test:e2e": "detox test",
+    "test:e2e:ios": "detox test --configuration ios.sim.debug.student",
+    "test:e2e:android": "detox test --configuration android.emu.debug.student",
+    "test:e2e:teacher:ios": "detox test --configuration ios.sim.debug.teacher",
+    "test:e2e:teacher:android": "detox test --configuration android.emu.debug.teacher",
+    "build:e2e:ios": "detox build --configuration ios.sim.debug.student",
+    "build:e2e:android": "detox build --configuration android.emu.debug.student",
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
+    "lint:fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
+    "type-check": "tsc --noEmit",
+    "start:student": "cd apps/student && npm start",
+    "start:teacher": "cd apps/teacher && npm start",
+    "install:all": "npm install && cd apps/student && npm install && cd ../teacher && npm install",
+    "clean": "rm -rf node_modules && rm -rf apps/*/node_modules && rm -rf apps/*/ios/build && rm -rf apps/*/android/build"
+  },
+  "keywords": [
+    "react-native",
+    "expo",
+    "education",
+    "crm",
+    "islamic",
+    "uzbekistan",
+    "multilingual",
+    "i18n",
+    "mobile"
+  ],
+  "author": "Harry School CRM Team",
+  "license": "MIT",
+  "devDependencies": {
+    "detox": "^20.13.5",
+    "@types/detox": "^18.1.0",
+    "jest": "^29.7.0",
+    "@jest/globals": "^29.7.0",
+    "eslint": "^8.56.0",
+    "@typescript-eslint/eslint-plugin": "^6.18.1",
+    "@typescript-eslint/parser": "^6.18.1",
+    "eslint-plugin-react": "^7.33.2",
+    "eslint-plugin-react-native": "^4.1.0",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-detox": "^1.0.0",
+    "typescript": "~5.8.3"
+  },
+  "dependencies": {
+    "react-native-mmkv": "^3.0.2",
+    "react-i18next": "^14.0.1",
+    "i18next": "^23.7.16",
+    "moment": "^2.30.1"
+  },
+  "jest": {
+    "projects": [
+      "<rootDir>/apps/student",
+      "<rootDir>/apps/teacher"
+    ],
+    "collectCoverageFrom": [
+      "apps/**/src/**/*.{js,jsx,ts,tsx}",
+      "packages/**/src/**/*.{js,jsx,ts,tsx}",
+      "!**/*.d.ts",
+      "!**/*.stories.{js,jsx,ts,tsx}",
+      "!**/node_modules/**",
+      "!**/ios/**",
+      "!**/android/**"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "branches": 85,
+        "functions": 90,
+        "lines": 90,
+        "statements": 90
+      }
+    }
+  },
+  "detox": {
+    "configurations": {
+      "ios.sim.debug.student": {
+        "device": "simulator",
+        "app": "ios.debug.student"
+      },
+      "android.emu.debug.student": {
+        "device": "emulator", 
+        "app": "android.debug.student"
+      },
+      "ios.sim.debug.teacher": {
+        "device": "simulator",
+        "app": "ios.debug.teacher"
+      },
+      "android.emu.debug.teacher": {
+        "device": "emulator",
+        "app": "android.debug.teacher"
+      }
+    }
+  },
   "workspaces": [
     "apps/*",
     "packages/*"
-  ],
-  "scripts": {
-    "build": "turbo run build",
-    "dev": "turbo run dev",
-    "start": "turbo run start",
-    "test": "turbo run test",
-    "lint": "turbo run lint",
-    "type-check": "turbo run type-check",
-    "clean": "turbo run clean",
-    "teacher:start": "cd apps/teacher && npm start",
-    "teacher:ios": "cd apps/teacher && npm run ios",
-    "teacher:android": "cd apps/teacher && npm run android",
-    "student:start": "cd apps/student && npm start",
-    "student:ios": "cd apps/student && npm run ios",
-    "student:android": "cd apps/student && npm run android",
-    "expo:start": "turbo run expo:start",
-    "expo:build": "turbo run expo:build"
-  },
-  "devDependencies": {
-    "turbo": "^1.10.7",
-    "@types/node": "^20.5.0",
-    "typescript": "^5.0.0"
-  },
-  "packageManager": "npm@9.8.1",
-  "engines": {
-    "node": ">=18.0.0",
-    "npm": ">=9.0.0"
-  }
+  ]
 }
