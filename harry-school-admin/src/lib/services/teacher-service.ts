@@ -1,4 +1,5 @@
 import { BaseService } from './base-service'
+import { apiCache } from '@/lib/utils/api-cache'
 import { teacherInsertSchema, teacherUpdateSchema, teacherSearchSchema, paginationSchema } from '@/lib/validations'
 import type { Teacher, TeacherInsert } from '@/types/database'
 import type { Database } from '@/types/database.types'
@@ -602,40 +603,45 @@ export class TeacherService extends BaseService {
   }
 
   /**
-   * Get teacher statistics for dashboard
+   * Get teacher statistics for dashboard - OPTIMIZED with caching
    */
   async getStats() {
-    const organizationId = await this.getCurrentOrganization()
+    const { organizationId } = await this.getUserContext()
+    
+    // Try cache first
+    const cached = apiCache.getStats(`teacher:${organizationId}`)
+    if (cached) {
+      return cached
+    }
+
     const supabase = await this.getSupabase()
 
-    // Get total teachers count
-    const { count: total } = await supabase
+    // Get all statistics in a single optimized query
+    const { data, error } = await supabase
       .from('teachers')
-      .select('*', { count: 'exact', head: true })
+      .select('is_active, employment_type')
       .eq('organization_id', organizationId)
       .is('deleted_at', null)
 
-    // Get active teachers count  
-    const { count: active } = await supabase
-      .from('teachers')
-      .select('*', { count: 'exact', head: true })
-      .eq('organization_id', organizationId)
-      .eq('is_active', true)
-      .is('deleted_at', null)
-
-    // Get full-time teachers count
-    const { count: fullTime } = await supabase
-      .from('teachers')
-      .select('*', { count: 'exact', head: true })
-      .eq('organization_id', organizationId)
-      .eq('employment_type', 'full_time')
-      .is('deleted_at', null)
-
-    return {
-      total: total || 0,
-      active: active || 0,
-      full_time: fullTime || 0
+    if (error) {
+      throw new Error(`Failed to get teacher statistics: ${error.message}`)
     }
+
+    // Calculate statistics from the single query result
+    const total = data?.length || 0
+    const active = data?.filter(t => t.is_active).length || 0
+    const fullTime = data?.filter(t => t.employment_type === 'full_time').length || 0
+
+    const stats = {
+      total,
+      active,
+      full_time: fullTime
+    }
+
+    // Cache the results
+    apiCache.setStats(`teacher:${organizationId}`, stats)
+    
+    return stats
   }
 }
 

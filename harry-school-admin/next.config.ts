@@ -4,6 +4,12 @@ import createNextIntlPlugin from 'next-intl/plugin';
 const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 
 const nextConfig: NextConfig = {
+  // Fix cross-origin resource loading for ngrok
+  allowedDevOrigins: [
+    '3b1348a71f69.ngrok-free.app',
+    '*.ngrok-free.app',
+  ],
+  
   // Temporarily skip type checking for deployment
   typescript: {
     ignoreBuildErrors: true,
@@ -29,6 +35,8 @@ const nextConfig: NextConfig = {
     esmExternals: true,
     // Memory optimization (Next.js 15+)
     webpackMemoryOptimizations: true,
+    // Enable concurrent features for better performance
+    ppr: false, // Partial Prerendering can cause slower initial loads in dev
     // Optimize package imports for better tree-shaking
     optimizePackageImports: [
       'lucide-react',

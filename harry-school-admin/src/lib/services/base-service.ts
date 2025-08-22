@@ -32,7 +32,7 @@ export abstract class BaseService {
   }
 
   /**
-   * Get the current authenticated user with caching
+   * Get the current authenticated user with enhanced caching
    */
   protected async getCurrentUser() {
     const supabase = await this.getSupabase()
@@ -42,7 +42,13 @@ export abstract class BaseService {
       throw new Error('User not authenticated')
     }
     
-    // Cache the user data
+    // Check if we have cached user data first
+    const cachedUser = authCache.getUser(user.id)
+    if (cachedUser && cachedUser.id === user.id) {
+      return cachedUser
+    }
+    
+    // Cache the fresh user data
     authCache.setUser(user.id, user)
     
     return user
@@ -60,11 +66,18 @@ export abstract class BaseService {
       return cachedOrg
     }
     
+    // If not cached, try to get from profile cache
+    const cachedProfile = authCache.getProfile(user.id)
+    if (cachedProfile?.organization_id) {
+      authCache.setOrganization(user.id, cachedProfile.organization_id)
+      return cachedProfile.organization_id
+    }
+    
     const supabase = await this.getSupabase()
     
     const { data, error } = await supabase
       .from('profiles')
-      .select('organization_id')
+      .select('organization_id, role')
       .eq('id', user.id)
       .is('deleted_at', null)
       .single()
@@ -73,22 +86,75 @@ export abstract class BaseService {
       throw new Error('User profile not found or user not associated with an organization')
     }
     
-    // Cache the organization data
+    // Cache both organization and profile data
     authCache.setOrganization(user.id, data.organization_id)
+    authCache.setProfile(user.id, data)
     
     return data.organization_id
   }
 
   /**
-   * Get the current user's role
+   * Get user context (user, organization, role) in one optimized call
    */
-  protected async getCurrentUserRole() {
+  protected async getUserContext() {
     const user = await this.getCurrentUser()
+    
+    // Check if we have all cached data
+    const cachedOrg = authCache.getOrganization(user.id)
+    const cachedProfile = authCache.getProfile(user.id)
+    
+    if (cachedOrg && cachedProfile?.role) {
+      return {
+        user,
+        organizationId: cachedOrg,
+        role: cachedProfile.role,
+        profile: cachedProfile
+      }
+    }
+    
+    // Fetch missing data in single query
     const supabase = await this.getSupabase()
     
     const { data, error } = await supabase
       .from('profiles')
-      .select('role')
+      .select('organization_id, role')
+      .eq('id', user.id)
+      .is('deleted_at', null)
+      .single()
+    
+    if (error || !data) {
+      throw new Error('User profile not found or user not associated with an organization')
+    }
+    
+    // Cache everything
+    authCache.setOrganization(user.id, data.organization_id)
+    authCache.setProfile(user.id, data)
+    
+    return {
+      user,
+      organizationId: data.organization_id,
+      role: data.role,
+      profile: data
+    }
+  }
+
+  /**
+   * Get the current user's role with caching
+   */
+  protected async getCurrentUserRole() {
+    const user = await this.getCurrentUser()
+    
+    // Check cache first
+    const cachedProfile = authCache.getProfile(user.id)
+    if (cachedProfile?.role) {
+      return cachedProfile.role
+    }
+    
+    const supabase = await this.getSupabase()
+    
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('role, organization_id')
       .eq('id', user.id)
       .is('deleted_at', null)
       .single()
@@ -96,6 +162,10 @@ export abstract class BaseService {
     if (error || !data) {
       throw new Error('User profile not found')
     }
+    
+    // Cache the full profile data for future use
+    authCache.setProfile(user.id, data)
+    authCache.setOrganization(user.id, data.organization_id)
     
     return data.role
   }

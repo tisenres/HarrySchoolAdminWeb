@@ -1,0 +1,95 @@
+{
+  "title": "Lessons",
+  "myLessons": "My Lessons",
+  "allLessons": "All Lessons",
+  "upcomingLessons": "Upcoming Lessons",
+  "completedLessons": "Completed Lessons",
+  "inProgress": "In Progress",
+  "notStarted": "Not Started",
+  "lesson": {
+    "title": "Lesson Title",
+    "description": "Description",
+    "duration": "Duration",
+    "difficulty": "Difficulty",
+    "subject": "Subject",
+    "instructor": "Instructor",
+    "startTime": "Start Time",
+    "endTime": "End Time",
+    "materials": "Materials",
+    "objectives": "Learning Objectives",
+    "prerequisites": "Prerequisites"
+  },
+  "difficulty": {
+    "beginner": "Beginner",
+    "intermediate": "Intermediate",
+    "advanced": "Advanced",
+    "expert": "Expert"
+  },
+  "status": {
+    "scheduled": "Scheduled",
+    "live": "Live Now",
+    "completed": "Completed",
+    "missed": "Missed",
+    "cancelled": "Cancelled"
+  },
+  "actions": {
+    "startLesson": "Start Lesson",
+    "joinLesson": "Join Lesson",
+    "reviewLesson": "Review Lesson",
+    "downloadMaterials": "Download Materials",
+    "submitAssignment": "Submit Assignment",
+    "takeQuiz": "Take Quiz",
+    "askQuestion": "Ask Question",
+    "shareNotes": "Share Notes"
+  },
+  "content": {
+    "video": "Video",
+    "audio": "Audio",
+    "text": "Text",
+    "interactive": "Interactive",
+    "quiz": "Quiz",
+    "assignment": "Assignment",
+    "discussion": "Discussion",
+    "presentation": "Presentation"
+  },
+  "progress": {
+    "notStarted": "Not Started",
+    "watching": "Watching",
+    "paused": "Paused",
+    "completed": "Completed",
+    "progressPercent": "{{percent}}% Complete",
+    "timeRemaining": "{{time}} remaining",
+    "timeSpent": "{{time}} spent"
+  },
+  "quiz": {
+    "title": "Quiz",
+    "question": "Question {{current}} of {{total}}",
+    "multipleChoice": "Multiple Choice",
+    "trueFalse": "True/False",
+    "fillBlank": "Fill in the Blank",
+    "essay": "Essay",
+    "submit": "Submit Quiz",
+    "nextQuestion": "Next Question",
+    "previousQuestion": "Previous Question",
+    "timeLeft": "Time Left: {{time}}",
+    "score": "Score: {{score}}%",
+    "passed": "Passed",
+    "failed": "Failed",
+    "retake": "Retake Quiz"
+  },
+  "vocabulary": {
+    "newWords": "New Words",
+    "practice": "Practice",
+    "flashcards": "Flashcards",
+    "pronunciation": "Pronunciation",
+    "definition": "Definition",
+    "example": "Example",
+    "translation": "Translation",
+    "synonym": "Synonym",
+    "antonym": "Antonym",
+    "difficulty": "Difficulty",
+    "mastered": "Mastered",
+    "learning": "Learning",
+    "review": "Review"
+  }
+}

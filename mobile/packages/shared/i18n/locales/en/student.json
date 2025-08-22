@@ -1,0 +1,81 @@
+{
+  "dashboard": {
+    "title": "Student Dashboard",
+    "welcome": "Welcome back, {{name}}",
+    "todayLessons": "Today's Lessons",
+    "upcomingAssignments": "Upcoming Assignments",
+    "recentAchievements": "Recent Achievements"
+  },
+  "learning": {
+    "myLessons": "My Lessons",
+    "continueLearning": "Continue Learning",
+    "nextLesson": "Next Lesson",
+    "recommendedLessons": "Recommended Lessons",
+    "studyPlan": "Study Plan",
+    "progress": "Learning Progress",
+    "goals": "Learning Goals"
+  },
+  "homework": {
+    "myHomework": "My Homework",
+    "dueToday": "Due Today",
+    "upcomingHomework": "Upcoming Homework",
+    "completedHomework": "Completed Homework",
+    "overdueHomework": "Overdue Homework",
+    "submitHomework": "Submit Homework",
+    "homeworkInstructions": "Instructions"
+  },
+  "grades": {
+    "myGrades": "My Grades",
+    "recentGrades": "Recent Grades",
+    "gradeHistory": "Grade History",
+    "subjectGrades": "Subject Grades",
+    "averageGrade": "Average Grade",
+    "improvement": "Improvement Areas",
+    "strengths": "Strengths"
+  },
+  "schedule": {
+    "mySchedule": "My Schedule",
+    "todaySchedule": "Today's Schedule",
+    "weeklySchedule": "Weekly Schedule",
+    "upcomingClasses": "Upcoming Classes",
+    "classReminder": "Class Reminder",
+    "examSchedule": "Exam Schedule"
+  },
+  "achievements": {
+    "myAchievements": "My Achievements",
+    "badges": "Badges",
+    "streaks": "Streaks",
+    "milestones": "Milestones",
+    "leaderboard": "Leaderboard",
+    "points": "Points",
+    "level": "Level",
+    "certificates": "Certificates"
+  },
+  "vocabulary": {
+    "practiceVocabulary": "Practice Vocabulary",
+    "flashcards": "Flashcards",
+    "wordOfDay": "Word of the Day",
+    "vocabularyProgress": "Vocabulary Progress",
+    "newWords": "New Words",
+    "reviewWords": "Review Words",
+    "masteredWords": "Mastered Words"
+  },
+  "study": {
+    "studyMode": "Study Mode",
+    "practiceTests": "Practice Tests",
+    "studyGuides": "Study Guides",
+    "noteTaking": "Note Taking",
+    "studyGroups": "Study Groups",
+    "studyTimer": "Study Timer",
+    "breakReminder": "Break Reminder"
+  },
+  "progress": {
+    "overallProgress": "Overall Progress",
+    "subjectProgress": "Subject Progress",
+    "weakAreas": "Areas to Improve",
+    "strongAreas": "Strong Areas",
+    "studyStats": "Study Statistics",
+    "timeSpent": "Time Spent",
+    "completionRate": "Completion Rate"
+  }
+}
