@@ -17,15 +17,14 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  
+  // Skip static optimization for auth-protected routes
+  output: 'standalone',
+  trailingSlash: false,
+  
   // Performance Optimizations
   compress: true,
   
-  // Bundle Analysis
-  ...(process.env['ANALYZE'] === 'true' && {
-    bundleAnalyzer: {
-      enabled: true,
-    }
-  }),
 
   // Experimental features for performance
   experimental: {
@@ -162,11 +161,11 @@ const nextConfig: NextConfig = {
 
     // Add bundle analyzer
     if (process.env['ANALYZE'] === 'true') {
-      const BundleAnalyzerPlugin = require('@next/bundle-analyzer')()
-      config.plugins.push(new BundleAnalyzerPlugin({
-        analyzerMode: 'static',
+      const withBundleAnalyzer = require('@next/bundle-analyzer')({
+        enabled: true,
         openAnalyzer: true,
-      }))
+      })
+      return withBundleAnalyzer({}).webpack(config, { dev, isServer })
     }
 
     return config

@@ -1,5 +1,6 @@
 import { BaseService } from './base-service'
 import { apiCache } from '@/lib/utils/api-cache'
+import { withTimeout } from '@/lib/middleware/performance'
 import { teacherInsertSchema, teacherUpdateSchema, teacherSearchSchema, paginationSchema } from '@/lib/validations'
 import type { Teacher, TeacherInsert } from '@/types/database'
 import type { Database } from '@/types/database.types'
@@ -403,42 +404,67 @@ export class TeacherService extends BaseService {
   }
 
   /**
-   * Bulk operations
+   * Bulk operations - Optimized with parallel processing
    */
-  async bulkDelete(ids: string[]): Promise<{ success: number; errors: string[] }> {
-    await this.checkPermission(['admin', 'superadmin'])
+  async bulkDelete(ids: string[]): Promise<{ success: number; errors: string[]; duration: number }> {
+    const { OptimizedBulkService } = await import('./optimized-bulk-service')
+    const bulkService = new OptimizedBulkService('teachers')
     
-    const results = { success: 0, errors: [] as string[] }
+    // Validate bulk operation
+    bulkService.validateBulkOperation(ids, 500) // Max 500 teachers at once
     
-    for (const id of ids) {
-      try {
-        await this.delete(id)
-        results.success++
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error)
-        results.errors.push(`Failed to delete teacher ${id}: ${message}`)
-      }
-    }
+    const result = await bulkService.bulkDelete(ids)
     
-    return results
+    // Log bulk operation for audit
+    await this.logActivity(
+      'BULK_DELETE',
+      'multiple',
+      `${ids.length} teachers`,
+      null,
+      { ids, result },
+      `Bulk deleted ${result.success}/${result.total} teachers in ${result.duration}ms`
+    )
+    
+    return result
   }
 
-  async bulkRestore(ids: string[]): Promise<{ success: number; errors: string[] }> {
-    await this.checkPermission(['admin', 'superadmin'])
+  async bulkRestore(ids: string[]): Promise<{ success: number; errors: string[]; duration: number }> {
+    const { OptimizedBulkService } = await import('./optimized-bulk-service')
+    const bulkService = new OptimizedBulkService('teachers')
     
-    const results = { success: 0, errors: [] as string[] }
+    bulkService.validateBulkOperation(ids, 500)
     
-    for (const id of ids) {
-      try {
-        await this.restore(id)
-        results.success++
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error)
-        results.errors.push(`Failed to restore teacher ${id}: ${message}`)
-      }
-    }
+    const result = await bulkService.bulkRestore(ids)
     
-    return results
+    await this.logActivity(
+      'BULK_RESTORE',
+      'multiple',
+      `${ids.length} teachers`,
+      null,
+      { ids, result },
+      `Bulk restored ${result.success}/${result.total} teachers in ${result.duration}ms`
+    )
+    
+    return result
+  }
+
+  /**
+   * Bulk update with progress tracking
+   */
+  async bulkUpdateWithProgress<T>(
+    updates: Array<{ id: string, data: T }>,
+    progressCallback?: (completed: number, total: number, errors: number) => void
+  ): Promise<{ success: number; errors: string[]; duration: number }> {
+    const { OptimizedBulkService } = await import('./optimized-bulk-service')
+    const bulkService = new OptimizedBulkService('teachers')
+    
+    return await bulkService.bulkOperationWithProgress(
+      updates,
+      async (update) => {
+        return await this.update(update.id, update.data)
+      },
+      progressCallback
+    )
   }
 
   /**

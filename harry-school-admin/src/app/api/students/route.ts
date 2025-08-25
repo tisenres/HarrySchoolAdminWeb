@@ -3,10 +3,18 @@ import { StudentService } from '@/lib/services/student-service'
 import { studentInsertSchema } from '@/lib/validations'
 import { createStudentSchema } from '@/lib/validations/student'
 import { withAuth } from '@/lib/middleware/api-auth'
+import { withMiddleware, withCaching, withErrorBoundary, withPerformanceMonitoring, sanitizeInput } from '@/lib/middleware/performance'
 import { z } from 'zod'
 
-// GET with authentication and organization filtering
-export const GET = withAuth(async (request: NextRequest, context) => {
+// Enable caching for GET requests
+export const revalidate = 60 // Cache for 60 seconds
+
+// GET with authentication, caching, and performance monitoring
+export const GET = withMiddleware(
+  withCaching,
+  withErrorBoundary,
+  withPerformanceMonitoring
+)(withAuth(async (request: NextRequest, context) => {
   try {
     const searchParams = request.nextUrl.searchParams
     const { createServerClient } = await import('@/lib/supabase-server')
@@ -69,7 +77,7 @@ export const GET = withAuth(async (request: NextRequest, context) => {
     
     const totalPages = Math.ceil((count || 0) / limit)
     
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       data: data || [],
       pagination: {
@@ -79,6 +87,12 @@ export const GET = withAuth(async (request: NextRequest, context) => {
         total_pages: totalPages
       }
     })
+    
+    // Add performance headers
+    response.headers.set('X-Total-Count', String(count || 0))
+    response.headers.set('X-Page-Count', String(totalPages))
+    
+    return response
   } catch (error) {
     console.error('❌ Server Error:', error)
     return NextResponse.json(
@@ -96,11 +110,15 @@ export const GET = withAuth(async (request: NextRequest, context) => {
       { status: 500 }
     )
   }
-}, 'admin')
+}, 'admin'))
 
-// POST with authentication and proper organization handling
-export const POST = withAuth(async (request: NextRequest, context) => {
-  const body = await request.json()
+// POST with enhanced error handling and input sanitization
+export const POST = withMiddleware(
+  withErrorBoundary,
+  withPerformanceMonitoring
+)(withAuth(async (request: NextRequest, context) => {
+  const rawBody = await request.json()
+  const body = sanitizeInput(rawBody)
   
   try {
     // First validate using the form schema
@@ -168,7 +186,7 @@ export const POST = withAuth(async (request: NextRequest, context) => {
     
     console.log('✅ Student Created in Supabase:', student)
     
-    return NextResponse.json(
+    const response = NextResponse.json(
       { 
         success: true,
         data: student,
@@ -176,6 +194,11 @@ export const POST = withAuth(async (request: NextRequest, context) => {
       },
       { status: 201 }
     )
+    
+    // Add location header for created resource
+    response.headers.set('Location', `/api/students/${student.id}`)
+    
+    return response
   } catch (error) {
     if (error instanceof z.ZodError) {
       console.error('❌ Validation Error:', error.issues)
@@ -198,5 +221,5 @@ export const POST = withAuth(async (request: NextRequest, context) => {
       { status: 500 }
     )
   }
-}, 'admin')
+}, 'admin'))
 

@@ -1,53 +1,64 @@
-'use client'
+import { redirect } from 'next/navigation'
+import { createServerClient } from '@/lib/supabase-server'
+import { DashboardLayoutClient } from '@/components/layout/dashboard-layout-client'
+import { Suspense } from 'react'
+import { PageLoadingSkeleton } from '@/components/ui/skeleton-dashboard'
 
-import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { Sidebar } from '@/components/layout/sidebar'
-import { Header } from '@/components/layout/header'
-import { useAuth } from '@/components/providers/auth-provider'
-import { Loader2 } from 'lucide-react'
-
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
+  params,
 }: {
   children: React.ReactNode
+  params: Promise<{ locale: string }>
 }) {
-  const { user, loading } = useAuth()
-  const router = useRouter()
+  // Get user authentication on server side
+  const supabase = await createServerClient()
+  const { data: { user }, error } = await supabase.auth.getUser()
 
-  useEffect(() => {
-    // If not loading and no user, redirect to login
-    if (!loading && !user) {
-      router.push('/login')
-    }
-  }, [user, loading, router])
+  const { locale } = await params
 
-  // Show loading state while checking authentication
-  if (loading) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-background">
-        <div className="flex flex-col items-center gap-2">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-sm text-muted-foreground">Loading...</p>
-        </div>
-      </div>
-    )
+  // Redirect to login if not authenticated
+  if (!user || error) {
+    redirect(`/${locale}/login`)
   }
 
-  // Don't render dashboard if no user
-  if (!user) {
-    return null
+  // Optional: Verify user profile and organization access
+  try {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('organization_id, role, is_active')
+      .eq('id', user.id)
+      .single()
+
+    // Redirect to login if profile not found or inactive
+    if (!profile || !profile.is_active) {
+      redirect(`/${locale}/login`)
+    }
+
+    // Check for maintenance mode (for non-superadmins)
+    if (profile.role !== 'superadmin') {
+      const { data: maintenanceSetting } = await supabase
+        .from('system_settings')
+        .select('value')
+        .eq('organization_id', profile.organization_id)
+        .eq('category', 'system')
+        .eq('key', 'maintenance_mode')
+        .maybeSingle()
+      
+      if (maintenanceSetting?.value === true) {
+        redirect(`/${locale}/maintenance`)
+      }
+    }
+  } catch (profileError) {
+    console.error('Error checking user profile:', profileError)
+    // Don't redirect on profile errors, just log and continue
   }
 
   return (
-    <div className="flex h-screen bg-background">
-      <Sidebar />
-      <div className="flex flex-1 flex-col overflow-hidden">
-        <Header />
-        <main className="flex-1 overflow-y-auto p-6">
-          {children}
-        </main>
-      </div>
-    </div>
+    <DashboardLayoutClient>
+      <Suspense fallback={<PageLoadingSkeleton />}>
+        {children}
+      </Suspense>
+    </DashboardLayoutClient>
   )
 }

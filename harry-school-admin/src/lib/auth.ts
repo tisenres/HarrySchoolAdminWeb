@@ -6,7 +6,7 @@ import type { UserRole } from '@/types/database'
  * Create a Supabase client for server-side authentication
  */
 export async function createAuthClient() {
-  return createServerClient()
+  return await createServerClient()
 }
 
 /**
@@ -310,3 +310,21 @@ export async function revokeUserAccess(userId: string): Promise<void> {
     throw error
   }
 }
+
+/**
+ * Default export for compatibility with existing imports
+ */
+const auth = {
+  getUser: getCurrentUser,
+  getCurrentUser,
+  getCurrentProfile,
+  getCurrentOrganization,
+  hasRequiredRole,
+  requireAuth,
+  requireRole,
+  requireAuthAndRole,
+  requireAdmin,
+  requireSuperadmin
+}
+
+export default auth

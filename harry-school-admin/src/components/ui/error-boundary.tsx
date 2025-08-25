@@ -75,4 +75,77 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 }
 
+// Page-level error boundary component for error.tsx files
+export function PageErrorBoundary({ 
+  error, 
+  reset, 
+  title = 'Something went wrong',
+  description = 'An error occurred while loading this page.',
+  showHome = true 
+}: {
+  error: Error & { digest?: string }
+  reset: () => void
+  title?: string
+  description?: string
+  showHome?: boolean
+}) {
+  return (
+    <div className="flex items-center justify-center min-h-[60vh] p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center">
+          <div className="flex justify-center mb-4">
+            <div className="rounded-full bg-destructive/10 p-3">
+              <AlertCircle className="h-8 w-8 text-destructive" />
+            </div>
+          </div>
+          <CardTitle className="text-xl">{title}</CardTitle>
+          <CardDescription>
+            {description}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Error Details - Only in development */}
+          {process.env.NODE_ENV === 'development' && (
+            <details className="text-sm">
+              <summary className="cursor-pointer text-muted-foreground hover:text-foreground mb-2">
+                Technical Details
+              </summary>
+              <div className="bg-muted p-3 rounded-md font-mono text-xs break-all">
+                <div className="text-destructive font-medium mb-1">
+                  {error.name}: {error.message}
+                </div>
+                {error.digest && (
+                  <div className="text-muted-foreground">
+                    Digest: {error.digest}
+                  </div>
+                )}
+              </div>
+            </details>
+          )}
+
+          {/* Action Buttons */}
+          <div className="flex flex-col gap-2">
+            <Button onClick={reset} className="w-full">
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Try Again
+            </Button>
+            {showHome && (
+              <Button variant="outline" asChild className="w-full">
+                <a href="/en">
+                  <AlertCircle className="mr-2 h-4 w-4" />
+                  Go Home
+                </a>
+              </Button>
+            )}
+          </div>
+          
+          <p className="text-xs text-muted-foreground text-center">
+            If this problem persists, please contact support.
+          </p>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+
 export default ErrorBoundary

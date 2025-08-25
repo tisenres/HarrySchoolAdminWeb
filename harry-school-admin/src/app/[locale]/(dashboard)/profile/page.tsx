@@ -3,6 +3,9 @@ import { redirect } from 'next/navigation'
 import { ProfileView } from '@/components/admin/profile/profile-view'
 import { getTranslations } from 'next-intl/server'
 
+// Force dynamic rendering for authenticated routes
+export const dynamic = 'force-dynamic'
+
 export default async function ProfilePage() {
   const profile = await getCurrentProfile()
   const t = await getTranslations('profile')

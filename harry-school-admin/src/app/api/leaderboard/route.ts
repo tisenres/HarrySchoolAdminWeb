@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase-server'
-import { auth } from '@/lib/auth'
+import { getCurrentUser } from '@/lib/auth'
 
 interface LeaderboardFilters {
   group_id?: string
@@ -38,7 +38,7 @@ async function getLeaderboardData(
   organizationId: string,
   filters: LeaderboardFilters
 ): Promise<{ students: LeaderboardStudent[], total_count: number }> {
-  const supabase = createClient()
+  const supabase = await createClient()
   
   // Base query with optimized joins and ranking calculation
   let query = supabase
@@ -73,13 +73,13 @@ async function getLeaderboardData(
 export async function GET(request: NextRequest) {
   try {
     // Authenticate user
-    const user = await auth.getUser()
+    const user = await getCurrentUser()
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     // Get organization from user profile
-    const supabase = createClient()
+    const supabase = await createClient()
     const { data: profile } = await supabase
       .from('profiles')
       .select('organization_id')
@@ -142,7 +142,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     // Authenticate user
-    const user = await auth.getUser()
+    const user = await getCurrentUser()
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -150,7 +150,7 @@ export async function POST(request: NextRequest) {
     const { format, filters } = await request.json()
 
     // Get organization from user profile
-    const supabase = createClient()
+    const supabase = await createClient()
     const { data: profile } = await supabase
       .from('profiles')
       .select('organization_id')

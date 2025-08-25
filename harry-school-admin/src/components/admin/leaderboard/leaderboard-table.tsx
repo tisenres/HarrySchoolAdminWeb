@@ -136,21 +136,33 @@ interface ColumnConfig {
   viewType?: 'performance' | 'referrals' | 'combined' | 'all' // Controls which view shows this column
 }
 
-const getDefaultColumns = (t: any): ColumnConfig[] => [
-  { key: 'current_rank', label: t('columns.rank'), sortable: false, visible: true, width: 'w-16', viewType: 'all' },
-  { key: 'rank_badge', label: '', sortable: false, visible: true, width: 'w-12', viewType: 'all' },
-  { key: 'student_name', label: t('columns.student'), sortable: true, visible: true, viewType: 'all' },
-  { key: 'period_points', label: t('columns.points'), sortable: true, visible: true, viewType: 'performance' },
-  { key: 'current_level', label: t('columns.level'), sortable: true, visible: true, viewType: 'performance' },
-  { key: 'total_achievements', label: t('columns.achievements'), sortable: true, visible: true, viewType: 'performance' },
-  { key: 'achievements_preview', label: t('columns.recent'), sortable: false, visible: true, viewType: 'performance' },
-  { key: 'total_referrals', label: t('columns.referrals'), sortable: true, visible: true, viewType: 'referrals' },
-  { key: 'successful_referrals', label: t('columns.successful'), sortable: true, visible: true, viewType: 'referrals' },
-  { key: 'referral_conversion', label: t('columns.conversion'), sortable: true, visible: true, viewType: 'referrals' },
-  { key: 'referral_points_earned', label: t('columns.referralPoints'), sortable: true, visible: true, viewType: 'referrals' },
-  { key: 'recent_referrals_preview', label: t('columns.recentReferrals'), sortable: false, visible: true, viewType: 'referrals' },
-  { key: 'last_activity_date', label: t('columns.lastActive'), sortable: true, visible: true, viewType: 'all' },
-]
+const getDefaultColumns = (t: any): ColumnConfig[] => {
+  // Defensive translation with fallbacks
+  const getText = (key: string, fallback: string) => {
+    try {
+      const translated = t(`columns.${key}`)
+      return translated.includes('columns.') ? fallback : translated
+    } catch {
+      return fallback
+    }
+  }
+
+  return [
+    { key: 'current_rank', label: getText('rank', 'Rank'), sortable: false, visible: true, width: 'w-16', viewType: 'all' },
+    { key: 'rank_badge', label: '', sortable: false, visible: true, width: 'w-12', viewType: 'all' },
+    { key: 'student_name', label: getText('student', 'Student'), sortable: true, visible: true, viewType: 'all' },
+    { key: 'period_points', label: getText('points', 'Points'), sortable: true, visible: true, viewType: 'performance' },
+    { key: 'current_level', label: getText('level', 'Level'), sortable: true, visible: true, viewType: 'performance' },
+    { key: 'total_achievements', label: getText('achievements', 'Achievements'), sortable: true, visible: true, viewType: 'performance' },
+    { key: 'achievements_preview', label: getText('recent', 'Recent'), sortable: false, visible: true, viewType: 'performance' },
+    { key: 'total_referrals', label: getText('referrals', 'Referrals'), sortable: true, visible: true, viewType: 'referrals' },
+    { key: 'successful_referrals', label: getText('successful', 'Successful'), sortable: true, visible: true, viewType: 'referrals' },
+    { key: 'referral_conversion', label: getText('conversion', 'Conversion'), sortable: true, visible: true, viewType: 'referrals' },
+    { key: 'referral_points_earned', label: getText('referralPoints', 'Referral Points'), sortable: true, visible: true, viewType: 'referrals' },
+    { key: 'recent_referrals_preview', label: getText('recentReferrals', 'Recent Referrals'), sortable: false, visible: true, viewType: 'referrals' },
+    { key: 'last_activity_date', label: getText('lastActive', 'Last Active'), sortable: true, visible: true, viewType: 'all' },
+  ]
+}
 
 export function LeaderboardTable({
   students,
@@ -173,6 +185,15 @@ export function LeaderboardTable({
   const [columnConfig, setColumnConfig] = useState<ColumnConfig[]>(() => getDefaultColumns(t))
   const [tableDensity, setTableDensity] = useState<'comfortable' | 'compact' | 'spacious'>('comfortable')
   const [searchTerm, setSearchTerm] = useState(filters.search || '')
+
+  // Update column config when translations are ready
+  useEffect(() => {
+    const updatedColumns = getDefaultColumns(t)
+    setColumnConfig(prev => prev.map((col, index) => ({
+      ...col,
+      label: updatedColumns[index]?.label || col.label
+    })))
+  }, [t])
 
   // Debounced search handling
   useEffect(() => {
