@@ -1,0 +1,86 @@
+{
+  "dashboard": {
+    "title": "Teacher Dashboard",
+    "welcome": "Welcome, {{name}}",
+    "todayClasses": "Today's Classes",
+    "upcomingClasses": "Upcoming Classes",
+    "pendingTasks": "Pending Tasks"
+  },
+  "classes": {
+    "myClasses": "My Classes",
+    "createClass": "Create Class",
+    "manageClasses": "Manage Classes",
+    "classSize": "Class Size",
+    "activeStudents": "Active Students",
+    "averageAttendance": "Average Attendance",
+    "classPerformance": "Class Performance"
+  },
+  "attendance": {
+    "markAttendance": "Mark Attendance",
+    "todayAttendance": "Today's Attendance",
+    "attendanceHistory": "Attendance History",
+    "attendanceReport": "Attendance Report",
+    "present": "Present",
+    "absent": "Absent",
+    "late": "Late",
+    "excused": "Excused",
+    "markAll": "Mark All"
+  },
+  "grading": {
+    "gradeAssignments": "Grade Assignments",
+    "pendingGrades": "Pending Grades",
+    "gradeBook": "Grade Book",
+    "assignmentScores": "Assignment Scores",
+    "finalGrades": "Final Grades",
+    "gradeDistribution": "Grade Distribution",
+    "enterGrade": "Enter Grade",
+    "addComment": "Add Comment"
+  },
+  "assignments": {
+    "createAssignment": "Create Assignment",
+    "myAssignments": "My Assignments",
+    "dueAssignments": "Due Assignments",
+    "submittedAssignments": "Submitted Assignments",
+    "assignmentTitle": "Assignment Title",
+    "dueDate": "Due Date",
+    "instructions": "Instructions",
+    "attachments": "Attachments",
+    "rubric": "Rubric"
+  },
+  "students": {
+    "myStudents": "My Students",
+    "studentList": "Student List",
+    "studentProgress": "Student Progress",
+    "studentPerformance": "Student Performance",
+    "contactParent": "Contact Parent",
+    "studentProfile": "Student Profile",
+    "behaviorNotes": "Behavior Notes"
+  },
+  "communication": {
+    "messages": "Messages",
+    "sendMessage": "Send Message",
+    "messageParents": "Message Parents",
+    "announcements": "Announcements",
+    "classUpdates": "Class Updates",
+    "parentMeeting": "Parent Meeting",
+    "schedule": "Schedule Meeting"
+  },
+  "reports": {
+    "generateReport": "Generate Report",
+    "classReport": "Class Report",
+    "studentReport": "Student Report",
+    "attendanceReport": "Attendance Report",
+    "performanceReport": "Performance Report",
+    "progressReport": "Progress Report",
+    "exportReport": "Export Report"
+  },
+  "tools": {
+    "lessonPlanner": "Lesson Planner",
+    "gradebook": "Gradebook",
+    "calendar": "Calendar",
+    "resources": "Resources",
+    "whiteBoard": "Whiteboard",
+    "screenShare": "Screen Share",
+    "recordLesson": "Record Lesson"
+  }
+}

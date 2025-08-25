@@ -1,0 +1,99 @@
+{
+  "greetings": {
+    "assalamuAlaikum": "Assalomu alaykum",
+    "walaykumSalam": "Va alaykum salom",
+    "goodMorning": "Xayrli tong",
+    "goodAfternoon": "Xayrli kun",
+    "goodEvening": "Xayrli oqshom",
+    "welcome": "Xush kelibsiz",
+    "welcomeBack": "Xush qaytdingiz",
+    "bismillah": "Bismillah",
+    "alhamdulillah": "Alhamdulillah",
+    "mashAllah": "MoshaAlloh",
+    "inshAllah": "InshaAlloh",
+    "barakAllahu": "BorakAllahu fiki/fik"
+  },
+  "prayers": {
+    "fajr": "Bomdod",
+    "dhuhr": "Peshin",
+    "asr": "Asr",
+    "maghrib": "Shom",
+    "isha": "Xufton",
+    "prayerTime": "Namoz vaqti",
+    "prayerReminder": "Namoz eslatmasi",
+    "timeForPrayer": "{{prayer}} namozi vaqti",
+    "prayerIn": "{{prayer}} namazigacha {{time}}",
+    "afterPrayer": "{{prayer}} namazidan keyin",
+    "beforePrayer": "{{prayer}} namazidan oldin"
+  },
+  "islamicCalendar": {
+    "hijri": "Hijriy",
+    "gregorian": "Grigoriy",
+    "islamicNewYear": "Islomiy yangi yil",
+    "ramadan": "Ramazon",
+    "eidAlFitr": "Ro'za hayiti",
+    "eidAlAdha": "Qurbon hayiti",
+    "ashura": "Ashura kuni",
+    "mawlid": "Mavlud an-Nabiy",
+    "rajab": "Rajab",
+    "shaban": "Sha'bon",
+    "dhulHijjah": "Zulhijja"
+  },
+  "values": {
+    "tawhid": "Tawhid (Allohning birligi)",
+    "akhlaq": "Axloq (Yaxshi xulq)",
+    "adl": "Adl (Adolat)",
+    "hikmah": "Hikmat (Donolik)",
+    "sabr": "Sabr (Chidamlilik)",
+    "shukr": "Shukr (Minnatdorchilik)",
+    "taqwa": "Taqvo (Allohdan qo'rqish)",
+    "ihsan": "Ihson (Mukammallik)",
+    "ummah": "Ummat (Jamoa)",
+    "barakah": "Barakat (Ne'mat)"
+  },
+  "education": {
+    "islamicStudies": "Islomiy fanlar",
+    "quranStudies": "Qur'on o'rganish",
+    "hadithStudies": "Hadis o'rganish",
+    "arabicLanguage": "Arab tili",
+    "islamicHistory": "Islom tarixi",
+    "islamicEthics": "Islomiy axloq",
+    "seerah": "Sira (Payg'ambar tarjimayi holi)",
+    "fiqh": "Fiqh (Islom huquqshunosligi)",
+    "tajweed": "Tajvid",
+    "memorization": "Qur'on yodlash"
+  },
+  "family": {
+    "family": "Oila",
+    "parent": "Ota-ona",
+    "father": "Ota",
+    "mother": "Ona",
+    "brother": "Aka/uka",
+    "sister": "Opa/singil",
+    "son": "O'g'il",
+    "daughter": "Qiz",
+    "guardian": "Vasiy",
+    "familyEngagement": "Oila ishtiroki",
+    "parentTeacherMeeting": "Ota-ona-o'qituvchi uchrashovi",
+    "familyWorkshop": "Oila seminari"
+  },
+  "respect": {
+    "ustadh": "Ustoz (Erkak o'qituvchi)",
+    "ustadha": "Ustoza (Ayol o'qituvchi)",
+    "respectfulAddress": "Hurmatli murojaat",
+    "honorific": "Sharaf unvoni",
+    "elder": "Katta",
+    "student": "Talaba",
+    "scholar": "Olim"
+  },
+  "community": {
+    "community": "Jamiyat",
+    "brotherhood": "Birodarlik",
+    "sisterhood": "Opa-singillik",
+    "cooperation": "Hamkorlik",
+    "solidarity": "Birdamlik",
+    "support": "Qo'llab-quvvatlash",
+    "helpingOthers": "Boshqalarga yordam berish",
+    "serviceToOthers": "Boshqalarga xizmat qilish"
+  }
+}

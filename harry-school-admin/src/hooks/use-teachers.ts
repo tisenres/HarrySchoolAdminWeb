@@ -152,23 +152,52 @@ export function useCreateTeacher() {
       return response.json()
     },
     onSuccess: (newTeacher) => {
-      // Invalidate teachers list to refetch with new data
-      cacheUtils.invalidateEntity('teachers')
+      // OPTIMIZED: Surgical cache updates instead of broad invalidation
       
-      // Optionally add the new teacher to existing cache
-      const existingQueries = queryClient.getQueriesData({ queryKey: queryKeys.teachers })
+      // 1. Update specific teacher list caches precisely
+      const existingQueries = queryClient.getQueriesData({ 
+        queryKey: ['teachers', 'list'] 
+      })
+      
       existingQueries.forEach(([queryKey, data]: [any, any]) => {
         if (data && Array.isArray(data.data)) {
-          queryClient.setQueryData(queryKey, {
-            ...data,
-            data: [newTeacher, ...data.data],
-            count: data.count + 1,
-          })
+          // Add new teacher to the beginning of first page only
+          const [, , filters, sort, page] = queryKey
+          if (page === 1) {
+            queryClient.setQueryData(queryKey, {
+              ...data,
+              data: [newTeacher, ...data.data.slice(0, -1)], // Maintain page size
+              count: data.count + 1,
+              total_pages: Math.ceil((data.count + 1) / (data.data.length || 20))
+            })
+          } else {
+            // For other pages, just update count and total_pages
+            queryClient.setQueryData(queryKey, {
+              ...data,
+              count: data.count + 1,
+              total_pages: Math.ceil((data.count + 1) / (data.data.length || 20))
+            })
+          }
         }
       })
       
-      // Invalidate stats
-      queryClient.invalidateQueries({ queryKey: queryKeys.teachersStats() })
+      // 2. Surgically update stats instead of refetching
+      const currentStats = queryClient.getQueryData(queryKeys.teachersStats())
+      if (currentStats && typeof currentStats === 'object') {
+        queryClient.setQueryData(queryKeys.teachersStats(), {
+          ...currentStats,
+          total: ((currentStats as any).total || 0) + 1,
+          active: newTeacher.is_active ? ((currentStats as any).active || 0) + 1 : (currentStats as any).active,
+          full_time: newTeacher.employment_status === 'full_time' 
+            ? ((currentStats as any).full_time || 0) + 1 
+            : (currentStats as any).full_time,
+          part_time: newTeacher.employment_status === 'part_time'
+            ? ((currentStats as any).part_time || 0) + 1
+            : (currentStats as any).part_time,
+        })
+      }
+      
+      // 3. No broad invalidation needed - we've updated everything precisely
     },
   })
 }
@@ -239,23 +268,47 @@ export function useDeleteTeacher() {
       return response.json()
     },
     onSuccess: (_, teacherId) => {
-      // Remove from detail cache
+      // Get teacher data before removal for stats update
+      const teacherData = queryClient.getQueryData(queryKeys.teacherDetail(teacherId)) as Teacher | undefined
+      
+      // 1. Remove from detail cache
       queryClient.removeQueries({ queryKey: queryKeys.teacherDetail(teacherId) })
       
-      // Remove from all list caches
-      const existingQueries = queryClient.getQueriesData({ queryKey: queryKeys.teachers })
+      // 2. Remove from all list caches and update counts precisely
+      const existingQueries = queryClient.getQueriesData({ queryKey: ['teachers', 'list'] })
       existingQueries.forEach(([queryKey, data]: [any, any]) => {
         if (data && Array.isArray(data.data)) {
           queryClient.setQueryData(queryKey, {
             ...data,
             data: data.data.filter((teacher: Teacher) => teacher.id !== teacherId),
             count: Math.max(0, data.count - 1),
+            total_pages: Math.ceil(Math.max(0, data.count - 1) / (data.limit || 20))
           })
         }
       })
       
-      // Invalidate stats
-      queryClient.invalidateQueries({ queryKey: queryKeys.teachersStats() })
+      // 3. Surgically update stats if we have teacher data
+      if (teacherData) {
+        const currentStats = queryClient.getQueryData(queryKeys.teachersStats())
+        if (currentStats && typeof currentStats === 'object') {
+          queryClient.setQueryData(queryKeys.teachersStats(), {
+            ...currentStats,
+            total: Math.max(0, ((currentStats as any).total || 0) - 1),
+            active: teacherData.is_active 
+              ? Math.max(0, ((currentStats as any).active || 0) - 1) 
+              : (currentStats as any).active,
+            full_time: teacherData.employment_status === 'full_time' 
+              ? Math.max(0, ((currentStats as any).full_time || 0) - 1)
+              : (currentStats as any).full_time,
+            part_time: teacherData.employment_status === 'part_time'
+              ? Math.max(0, ((currentStats as any).part_time || 0) - 1)
+              : (currentStats as any).part_time,
+          })
+        }
+      } else {
+        // Fallback: invalidate stats only if we don't have teacher data
+        queryClient.invalidateQueries({ queryKey: queryKeys.teachersStats() })
+      }
     },
   })
 }

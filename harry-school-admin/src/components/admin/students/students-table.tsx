@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useTranslations } from 'next-intl'
 import Link from 'next/link'
@@ -101,23 +101,35 @@ interface ColumnConfig {
   width?: string
 }
 
-const getDefaultColumns = (t: any): ColumnConfig[] => [
-  { key: 'select', label: '', sortable: false, visible: true, width: 'w-12' },
-  { key: 'student_id', label: t('studentsTable.columns.studentId'), sortable: true, visible: true },
-  { key: 'full_name', label: t('studentsTable.columns.name'), sortable: true, visible: true },
-  { key: 'age', label: t('studentsTable.columns.age'), sortable: true, visible: true },
-  { key: 'phone', label: t('studentsTable.columns.contact'), sortable: false, visible: true },
-  { key: 'parent_name', label: t('studentsTable.columns.parentGuardian'), sortable: true, visible: true },
-  { key: 'status', label: t('studentsTable.columns.status'), sortable: true, visible: true },
-  { key: 'payment_status', label: t('studentsTable.columns.payment'), sortable: true, visible: true },
-  { key: 'current_level', label: t('studentsTable.columns.level'), sortable: true, visible: true },
-  { key: 'enrolled_groups', label: t('studentsTable.columns.groups'), sortable: false, visible: true },
-  { key: 'referrals', label: 'Referrals', sortable: false, visible: true },
-  { key: 'ranking', label: t('studentsTable.columns.ranking'), sortable: true, visible: true },
-  { key: 'balance', label: t('studentsTable.columns.balance'), sortable: true, visible: true },
-  { key: 'enrollment_date', label: t('studentsTable.columns.enrolled'), sortable: true, visible: true },
-  { key: 'actions', label: '', sortable: false, visible: true, width: 'w-12' },
-]
+const getDefaultColumns = (t: any): ColumnConfig[] => {
+  // Defensive translation with fallbacks
+  const getText = (key: string, fallback: string) => {
+    try {
+      const translated = t(`studentsTable.columns.${key}`)
+      return translated.includes('studentsTable.columns.') ? fallback : translated
+    } catch {
+      return fallback
+    }
+  }
+
+  return [
+    { key: 'select', label: '', sortable: false, visible: true, width: 'w-12' },
+    { key: 'student_id', label: getText('studentId', 'Student ID'), sortable: true, visible: true },
+    { key: 'full_name', label: getText('name', 'Name'), sortable: true, visible: true },
+    { key: 'age', label: getText('age', 'Age'), sortable: true, visible: true },
+    { key: 'phone', label: getText('contact', 'Contact'), sortable: false, visible: true },
+    { key: 'parent_name', label: getText('parentGuardian', 'Parent/Guardian'), sortable: true, visible: true },
+    { key: 'status', label: getText('status', 'Status'), sortable: true, visible: true },
+    { key: 'payment_status', label: getText('payment', 'Payment'), sortable: true, visible: true },
+    { key: 'current_level', label: getText('level', 'Level'), sortable: true, visible: true },
+    { key: 'enrolled_groups', label: getText('groups', 'Groups'), sortable: false, visible: true },
+    { key: 'referrals', label: 'Referrals', sortable: false, visible: true },
+    { key: 'ranking', label: getText('ranking', 'Ranking'), sortable: true, visible: true },
+    { key: 'balance', label: getText('balance', 'Balance'), sortable: true, visible: true },
+    { key: 'enrollment_date', label: getText('enrolled', 'Enrolled'), sortable: true, visible: true },
+    { key: 'actions', label: '', sortable: false, visible: true, width: 'w-12' },
+  ]
+}
 
 export function StudentsTable({
   students,
@@ -148,6 +160,15 @@ export function StudentsTable({
   const t = useTranslations('students')
   const [columnConfig, setColumnConfig] = useState<ColumnConfig[]>(() => getDefaultColumns(t))
   const [tableDensity, setTableDensity] = useState<'comfortable' | 'compact' | 'spacious'>('comfortable')
+
+  // Update column config when translations are ready
+  useEffect(() => {
+    const updatedColumns = getDefaultColumns(t)
+    setColumnConfig(prev => prev.map((col, index) => ({
+      ...col,
+      label: updatedColumns[index]?.label || col.label
+    })))
+  }, [t])
 
   // Calculate age helper
   const calculateAge = useCallback((birthDate: string): number => {

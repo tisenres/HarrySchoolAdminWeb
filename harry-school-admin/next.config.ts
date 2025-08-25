@@ -4,6 +4,12 @@ import createNextIntlPlugin from 'next-intl/plugin';
 const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 
 const nextConfig: NextConfig = {
+  // Fix cross-origin resource loading for ngrok
+  allowedDevOrigins: [
+    '3b1348a71f69.ngrok-free.app',
+    '*.ngrok-free.app',
+  ],
+  
   // Temporarily skip type checking for deployment
   typescript: {
     ignoreBuildErrors: true,
@@ -11,15 +17,14 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  
+  // Skip static optimization for auth-protected routes
+  output: 'standalone',
+  trailingSlash: false,
+  
   // Performance Optimizations
   compress: true,
   
-  // Bundle Analysis
-  ...(process.env['ANALYZE'] === 'true' && {
-    bundleAnalyzer: {
-      enabled: true,
-    }
-  }),
 
   // Experimental features for performance
   experimental: {
@@ -29,6 +34,8 @@ const nextConfig: NextConfig = {
     esmExternals: true,
     // Memory optimization (Next.js 15+)
     webpackMemoryOptimizations: true,
+    // Enable concurrent features for better performance
+    ppr: false, // Partial Prerendering can cause slower initial loads in dev
     // Optimize package imports for better tree-shaking
     optimizePackageImports: [
       'lucide-react',
@@ -154,11 +161,11 @@ const nextConfig: NextConfig = {
 
     // Add bundle analyzer
     if (process.env['ANALYZE'] === 'true') {
-      const BundleAnalyzerPlugin = require('@next/bundle-analyzer')()
-      config.plugins.push(new BundleAnalyzerPlugin({
-        analyzerMode: 'static',
+      const withBundleAnalyzer = require('@next/bundle-analyzer')({
+        enabled: true,
         openAnalyzer: true,
-      }))
+      })
+      return withBundleAnalyzer({}).webpack(config, { dev, isServer })
     }
 
     return config

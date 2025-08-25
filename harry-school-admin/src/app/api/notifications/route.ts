@@ -1,10 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { NotificationService } from '@/lib/services/notification-service'
 import { getSupabaseServer } from '@/lib/supabase/server'
+import { withMiddleware, withCaching, withErrorBoundary, withPerformanceMonitoring, sanitizeInput } from '@/lib/middleware/performance'
+
+// Enable caching for GET requests
+export const revalidate = 30 // Cache for 30 seconds (notifications change frequently)
 
 const notificationService = new NotificationService()
 
-export async function GET(request: NextRequest) {
+export const GET = withMiddleware(
+  withCaching,
+  withErrorBoundary,
+  withPerformanceMonitoring
+)(async function(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const page = parseInt(searchParams.get('page') || '1')
@@ -20,7 +28,7 @@ export async function GET(request: NextRequest) {
 
     const result = await notificationService.getNotifications(filters, page, limit)
     
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       data: result.data,
       pagination: {
@@ -30,6 +38,11 @@ export async function GET(request: NextRequest) {
         hasMore: result.hasMore
       }
     })
+    
+    response.headers.set('X-Total-Count', String(result.count))
+    response.headers.set('X-Has-More', String(result.hasMore))
+    
+    return response
   } catch (error) {
     console.error('Error fetching notifications:', error)
     return NextResponse.json(
@@ -40,17 +53,25 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     )
   }
-}
+})
 
-export async function POST(request: NextRequest) {
+export const POST = withMiddleware(
+  withErrorBoundary,
+  withPerformanceMonitoring
+)(async function(request: NextRequest) {
   try {
-    const body = await request.json()
+    const rawBody = await request.json()
+    const body = sanitizeInput(rawBody)
     const notification = await notificationService.createNotification(body)
     
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       data: notification
-    })
+    }, { status: 201 })
+    
+    response.headers.set('Location', `/api/notifications/${notification.id}`)
+    
+    return response
   } catch (error) {
     console.error('Error creating notification:', error)
     return NextResponse.json(
@@ -61,4 +82,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     )
   }
-}
+})

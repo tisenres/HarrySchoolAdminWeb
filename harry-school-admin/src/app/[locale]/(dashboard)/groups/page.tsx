@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect, lazy, Suspense, useMemo, useCallback } from 'react'
 import { useTranslations } from 'next-intl'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -21,9 +21,18 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { GroupsTable } from '@/components/admin/groups/groups-table'
-import { GroupsFilters } from '@/components/admin/groups/groups-filters'
-import { GroupForm } from '@/components/admin/groups/group-form'
+import { SkeletonTable } from '@/components/ui/skeleton-table-new'
+
+// Optimized lazy loading with preloading
+const GroupsTable = lazy(() => 
+  import('@/components/admin/groups/groups-table').then(mod => ({ default: mod.GroupsTable }))
+)
+const GroupsFilters = lazy(() => 
+  import('@/components/admin/groups/groups-filters').then(mod => ({ default: mod.GroupsFilters }))
+)
+const GroupForm = lazy(() => 
+  import('@/components/admin/groups/group-form').then(mod => ({ default: mod.GroupForm }))
+)
 import {
   Plus,
   Users,
@@ -88,8 +97,8 @@ export default function GroupsPage() {
     }
   }
 
-  // Handle group creation
-  const handleCreateGroup = async (_group: Group) => {
+  // Optimized event handlers with useCallback
+  const handleCreateGroup = useCallback(async (_group: Group) => {
     try {
       setSubmitting(true)
       await loadData() // Refresh data
@@ -99,10 +108,10 @@ export default function GroupsPage() {
     } finally {
       setSubmitting(false)
     }
-  }
+  }, [loadData])
 
   // Handle group editing
-  const handleEditGroup = (group: GroupTableRow) => {
+  const handleEditGroup = useCallback((group: GroupTableRow) => {
     // Convert table row to full group for editing
     // In real app, we'd fetch full group data
     setEditingGroup({
@@ -122,9 +131,9 @@ export default function GroupsPage() {
       updated_at: new Date().toISOString()
     } as Group)
     setShowEditDialog(true)
-  }
+  }, [])
 
-  const handleUpdateGroup = async (_group: Group) => {
+  const handleUpdateGroup = useCallback(async (_group: Group) => {
     try {
       setSubmitting(true)
       await loadData() // Refresh data
@@ -135,15 +144,15 @@ export default function GroupsPage() {
     } finally {
       setSubmitting(false)
     }
-  }
+  }, [loadData])
 
   // Handle group deletion
-  const handleDeleteGroup = (group: GroupTableRow) => {
+  const handleDeleteGroup = useCallback((group: GroupTableRow) => {
     setDeletingGroup(group)
     setShowDeleteDialog(true)
-  }
+  }, [])
 
-  const confirmDeleteGroup = async () => {
+  const confirmDeleteGroup = useCallback(async () => {
     if (!deletingGroup) return
 
     try {
@@ -163,10 +172,10 @@ export default function GroupsPage() {
     } finally {
       setSubmitting(false)
     }
-  }
+  }, [deletingGroup, loadData])
 
   // Handle bulk actions
-  const handleBulkDelete = async () => {
+  const handleBulkDelete = useCallback(async () => {
     if (selectedIds.length === 0) return
 
     try {
@@ -184,11 +193,11 @@ export default function GroupsPage() {
     } finally {
       setSubmitting(false)
     }
-  }
+  }, [selectedIds, loadData])
 
-  const resetFilters = () => {
+  const resetFilters = useCallback(() => {
     setFilters({})
-  }
+  }, [])
 
   if (loading) {
     return (
@@ -297,19 +306,23 @@ export default function GroupsPage() {
       )}
 
       {/* Filters */}
-      <GroupsFilters
-        filters={filters}
-        onFiltersChange={setFilters}
-        onReset={resetFilters}
-      />
+      <Suspense fallback={<Card className="p-4">Loading filters...</Card>}>
+        <GroupsFilters
+          filters={filters}
+          onFiltersChange={setFilters}
+          onReset={resetFilters}
+        />
+      </Suspense>
 
       {/* Groups Table */}
-      <GroupsTable
-        filters={filters}
-        onSelectionChange={setSelectedIds}
-        onEdit={handleEditGroup}
-        onDelete={handleDeleteGroup}
-      />
+      <Suspense fallback={<SkeletonTable rows={8} />}>
+        <GroupsTable
+          filters={filters}
+          onSelectionChange={setSelectedIds}
+          onEdit={handleEditGroup}
+          onDelete={handleDeleteGroup}
+        />
+      </Suspense>
 
       {/* Create Group Dialog */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
@@ -320,12 +333,14 @@ export default function GroupsPage() {
               {t('createGroupDescription')}
             </DialogDescription>
           </DialogHeader>
-          <GroupForm
-            onSave={handleCreateGroup}
-            onCancel={() => setShowCreateDialog(false)}
-            isSubmitting={submitting}
-            hideHeader={true}
-          />
+          <Suspense fallback={<div className="flex items-center justify-center min-h-[400px]">Loading form...</div>}>
+            <GroupForm
+              onSave={handleCreateGroup}
+              onCancel={() => setShowCreateDialog(false)}
+              isSubmitting={submitting}
+              hideHeader={true}
+            />
+          </Suspense>
         </DialogContent>
       </Dialog>
 
@@ -339,16 +354,18 @@ export default function GroupsPage() {
             </DialogDescription>
           </DialogHeader>
           {editingGroup && (
-            <GroupForm
-              group={editingGroup}
-              onSave={handleUpdateGroup}
-              onCancel={() => {
-                setShowEditDialog(false)
-                setEditingGroup(undefined)
-              }}
-              isSubmitting={submitting}
-              hideHeader={true}
-            />
+            <Suspense fallback={<div className="flex items-center justify-center min-h-[400px]">Loading form...</div>}>
+              <GroupForm
+                group={editingGroup}
+                onSave={handleUpdateGroup}
+                onCancel={() => {
+                  setShowEditDialog(false)
+                  setEditingGroup(undefined)
+                }}
+                isSubmitting={submitting}
+                hideHeader={true}
+              />
+            </Suspense>
           )}
         </DialogContent>
       </Dialog>

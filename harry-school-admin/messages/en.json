@@ -247,6 +247,7 @@
   },
   "dashboard": {
     "title": "Dashboard",
+    "description": "Comprehensive overview of your educational institution's performance and activities",
     "welcomeMessage": "Welcome to Harry School CRM Admin Panel",
     "totalStudents": "Total Students",
     "activeGroups": "Active Groups",

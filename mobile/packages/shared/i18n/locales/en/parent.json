@@ -1,0 +1,81 @@
+{
+  "dashboard": {
+    "title": "Parent Dashboard",
+    "welcome": "Welcome, {{name}}",
+    "childrenOverview": "Children Overview",
+    "recentUpdates": "Recent Updates",
+    "upcomingEvents": "Upcoming Events"
+  },
+  "children": {
+    "myChildren": "My Children",
+    "addChild": "Add Child",
+    "childProfile": "Child Profile",
+    "academicProgress": "Academic Progress",
+    "behaviorReport": "Behavior Report",
+    "attendanceRecord": "Attendance Record"
+  },
+  "grades": {
+    "childGrades": "Child's Grades",
+    "gradeReports": "Grade Reports",
+    "progressCards": "Progress Cards",
+    "subjectPerformance": "Subject Performance",
+    "improvementAreas": "Areas for Improvement",
+    "achievements": "Achievements"
+  },
+  "communication": {
+    "teacherMessages": "Teacher Messages",
+    "schoolAnnouncements": "School Announcements",
+    "parentMeetings": "Parent Meetings",
+    "contactTeacher": "Contact Teacher",
+    "messageHistory": "Message History",
+    "readReceipts": "Read Receipts"
+  },
+  "attendance": {
+    "attendanceOverview": "Attendance Overview",
+    "attendanceAlerts": "Attendance Alerts",
+    "absenceRequests": "Absence Requests",
+    "lateArrivals": "Late Arrivals",
+    "earlyDismissal": "Early Dismissal",
+    "attendancePattern": "Attendance Pattern"
+  },
+  "homework": {
+    "homeworkTracking": "Homework Tracking",
+    "upcomingAssignments": "Upcoming Assignments",
+    "completedWork": "Completed Work",
+    "overdueAssignments": "Overdue Assignments",
+    "homeworkHelp": "Homework Help",
+    "studySupport": "Study Support"
+  },
+  "schedule": {
+    "childSchedule": "Child's Schedule",
+    "weeklySchedule": "Weekly Schedule",
+    "examSchedule": "Exam Schedule",
+    "eventCalendar": "Event Calendar",
+    "holidaySchedule": "Holiday Schedule",
+    "pickupSchedule": "Pickup Schedule"
+  },
+  "payments": {
+    "tuitionPayments": "Tuition Payments",
+    "paymentHistory": "Payment History",
+    "outstandingFees": "Outstanding Fees",
+    "paymentReminders": "Payment Reminders",
+    "paymentMethods": "Payment Methods",
+    "receipts": "Receipts"
+  },
+  "reports": {
+    "progressReports": "Progress Reports",
+    "attendanceReports": "Attendance Reports",
+    "behaviorReports": "Behavior Reports",
+    "academicReports": "Academic Reports",
+    "customReports": "Custom Reports",
+    "downloadReports": "Download Reports"
+  },
+  "support": {
+    "parentSupport": "Parent Support",
+    "tutoring": "Tutoring Services",
+    "counseling": "Counseling Services",
+    "specialNeeds": "Special Needs Support",
+    "resourceCenter": "Resource Center",
+    "parentWorkshops": "Parent Workshops"
+  }
+}

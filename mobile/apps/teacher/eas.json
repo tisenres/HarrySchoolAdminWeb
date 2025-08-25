@@ -1,0 +1,93 @@
+{
+  "cli": {
+    "version": ">= 6.0.0"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "channel": "development",
+      "ios": {
+        "simulator": true,
+        "buildConfiguration": "Debug"
+      },
+      "android": {
+        "buildType": "apk",
+        "gradleCommand": ":app:assembleDebug"
+      },
+      "env": {
+        "EXPO_PUBLIC_ENV": "development",
+        "EXPO_PUBLIC_SUPABASE_URL": "$DEV_SUPABASE_URL",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "$DEV_SUPABASE_ANON_KEY",
+        "EXPO_PUBLIC_OPENAI_API_KEY": "$DEV_OPENAI_API_KEY",
+        "EXPO_PUBLIC_FIREBASE_API_KEY": "$DEV_FIREBASE_API_KEY",
+        "EXPO_PUBLIC_FIREBASE_PROJECT_ID": "$DEV_FIREBASE_PROJECT_ID"
+      }
+    },
+    "preview": {
+      "channel": "preview",
+      "distribution": "internal",
+      "ios": {
+        "buildConfiguration": "Release",
+        "enterpriseProvisioning": "adhoc"
+      },
+      "android": {
+        "buildType": "apk",
+        "gradleCommand": ":app:assembleRelease"
+      },
+      "env": {
+        "EXPO_PUBLIC_ENV": "preview",
+        "EXPO_PUBLIC_SUPABASE_URL": "$STAGING_SUPABASE_URL",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "$STAGING_SUPABASE_ANON_KEY",
+        "EXPO_PUBLIC_OPENAI_API_KEY": "$STAGING_OPENAI_API_KEY",
+        "EXPO_PUBLIC_FIREBASE_API_KEY": "$STAGING_FIREBASE_API_KEY",
+        "EXPO_PUBLIC_FIREBASE_PROJECT_ID": "$STAGING_FIREBASE_PROJECT_ID"
+      }
+    },
+    "production": {
+      "channel": "production",
+      "ios": {
+        "buildConfiguration": "Release"
+      },
+      "android": {
+        "buildType": "app-bundle",
+        "gradleCommand": ":app:bundleRelease"
+      },
+      "env": {
+        "EXPO_PUBLIC_ENV": "production",
+        "EXPO_PUBLIC_SUPABASE_URL": "$PRODUCTION_SUPABASE_URL",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "$PRODUCTION_SUPABASE_ANON_KEY",
+        "EXPO_PUBLIC_OPENAI_API_KEY": "$PRODUCTION_OPENAI_API_KEY",
+        "EXPO_PUBLIC_FIREBASE_API_KEY": "$PRODUCTION_FIREBASE_API_KEY",
+        "EXPO_PUBLIC_FIREBASE_PROJECT_ID": "$PRODUCTION_FIREBASE_PROJECT_ID"
+      }
+    },
+    "production-ios": {
+      "extends": "production",
+      "ios": {
+        "buildConfiguration": "Release",
+        "autoIncrement": "buildNumber"
+      }
+    },
+    "production-android": {
+      "extends": "production",
+      "android": {
+        "buildType": "app-bundle",
+        "autoIncrement": "versionCode"
+      }
+    }
+  },
+  "submit": {
+    "production": {
+      "ios": {
+        "appleId": "teacher@harryschool.uz",
+        "ascAppId": "6448123457",
+        "appleTeamId": "ABCD123456"
+      },
+      "android": {
+        "serviceAccountKeyPath": "./google-service-account.json",
+        "track": "production"
+      }
+    }
+  }
+}

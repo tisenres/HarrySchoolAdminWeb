@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname, useParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
+import { useSmartPrefetcher } from '@/lib/utils/route-prefetcher'
 import { Users, GraduationCap, UserCheck, Settings, BookOpen, Award, Trophy, Medal, Gift } from 'lucide-react'
 
 export function Sidebar() {
@@ -11,14 +12,15 @@ export function Sidebar() {
   const params = useParams()
   const locale = params?.locale as string || 'en'
   const t = useTranslations('common')
+  const { smartPrefetch } = useSmartPrefetcher()
 
   const navigation = [
-    { name: t('dashboard'), href: `/${locale}`, icon: GraduationCap },
-    { name: t('teachers'), href: `/${locale}/teachers`, icon: UserCheck },
-    { name: t('groups'), href: `/${locale}/groups`, icon: BookOpen },
-    { name: t('students'), href: `/${locale}/students`, icon: Users },
-    { name: t('rankings'), href: `/${locale}/rankings`, icon: Trophy },
-    { name: t('settings'), href: `/${locale}/settings`, icon: Settings },
+    { name: t('dashboard'), href: `/${locale}`, icon: GraduationCap, prefetchKey: 'dashboard' },
+    { name: t('teachers'), href: `/${locale}/teachers`, icon: UserCheck, prefetchKey: 'teachers' },
+    { name: t('groups'), href: `/${locale}/groups`, icon: BookOpen, prefetchKey: 'groups' },
+    { name: t('students'), href: `/${locale}/students`, icon: Users, prefetchKey: 'students' },
+    { name: t('rankings'), href: `/${locale}/rankings`, icon: Trophy, prefetchKey: 'rankings' },
+    { name: t('settings'), href: `/${locale}/settings`, icon: Settings, prefetchKey: 'settings' },
   ]
 
   return (
@@ -35,6 +37,18 @@ export function Sidebar() {
             <Link
               key={item.name}
               href={item.href}
+              onMouseEnter={() => {
+                // OPTIMIZED: Smart prefetch on hover for instant navigation
+                if (!isActive && item.prefetchKey) {
+                  smartPrefetch(item.prefetchKey)
+                }
+              }}
+              onFocus={() => {
+                // OPTIMIZED: Also prefetch on keyboard focus for accessibility
+                if (!isActive && item.prefetchKey) {
+                  smartPrefetch(item.prefetchKey)
+                }
+              }}
               className={cn(
                 'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
                 isActive

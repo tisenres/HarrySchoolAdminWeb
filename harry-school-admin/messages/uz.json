@@ -148,6 +148,7 @@
   },
   "dashboard": {
     "title": "Boshqaruv paneli",
+    "description": "Ta'lim muassasangizning faoliyati va ko'rsatkichlarining keng ko'lamli sharhi",
     "welcomeMessage": "Harry School CRM administrator paneliga xush kelibsiz",
     "totalStudents": "Jami talabalar",
     "activeGroups": "Faol guruhlar",

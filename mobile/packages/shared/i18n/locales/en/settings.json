@@ -1,0 +1,104 @@
+{
+  "title": "Settings",
+  "account": {
+    "title": "Account Settings",
+    "profile": "Profile",
+    "personalInfo": "Personal Information",
+    "changePassword": "Change Password",
+    "privacy": "Privacy Settings",
+    "security": "Security",
+    "deleteAccount": "Delete Account"
+  },
+  "app": {
+    "title": "App Settings",
+    "language": "Language",
+    "theme": "Theme",
+    "notifications": "Notifications",
+    "offline": "Offline Mode",
+    "dataUsage": "Data Usage",
+    "cacheManagement": "Cache Management"
+  },
+  "language": {
+    "title": "Language",
+    "subtitle": "Choose your preferred language",
+    "current": "Current Language",
+    "available": "Available Languages",
+    "english": "English",
+    "russian": "Русский (Russian)",
+    "uzbek": "O'zbek (Uzbek)",
+    "changeSuccess": "Language changed successfully",
+    "changeError": "Failed to change language",
+    "restartRequired": "App restart may be required",
+    "downloadRequired": "Language pack download required"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "push": "Push Notifications",
+    "email": "Email Notifications",
+    "sms": "SMS Notifications",
+    "assignments": "Assignment Reminders",
+    "grades": "Grade Updates",
+    "attendance": "Attendance Alerts",
+    "messages": "New Messages",
+    "events": "Upcoming Events",
+    "prayers": "Prayer Reminders",
+    "quiet": "Quiet Hours",
+    "quietStart": "Quiet Hours Start",
+    "quietEnd": "Quiet Hours End"
+  },
+  "privacy": {
+    "title": "Privacy Settings",
+    "profileVisibility": "Profile Visibility",
+    "shareProgress": "Share Progress",
+    "allowMessages": "Allow Messages",
+    "showOnline": "Show Online Status",
+    "dataCollection": "Data Collection",
+    "analytics": "Analytics",
+    "crashReports": "Crash Reports"
+  },
+  "cultural": {
+    "title": "Cultural Settings",
+    "islamicGreetings": "Islamic Greetings",
+    "prayerReminders": "Prayer Reminders",
+    "hijriCalendar": "Hijri Calendar",
+    "respectfulMode": "Respectful Mode",
+    "familyMode": "Family Mode",
+    "communityFeatures": "Community Features"
+  },
+  "accessibility": {
+    "title": "Accessibility",
+    "fontSize": "Font Size",
+    "highContrast": "High Contrast",
+    "voiceOver": "Voice Over",
+    "reducedMotion": "Reduced Motion",
+    "screenReader": "Screen Reader"
+  },
+  "support": {
+    "title": "Support",
+    "help": "Help Center",
+    "faq": "FAQ",
+    "contact": "Contact Support",
+    "feedback": "Send Feedback",
+    "reportBug": "Report Bug",
+    "documentation": "Documentation"
+  },
+  "about": {
+    "title": "About",
+    "version": "Version",
+    "build": "Build",
+    "licenses": "Licenses",
+    "terms": "Terms of Service",
+    "privacy": "Privacy Policy",
+    "acknowledgments": "Acknowledgments"
+  },
+  "actions": {
+    "save": "Save Changes",
+    "reset": "Reset to Default",
+    "export": "Export Settings",
+    "import": "Import Settings",
+    "sync": "Sync Settings",
+    "logout": "Logout",
+    "clearCache": "Clear Cache",
+    "clearData": "Clear All Data"
+  }
+}

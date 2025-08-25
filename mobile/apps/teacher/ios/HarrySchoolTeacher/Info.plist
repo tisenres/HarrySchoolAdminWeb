@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- App Identity -->
+    <key>CFBundleDisplayName</key>
+    <string>Harry School Teacher</string>
+    <key>CFBundleIdentifier</key>
+    <string>uz.harryschool.teacher</string>
+    <key>CFBundleVersion</key>
+    <string>1.0.0</string>
+    <key>CFBundleShortVersionString</key>
+    <string>1.0.0</string>
+    <key>CFBundleName</key>
+    <string>HarrySchoolTeacher</string>
+    <key>CFBundleExecutable</key>
+    <string>HarrySchoolTeacher</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleSignature</key>
+    <string>????</string>
+    
+    <!-- Privacy Descriptions (COPPA/FERPA Compliant) -->
+    <key>NSCameraUsageDescription</key>
+    <string>Harry School Teacher needs camera access to capture attendance photos, document classroom activities, and create visual educational content.</string>
+    
+    <key>NSMicrophoneUsageDescription</key>
+    <string>Microphone access enables teachers to record audio feedback, create pronunciation examples, and conduct voice-based assessments for students.</string>
+    
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>Photo library access allows teachers to select images for lesson materials, upload student work samples, and manage educational content.</string>
+    
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>Location access helps provide accurate prayer times and local Islamic calendar information for classroom scheduling and cultural awareness.</string>
+    
+    <key>NSUserNotificationsUsageDescription</key>
+    <string>Notifications help teachers receive alerts about class schedules, student submissions, important announcements, and prayer time reminders.</string>
+    
+    <key>NSAppleMusicUsageDescription</key>
+    <string>Media library access enables teachers to use educational audio content and Quran recitation for Islamic studies lessons.</string>
+    
+    <key>NSCalendarsUsageDescription</key>
+    <string>Calendar access helps teachers manage their teaching schedule, track Islamic holidays, and coordinate prayer times with class periods.</string>
+    
+    <key>NSContactsUsageDescription</key>
+    <string>Contact access enables teachers to communicate with parents and guardians for educational purposes and emergency situations.</string>
+    
+    <!-- Network and Data Privacy -->
+    <key>NSAppTransportSecurity</key>
+    <dict>
+        <key>NSAllowsArbitraryLoads</key>
+        <false/>
+        <key>NSExceptionDomains</key>
+        <dict>
+            <key>supabase.co</key>
+            <dict>
+                <key>NSExceptionRequiresForwardSecrecy</key>
+                <false/>
+                <key>NSExceptionMinimumTLSVersion</key>
+                <string>TLSv1.2</string>
+                <key>NSIncludesSubdomains</key>
+                <true/>
+            </dict>
+        </dict>
+    </dict>
+    
+    <!-- Background Modes -->
+    <key>UIBackgroundModes</key>
+    <array>
+        <string>background-fetch</string>
+        <string>background-processing</string>
+        <string>remote-notification</string>
+        <string>audio</string>
+    </array>
+    
+    <!-- Push Notification Entitlements -->
+    <key>aps-environment</key>
+    <string>production</string>
+    
+    <!-- URL Schemes -->
+    <key>CFBundleURLTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleURLName</key>
+            <string>uz.harryschool.teacher</string>
+            <key>CFBundleURLSchemes</key>
+            <array>
+                <string>harryschool</string>
+                <string>harry-teacher</string>
+            </array>
+        </dict>
+    </array>
+    
+    <!-- Universal Links -->
+    <key>com.apple.developer.associated-domains</key>
+    <array>
+        <string>applinks:app.harryschool.uz</string>
+        <string>applinks:teacher.harryschool.uz</string>
+    </array>
+    
+    <!-- Supported Languages -->
+    <key>CFBundleLocalizations</key>
+    <array>
+        <string>en</string>
+        <string>ru</string>
+        <string>uz</string>
+        <string>ar</string>
+    </array>
+    
+    <!-- Educational App Category -->
+    <key>LSApplicationCategoryType</key>
+    <string>public.app-category.education</string>
+    
+    <!-- Age Rating (Educational content) -->
+    <key>ITSAppUsesNonExemptEncryption</key>
+    <false/>
+    
+    <!-- Cultural Integration -->
+    <key>NSAllowsArbitraryLoadsInWebContent</key>
+    <false/>
+    
+    <!-- COPPA Compliance -->
+    <key>NSUserActivityTypes</key>
+    <array>
+        <string>uz.harryschool.teacher.lesson</string>
+        <string>uz.harryschool.teacher.attendance</string>
+        <string>uz.harryschool.teacher.grading</string>
+        <string>uz.harryschool.teacher.communication</string>
+    </array>
+    
+    <!-- Interface Orientation -->
+    <key>UISupportedInterfaceOrientations</key>
+    <array>
+        <string>UIInterfaceOrientationPortrait</string>
+        <string>UIInterfaceOrientationPortraitUpsideDown</string>
+        <string>UIInterfaceOrientationLandscapeLeft</string>
+        <string>UIInterfaceOrientationLandscapeRight</string>
+    </array>
+    
+    <!-- Status Bar -->
+    <key>UIStatusBarStyle</key>
+    <string>UIStatusBarStyleDefault</string>
+    <key>UIViewControllerBasedStatusBarAppearance</key>
+    <false/>
+    
+    <!-- Launch Screen -->
+    <key>UILaunchStoryboardName</key>
+    <string>LaunchScreen</string>
+    
+    <!-- Minimum OS Version -->
+    <key>MinimumOSVersion</key>
+    <string>13.0</string>
+    
+    <!-- Required Device Capabilities -->
+    <key>UIRequiredDeviceCapabilities</key>
+    <array>
+        <string>armv7</string>
+    </array>
+</dict>
+</plist>

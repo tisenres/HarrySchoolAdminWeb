@@ -9,11 +9,15 @@ export const metadata: Metadata = {
   description: 'Manage student points, rewards, and achievements',
 }
 
+// Force dynamic rendering for authenticated routes
+export const dynamic = 'force-dynamic'
+
 // Mock function to simulate API call - replace with actual API call
 async function getStudents(): Promise<Student[]> {
   // Simulate API delay
   await new Promise(resolve => setTimeout(resolve, 100))
-  return studentService.getStudents()
+  const result = await studentService.getAll({})
+  return result.data
 }
 
 function LoadingSkeleton() {

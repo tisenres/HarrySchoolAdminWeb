@@ -1,4 +1,6 @@
 import { BaseService } from './base-service'
+import { apiCache } from '@/lib/utils/api-cache'
+import { withTimeout } from '@/lib/middleware/performance'
 import { teacherInsertSchema, teacherUpdateSchema, teacherSearchSchema, paginationSchema } from '@/lib/validations'
 import type { Teacher, TeacherInsert } from '@/types/database'
 import type { Database } from '@/types/database.types'
@@ -402,42 +404,67 @@ export class TeacherService extends BaseService {
   }
 
   /**
-   * Bulk operations
+   * Bulk operations - Optimized with parallel processing
    */
-  async bulkDelete(ids: string[]): Promise<{ success: number; errors: string[] }> {
-    await this.checkPermission(['admin', 'superadmin'])
+  async bulkDelete(ids: string[]): Promise<{ success: number; errors: string[]; duration: number }> {
+    const { OptimizedBulkService } = await import('./optimized-bulk-service')
+    const bulkService = new OptimizedBulkService('teachers')
     
-    const results = { success: 0, errors: [] as string[] }
+    // Validate bulk operation
+    bulkService.validateBulkOperation(ids, 500) // Max 500 teachers at once
     
-    for (const id of ids) {
-      try {
-        await this.delete(id)
-        results.success++
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error)
-        results.errors.push(`Failed to delete teacher ${id}: ${message}`)
-      }
-    }
+    const result = await bulkService.bulkDelete(ids)
     
-    return results
+    // Log bulk operation for audit
+    await this.logActivity(
+      'BULK_DELETE',
+      'multiple',
+      `${ids.length} teachers`,
+      null,
+      { ids, result },
+      `Bulk deleted ${result.success}/${result.total} teachers in ${result.duration}ms`
+    )
+    
+    return result
   }
 
-  async bulkRestore(ids: string[]): Promise<{ success: number; errors: string[] }> {
-    await this.checkPermission(['admin', 'superadmin'])
+  async bulkRestore(ids: string[]): Promise<{ success: number; errors: string[]; duration: number }> {
+    const { OptimizedBulkService } = await import('./optimized-bulk-service')
+    const bulkService = new OptimizedBulkService('teachers')
     
-    const results = { success: 0, errors: [] as string[] }
+    bulkService.validateBulkOperation(ids, 500)
     
-    for (const id of ids) {
-      try {
-        await this.restore(id)
-        results.success++
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error)
-        results.errors.push(`Failed to restore teacher ${id}: ${message}`)
-      }
-    }
+    const result = await bulkService.bulkRestore(ids)
     
-    return results
+    await this.logActivity(
+      'BULK_RESTORE',
+      'multiple',
+      `${ids.length} teachers`,
+      null,
+      { ids, result },
+      `Bulk restored ${result.success}/${result.total} teachers in ${result.duration}ms`
+    )
+    
+    return result
+  }
+
+  /**
+   * Bulk update with progress tracking
+   */
+  async bulkUpdateWithProgress<T>(
+    updates: Array<{ id: string, data: T }>,
+    progressCallback?: (completed: number, total: number, errors: number) => void
+  ): Promise<{ success: number; errors: string[]; duration: number }> {
+    const { OptimizedBulkService } = await import('./optimized-bulk-service')
+    const bulkService = new OptimizedBulkService('teachers')
+    
+    return await bulkService.bulkOperationWithProgress(
+      updates,
+      async (update) => {
+        return await this.update(update.id, update.data)
+      },
+      progressCallback
+    )
   }
 
   /**
@@ -602,40 +629,45 @@ export class TeacherService extends BaseService {
   }
 
   /**
-   * Get teacher statistics for dashboard
+   * Get teacher statistics for dashboard - OPTIMIZED with caching
    */
   async getStats() {
-    const organizationId = await this.getCurrentOrganization()
+    const { organizationId } = await this.getUserContext()
+    
+    // Try cache first
+    const cached = apiCache.getStats(`teacher:${organizationId}`)
+    if (cached) {
+      return cached
+    }
+
     const supabase = await this.getSupabase()
 
-    // Get total teachers count
-    const { count: total } = await supabase
+    // Get all statistics in a single optimized query
+    const { data, error } = await supabase
       .from('teachers')
-      .select('*', { count: 'exact', head: true })
+      .select('is_active, employment_type')
       .eq('organization_id', organizationId)
       .is('deleted_at', null)
 
-    // Get active teachers count  
-    const { count: active } = await supabase
-      .from('teachers')
-      .select('*', { count: 'exact', head: true })
-      .eq('organization_id', organizationId)
-      .eq('is_active', true)
-      .is('deleted_at', null)
-
-    // Get full-time teachers count
-    const { count: fullTime } = await supabase
-      .from('teachers')
-      .select('*', { count: 'exact', head: true })
-      .eq('organization_id', organizationId)
-      .eq('employment_type', 'full_time')
-      .is('deleted_at', null)
-
-    return {
-      total: total || 0,
-      active: active || 0,
-      full_time: fullTime || 0
+    if (error) {
+      throw new Error(`Failed to get teacher statistics: ${error.message}`)
     }
+
+    // Calculate statistics from the single query result
+    const total = data?.length || 0
+    const active = data?.filter(t => t.is_active).length || 0
+    const fullTime = data?.filter(t => t.employment_type === 'full_time').length || 0
+
+    const stats = {
+      total,
+      active,
+      full_time: fullTime
+    }
+
+    // Cache the results
+    apiCache.setStats(`teacher:${organizationId}`, stats)
+    
+    return stats
   }
 }
 

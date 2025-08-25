@@ -1,55 +1,66 @@
-import { createClient } from '@supabase/supabase-js'
-import { createServerClient as createServerSupabaseClient } from '@supabase/ssr'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
+import { createServerClient as createSupabaseServerClient } from '@supabase/ssr'
 import type { Database } from '@/types/database'
-import { cookies } from 'next/headers'
 
-const supabaseUrl = process.env['NEXT_PUBLIC_SUPABASE_URL']
-const supabaseAnonKey = process.env['NEXT_PUBLIC_SUPABASE_ANON_KEY']
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables: NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are required')
+// Import cookies conditionally to avoid Next.js build issues
+let cookies: any = null
+try {
+  if (typeof window === 'undefined') {
+    cookies = require('next/headers').cookies
+  }
+} catch (error) {
+  console.warn('next/headers not available, using fallback')
 }
 
-// Server-side Supabase instance with cookies for authenticated requests
-export const createServerClient = async () => {
-  const cookieStore = await cookies()
+// Simple server client creation
+export async function createClient() {
+  if (typeof window !== 'undefined') {
+    // Browser environment - use regular client
+    return createSupabaseClient<Database>(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
+  }
   
-  return createServerSupabaseClient<Database>(
-    supabaseUrl,
-    supabaseAnonKey,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll()
-        },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
-            )
-          } catch (error) {
-            // The `setAll` method was called from a Server Component.
-            // This can be ignored if you have middleware refreshing
-            // user sessions.
+  if (cookies) {
+    const cookieStore = await cookies()
+    
+    return createSupabaseServerClient<Database>(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          get(name: string) {
+            return cookieStore.get(name)?.value
           }
-        },
-      },
-    }
+        }
+      }
+    )
+  }
+  
+  // Fallback to regular client
+  return createSupabaseClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   )
 }
 
-// Admin client with service role key
-export const createAdminClient = () => {
-  const supabaseServiceKey = process.env['SUPABASE_SERVICE_ROLE_KEY']
-  
-  if (!supabaseServiceKey) {
-    throw new Error('SUPABASE_SERVICE_ROLE_KEY is not set')
-  }
-  
-  return createClient<Database>(supabaseUrl, supabaseServiceKey, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
-  })
+// Admin client creation
+export function createAdminClient() {
+  return createSupabaseClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
 }
+
+// Alias for backward compatibility
+export const createServerClient = createClient
+
+// Export optimized versions from connection pool as additional options
+export {
+  createOptimizedServerClient,
+  createOptimizedAdminClient,
+  releaseSupabaseClient,
+  getConnectionPoolStats,
+  connectionPool
+} from './supabase/connection-pool'

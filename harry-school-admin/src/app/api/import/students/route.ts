@@ -70,7 +70,11 @@ export const POST = withAuth(async (request: NextRequest, { user }) => {
     }
 
     return NextResponse.json(
-      { error: 'Import failed: ' + (error.message || 'Unknown error') },
+      { 
+        success: false,
+        error: 'Import failed: ' + (error.message || 'Unknown error'),
+        data: null
+      },
       { status: 500 }
     )
   }

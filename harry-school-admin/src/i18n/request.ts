@@ -1,20 +1,26 @@
 import { getRequestConfig } from 'next-intl/server';
-import enMessages from '../../messages/en.json';
-import ruMessages from '../../messages/ru.json';
-import uzMessages from '../../messages/uz.json';
+
+const validLocales = ['en', 'ru', 'uz'] as const;
+type Locale = typeof validLocales[number];
 
 export default getRequestConfig(async ({ locale }) => {
-  const validLocales = ['en', 'ru', 'uz'];
-  const validLocale = validLocales.includes(locale) ? locale : 'en';
+  // Validate that the incoming `locale` parameter is valid
+  const validLocale = validLocales.includes(locale as Locale) ? locale as Locale : 'en';
   
-  const messages = {
-    en: enMessages,
-    ru: ruMessages,
-    uz: uzMessages
-  }[validLocale as 'en' | 'ru' | 'uz'];
+  // Dynamic import only the required locale messages
+  // This reduces bundle size as only the needed locale is loaded
+  let messages;
+  try {
+    messages = (await import(`../../messages/${validLocale}.json`)).default;
+  } catch (error) {
+    console.warn(`Failed to load messages for locale ${validLocale}, falling back to English`);
+    messages = (await import(`../../messages/en.json`)).default;
+  }
 
   return {
     locale: validLocale,
-    messages
+    messages,
+    // Optional: Add timezone and other locale-specific configs
+    timeZone: validLocale === 'uz' ? 'Asia/Tashkent' : 'UTC',
   };
 });

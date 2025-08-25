@@ -1,8 +1,8 @@
 import { Suspense } from 'react'
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { createClient } from '@/lib/supabase'
-import { auth } from '@/lib/auth'
+import { createClient } from '@/lib/supabase-server'
+import { getCurrentUser } from '@/lib/auth'
 import { LeaderboardInterface } from '@/components/admin/leaderboard/leaderboard-interface'
 import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -13,11 +13,14 @@ export const metadata: Metadata = {
   description: 'View student rankings, achievements, and performance analytics',
 }
 
+// Force dynamic rendering for authenticated routes
+export const dynamic = 'force-dynamic'
+
 interface LeaderboardPageProps {
   params: {
     locale: string
   }
-  searchParams: {
+  searchParams: Promise<{
     group_id?: string
     time_period?: 'week' | 'month' | 'all'
     achievement_type?: string
@@ -25,7 +28,17 @@ interface LeaderboardPageProps {
     search?: string
     page?: string
     limit?: string
-  }
+  }>
+}
+
+type SearchParamsType = {
+  group_id?: string
+  time_period?: 'week' | 'month' | 'all'
+  achievement_type?: string
+  category?: string
+  search?: string
+  page?: string
+  limit?: string
 }
 
 // Loading component for the leaderboard
@@ -102,8 +115,8 @@ function LeaderboardSkeleton() {
 }
 
 // Fetch initial leaderboard data
-async function getLeaderboardData(organizationId: string, searchParams: LeaderboardPageProps['searchParams']) {
-  const supabase = createClient()
+async function getLeaderboardData(organizationId: string, searchParams: SearchParamsType) {
+  const supabase = await createClient()
   
   try {
     // Build query parameters
@@ -163,7 +176,7 @@ async function getLeaderboardData(organizationId: string, searchParams: Leaderbo
 
 // Fetch supporting data (groups, achievement types, categories)
 async function getSupportingData(organizationId: string) {
-  const supabase = createClient()
+  const supabase = await createClient()
   
   try {
     // Fetch groups
@@ -216,13 +229,16 @@ async function getSupportingData(organizationId: string) {
 
 export default async function LeaderboardPage({ params, searchParams }: LeaderboardPageProps) {
   // Authenticate user
-  const user = await auth.getUser()
+  const user = await getCurrentUser()
   if (!user) {
     notFound()
   }
 
+  // Await searchParams for NextJS 15 compatibility
+  const awaitedSearchParams = await searchParams
+
   // Get user's organization
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: profile } = await supabase
     .from('profiles')
     .select('organization_id, role')
@@ -243,7 +259,7 @@ export default async function LeaderboardPage({ params, searchParams }: Leaderbo
       <Suspense fallback={<LeaderboardSkeleton />}>
         <LeaderboardContent 
           organizationId={profile.organization_id}
-          searchParams={searchParams}
+          searchParams={awaitedSearchParams}
         />
       </Suspense>
     </div>
@@ -256,7 +272,7 @@ async function LeaderboardContent({
   searchParams 
 }: { 
   organizationId: string
-  searchParams: LeaderboardPageProps['searchParams']
+  searchParams: SearchParamsType
 }) {
   // Fetch data in parallel
   const [leaderboardData, supportingData] = await Promise.all([
