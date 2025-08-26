@@ -1,6 +1,6 @@
 'use client'
 
-import { AuthProvider } from './auth-provider'
+import { OptimizedAuthProvider } from './optimized-auth-provider'
 import { QueryProvider } from './query-provider'
 import { ServiceWorkerProvider } from './service-worker-provider'
 
@@ -10,12 +10,12 @@ interface ProvidersProps {
 
 export function Providers({ children }: ProvidersProps) {
   return (
-    <AuthProvider>
+    <OptimizedAuthProvider>
       <QueryProvider>
         <ServiceWorkerProvider>
           {children}
         </ServiceWorkerProvider>
       </QueryProvider>
-    </AuthProvider>
+    </OptimizedAuthProvider>
   )
 }

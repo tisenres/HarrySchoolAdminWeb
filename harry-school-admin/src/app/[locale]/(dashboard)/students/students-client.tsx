@@ -2,6 +2,7 @@
 import { useState, useCallback, useEffect, useMemo, lazy, Suspense } from 'react'
 import { motion } from 'framer-motion'
 import { useTranslations } from 'next-intl'
+import { useQuery } from '@tanstack/react-query'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -35,20 +36,19 @@ export default function StudentsClient() {
   const t = useTranslations('students')
   const tCommon = useTranslations('common')
   
-  const [students, setStudents] = useState<Student[]>([])
   const [statistics, setStatistics] = useState<StudentStatistics | null>(null)
   const [selectedStudents, setSelectedStudents] = useState<string[]>([])
   const [filters, setFilters] = useState<StudentFilters>({})
   const [sortConfig, setSortConfig] = useState<StudentSortConfig>({
-    field: 'full_name',
+    field: 'first_name',
     direction: 'asc'
   })
-  const [currentPage, setCurrentPage] = useState(1)
-  const [pageSize, setPageSize] = useState(20)
-  const [totalCount, setTotalCount] = useState(0)
-  const [totalPages, setTotalPages] = useState(1)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [pagination, setPagination] = useState({
+    current_page: 1,
+    total_pages: 1,
+    page_size: 20,
+    count: 0
+  })
   const [showArchived] = useState(false)
   
   // Form states
@@ -56,52 +56,36 @@ export default function StudentsClient() {
   const [editingStudent, setEditingStudent] = useState<Student | undefined>()
   const [formLoading, setFormLoading] = useState(false)
 
-  // Load students data
-  const loadStudents = useCallback(async () => {
-    setLoading(true)
-    setError(null)
-    try {
+  // Use React Query for students data
+  const { data: studentsResponse, isLoading, error, refetch } = useQuery({
+    queryKey: ['students', filters, sortConfig, pagination.current_page, pagination.page_size],
+    queryFn: async () => {
       const params = new URLSearchParams({
-        page: currentPage.toString(),
-        limit: pageSize.toString(),
-        sort_by: sortConfig.field,
-        sort_order: sortConfig.direction,
+        page: pagination.current_page.toString(),
+        limit: pagination.page_size.toString(),
+        sort_field: sortConfig.field,
+        sort_direction: sortConfig.direction,
         ...(filters.search && { query: filters.search }),
         ...(filters.status && { status: filters.status }),
         ...(filters.grade_level && { grade_level: filters.grade_level })
-      } as any)
+      })
 
-      const response = await fetch(`/api/students?${params}`)
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-      
+      const response = await fetch(`/api/students?${params.toString()}`)
       const result = await response.json()
       
       if (!result.success) {
         throw new Error(result.error || 'Failed to fetch students')
       }
-      
-      const studentsData = {
-        data: result.data || [],
-        count: result.pagination?.total || 0,
-        total_pages: result.pagination?.total_pages || 1
-      }
-      setStudents(studentsData.data)
-      setTotalCount(studentsData.count)
-      setTotalPages(studentsData.total_pages)
-      setError(null)
-    } catch (error) {
-      console.error('Error loading students:', error)
-      setError(error instanceof Error ? error.message : 'Failed to load students')
-      setStudents([])
-      setTotalCount(0)
-      setTotalPages(1)
-    } finally {
-      setLoading(false)
-    }
-  }, [filters, sortConfig, currentPage, pageSize])
+
+      return result
+    },
+    staleTime: 0,
+    gcTime: 3 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  })
+
+  const students: Student[] = studentsResponse?.data || []
+  const loading = isLoading
 
   // Load statistics
   const loadStatistics = useCallback(async () => {
@@ -133,10 +117,17 @@ export default function StudentsClient() {
     }
   }, [])
 
-  // Initial load and data refresh
+  // Update pagination when data changes
   useEffect(() => {
-    loadStudents()
-  }, [loadStudents])
+    if (studentsResponse?.pagination) {
+      setPagination(prev => ({
+        ...prev,
+        current_page: studentsResponse.pagination.page,
+        total_pages: studentsResponse.pagination.total_pages,
+        count: studentsResponse.pagination.total
+      }))
+    }
+  }, [studentsResponse])
 
   useEffect(() => {
     loadStatistics()
@@ -167,7 +158,7 @@ export default function StudentsClient() {
           throw new Error(result.error || 'Failed to create student')
         }
       }
-      await loadStudents()
+      await refetch() // Refresh students data
       await loadStatistics()
       setIsFormOpen(false)
       setEditingStudent(undefined)
@@ -178,8 +169,8 @@ export default function StudentsClient() {
     }
   }
 
-  // Memoized pagination object to prevent unnecessary re-renders
-  const pagination = useMemo(() => ({ page: currentPage, limit: pageSize }), [currentPage, pageSize])
+  // Error handling for React Query
+  const errorMessage = error instanceof Error ? error.message : null
 
   // Optimized event handlers with useCallback
   const handleEditStudent = useCallback((student: Student) => {
@@ -202,13 +193,13 @@ export default function StudentsClient() {
       if (!result.success) {
         throw new Error(result.error || 'Failed to delete student')
       }
-      await loadStudents()
+      await refetch()
       await loadStatistics()
       setSelectedStudents(prev => prev.filter(id => id !== studentId))
     } catch (error) {
       console.error('Error deleting student:', error)
     }
-  }, [students, loadStudents, loadStatistics])
+  }, [students, refetch, loadStatistics])
 
   const handleBulkDelete = useCallback(async (studentIds: string[]) => {
     const confirmed = window.confirm(`Are you sure you want to delete ${studentIds.length} student(s)? This action cannot be undone.`)
@@ -221,13 +212,13 @@ export default function StudentsClient() {
           fetch(`/api/students/${id}`, { method: 'DELETE' })
         )
       )
-      await loadStudents()
+      await refetch()
       await loadStatistics()
       setSelectedStudents([])
     } catch (error) {
       console.error('Error bulk deleting students:', error)
     }
-  }, [loadStudents, loadStatistics])
+  }, [refetch, loadStatistics])
 
   const handleBulkStatusChange = useCallback(async (studentIds: string[], status: string) => {
     try {
@@ -246,22 +237,22 @@ export default function StudentsClient() {
           }
         }
       }
-      await loadStudents()
+      await refetch()
       await loadStatistics()
       setSelectedStudents([])
     } catch (error) {
       console.error('Error changing student status:', error)
     }
-  }, [students, loadStudents, loadStatistics])
+  }, [students, refetch, loadStatistics])
 
   const handleFiltersChange = useCallback((newFilters: StudentFilters) => {
     setFilters(newFilters)
-    setCurrentPage(1)
+    setPagination(prev => ({ ...prev, current_page: 1 }))
   }, [])
 
   const handleClearFilters = useCallback(() => {
     setFilters({})
-    setCurrentPage(1)
+    setPagination(prev => ({ ...prev, current_page: 1 }))
   }, [])
 
   const formatCurrency = (amount: number) => {
@@ -419,10 +410,10 @@ export default function StudentsClient() {
 
       {/* Students Table */}
       {loading ? (
-        <SkeletonTable rows={pageSize} />
+        <SkeletonTable rows={pagination.page_size} />
       ) : (
         <Card>
-          <Suspense fallback={<SkeletonTable rows={pageSize} />}>
+          <Suspense fallback={<SkeletonTable rows={pagination.page_size} />}>
             <StudentsTable
               students={students}
               onEdit={handleEditStudent}
@@ -433,12 +424,12 @@ export default function StudentsClient() {
               onSelectionChange={setSelectedStudents}
               sortConfig={sortConfig}
               onSortChange={setSortConfig}
-              currentPage={currentPage}
-              totalPages={totalPages}
-              pageSize={pageSize}
-              totalCount={totalCount}
-              onPageChange={setCurrentPage}
-              onPageSizeChange={setPageSize}
+              currentPage={pagination.current_page}
+              totalPages={pagination.total_pages}
+              pageSize={pagination.page_size}
+              totalCount={pagination.count}
+              onPageChange={(page) => setPagination(prev => ({ ...prev, current_page: page }))}
+              onPageSizeChange={(size) => setPagination(prev => ({ ...prev, page_size: size }))}
               loading={loading}
               showArchived={showArchived}
             />
@@ -479,13 +470,13 @@ export default function StudentsClient() {
       )}
 
       {/* Error State */}
-      {error && !loading && (
+      {errorMessage && !loading && (
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
             <div className="mb-4">
               <Activity className="h-8 w-8 text-destructive mx-auto mb-2" />
-              <p className="text-sm text-destructive mb-2">{error}</p>
-              <Button onClick={loadStudents} variant="outline">
+              <p className="text-sm text-destructive mb-2">{errorMessage}</p>
+              <Button onClick={() => refetch()} variant="outline">
                 {t('retry') || 'Try Again'}
               </Button>
             </div>
@@ -494,7 +485,7 @@ export default function StudentsClient() {
       )}
 
       {/* Empty State */}
-      {!loading && !error && students.length === 0 && (
+      {!loading && !errorMessage && students.length === 0 && (
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
             <Users className="h-8 w-8 text-muted-foreground mx-auto mb-2" />

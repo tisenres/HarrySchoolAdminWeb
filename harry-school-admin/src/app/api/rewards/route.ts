@@ -45,8 +45,8 @@ export async function GET(request: NextRequest) {
     const reward_category = searchParams.get('reward_category')
     const is_active = searchParams.get('is_active')
     const is_featured = searchParams.get('is_featured')
-    const sort_by = searchParams.get('sort_by') || 'created_at'
-    const sort_order = searchParams.get('sort_order') || 'desc'
+    const sort_by = searchParams.get('sort_field') || 'created_at' // Standardized parameter
+    const sort_order = searchParams.get('sort_direction') || 'desc' // Standardized parameter
 
     let query = supabase
       .from('rewards_catalog')

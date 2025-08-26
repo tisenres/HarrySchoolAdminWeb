@@ -24,7 +24,7 @@ import {
 import { SkeletonTable } from '@/components/ui/skeleton-table-new'
 
 // PERFORMANCE OPTIMIZATION: Use virtual table for better rendering performance  
-const GroupsTable = lazy(() => 
+const GroupsVirtualTable = lazy(() => 
   import('@/components/admin/groups/groups-virtual-table').then(mod => ({ default: mod.GroupsVirtualTable }))
 )
 const GroupsFilters = lazy(() => 
@@ -41,8 +41,9 @@ import {
   Target,
   Trash2,
 } from 'lucide-react'
-// import { mockGroupService } from '@/lib/services/mock-group-service'
-import type { GroupTableRow, GroupFilters, GroupStatistics, Group } from '@/types/group'
+import { useQuery } from '@tanstack/react-query'
+import { debounce } from 'lodash'
+import type { GroupTableRow, GroupFilters, GroupStatistics, Group, GroupSortConfig } from '@/types/group'
 
 export default function GroupsPage() {
   const t = useTranslations('groups')
@@ -52,63 +53,102 @@ export default function GroupsPage() {
   const [statistics, setStatistics] = useState<GroupStatistics | null>(null)
   const [filters, setFilters] = useState<GroupFilters>({})
   const [selectedIds, setSelectedIds] = useState<string[]>([])
-  const [loading, setLoading] = useState(true)
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [showEditDialog, setShowEditDialog] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [editingGroup, setEditingGroup] = useState<Group | undefined>()
   const [deletingGroup, setDeletingGroup] = useState<GroupTableRow | undefined>()
   const [submitting, setSubmitting] = useState(false)
+  const [sortConfig, setSortConfig] = useState<GroupSortConfig>({
+    field: 'name',
+    direction: 'asc'
+  })
+  const [pagination, setPagination] = useState({
+    current_page: 1,
+    total_pages: 1,
+    page_size: 20,
+    count: 0
+  })
 
-  // Load initial data
-  useEffect(() => {
-    loadData()
-  }, [])
+  // Use React Query for groups data
+  const { data: groupsResponse, isLoading, error, refetch } = useQuery({
+    queryKey: ['groups', filters, sortConfig, pagination.current_page, pagination.page_size],
+    queryFn: async () => {
+      const params = new URLSearchParams({
+        page: pagination.current_page.toString(),
+        limit: pagination.page_size.toString(),
+        sort_field: sortConfig.field,
+        sort_direction: sortConfig.direction
+      })
 
-  const loadData = async () => {
-    try {
-      setLoading(true)
-      // Fetch groups to calculate statistics
-      const response = await fetch('/api/groups?limit=100')
+      // Add filter params
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          params.append(key, value.toString())
+        }
+      })
+
+      const response = await fetch(`/api/groups?${params.toString()}`)
       const result = await response.json()
       
-      if (result.success && result.data) {
-        const allGroups = result.data
-        const totalCapacity = allGroups.reduce((sum: number, g: any) => sum + (g.max_students || 0), 0)
-        const totalEnrolled = allGroups.reduce((sum: number, g: any) => sum + (g.current_students || 0), 0)
-        
-        setStatistics({
-          total_groups: result.pagination?.total || 0,
-          active_groups: allGroups.filter((g: any) => g.status === 'active').length,
-          upcoming_groups: allGroups.filter((g: any) => g.status === 'upcoming').length,
-          completed_groups: allGroups.filter((g: any) => g.status === 'completed').length,
-          total_capacity: totalCapacity,
-          total_enrollment: totalEnrolled,
-          enrollment_rate: totalCapacity > 0 ? Math.round((totalEnrolled / totalCapacity) * 100) : 0,
-          by_subject: {},
-          by_level: {},
-          by_status: {}
-        })
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to fetch groups')
       }
-    } catch (error) {
-      console.error('Failed to load groups data:', error)
-    } finally {
-      setLoading(false)
+
+      return result
+    },
+    staleTime: 0,
+    gcTime: 3 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  })
+
+  const groups: GroupTableRow[] = groupsResponse?.data || []
+
+  // Update pagination when data changes
+  useEffect(() => {
+    if (groupsResponse?.pagination) {
+      setPagination(prev => ({
+        ...prev,
+        current_page: groupsResponse.pagination.current_page,
+        total_pages: groupsResponse.pagination.total_pages,
+        count: groupsResponse.pagination.total
+      }))
     }
-  }
+  }, [groupsResponse])
+
+  // Calculate statistics from groups data
+  useEffect(() => {
+    if (groups.length > 0) {
+      const totalCapacity = groups.reduce((sum, g) => sum + (g.max_students || 0), 0)
+      const totalEnrolled = groups.reduce((sum, g) => sum + (g.current_enrollment || 0), 0)
+      
+      setStatistics({
+        total_groups: pagination.count,
+        active_groups: groups.filter(g => g.status === 'active').length,
+        upcoming_groups: groups.filter(g => g.status === 'upcoming').length,
+        completed_groups: groups.filter(g => g.status === 'completed').length,
+        total_capacity: totalCapacity,
+        total_enrollment: totalEnrolled,
+        enrollment_rate: totalCapacity > 0 ? Math.round((totalEnrolled / totalCapacity) * 100) : 0,
+        by_subject: {},
+        by_level: {},
+        by_status: {}
+      })
+    }
+  }, [groups, pagination.count])
 
   // Optimized event handlers with useCallback
   const handleCreateGroup = useCallback(async (_group: Group) => {
     try {
       setSubmitting(true)
-      await loadData() // Refresh data
+      await refetch() // Refresh data
       setShowCreateDialog(false)
     } catch (error) {
       console.error('Failed to create group:', error)
     } finally {
       setSubmitting(false)
     }
-  }, [loadData])
+  }, [refetch])
 
   // Handle group editing
   const handleEditGroup = useCallback((group: GroupTableRow) => {
@@ -136,7 +176,7 @@ export default function GroupsPage() {
   const handleUpdateGroup = useCallback(async (_group: Group) => {
     try {
       setSubmitting(true)
-      await loadData() // Refresh data
+      await refetch() // Refresh data
       setShowEditDialog(false)
       setEditingGroup(undefined)
     } catch (error) {
@@ -144,7 +184,7 @@ export default function GroupsPage() {
     } finally {
       setSubmitting(false)
     }
-  }, [loadData])
+  }, [refetch])
 
   // Handle group deletion
   const handleDeleteGroup = useCallback((group: GroupTableRow) => {
@@ -164,7 +204,7 @@ export default function GroupsPage() {
       if (!result.success) {
         throw new Error(result.error || 'Failed to delete group')
       }
-      await loadData() // Refresh data
+      await refetch() // Refresh data
       setShowDeleteDialog(false)
       setDeletingGroup(undefined)
     } catch (error) {
@@ -172,7 +212,7 @@ export default function GroupsPage() {
     } finally {
       setSubmitting(false)
     }
-  }, [deletingGroup, loadData])
+  }, [deletingGroup, refetch])
 
   // Handle bulk actions
   const handleBulkDelete = useCallback(async () => {
@@ -186,20 +226,25 @@ export default function GroupsPage() {
           fetch(`/api/groups/${id}`, { method: 'DELETE' })
         )
       )
-      await loadData() // Refresh data
+      await refetch() // Refresh data
       setSelectedIds([])
     } catch (error) {
       console.error('Failed to bulk delete groups:', error)
     } finally {
       setSubmitting(false)
     }
-  }, [selectedIds, loadData])
+  }, [selectedIds, refetch])
 
   const resetFilters = useCallback(() => {
     setFilters({})
   }, [])
 
-  if (loading) {
+  // Add sort handlers
+  const handleSortChange = useCallback((newSortConfig: GroupSortConfig) => {
+    setSortConfig(newSortConfig)
+  }, [])
+
+  if (isLoading) {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
@@ -316,11 +361,16 @@ export default function GroupsPage() {
 
       {/* Groups Table */}
       <Suspense fallback={<SkeletonTable rows={8} />}>
-        <GroupsTable
-          filters={filters}
+        <GroupsVirtualTable
+          groups={groups}
+          loading={isLoading}
+          selectedIds={selectedIds}
           onSelectionChange={setSelectedIds}
+          sortConfig={sortConfig}
+          onSortChange={handleSortChange}
           onEdit={handleEditGroup}
           onDelete={handleDeleteGroup}
+          height={600}
         />
       </Suspense>
 

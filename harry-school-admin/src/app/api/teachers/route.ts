@@ -1,14 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { TeacherService } from '@/lib/services/teacher-service'
+import { OptimizedTeacherService } from '@/lib/services/optimized-teacher-service'
 import { teacherInsertSchema } from '@/lib/validations'
 import { withAuth } from '@/lib/middleware/api-auth'
-import { createServerClient } from '@/lib/supabase-server'
+import { withMiddleware, withCaching, withErrorBoundary, withPerformanceMonitoring, sanitizeInput } from '@/lib/middleware/performance'
 import { z } from 'zod'
 
 // Enable caching for GET requests
 export const revalidate = 60 // Cache for 60 seconds
 
-export const GET = withAuth(async (request: NextRequest, context) => {
+export const GET = withMiddleware(
+  withCaching,
+  withErrorBoundary,
+  withPerformanceMonitoring
+)(withAuth(async (request: NextRequest) => {
   const searchParams = request.nextUrl.searchParams
   
   // Parse search parameters
@@ -19,37 +23,43 @@ export const GET = withAuth(async (request: NextRequest, context) => {
     hire_date_from: searchParams.get('hire_date_from') || undefined,
     hire_date_to: searchParams.get('hire_date_to') || undefined,
     is_active: searchParams.get('is_active') ? searchParams.get('is_active') === 'true' : undefined,
+    include_counts: searchParams.get('include_counts') === 'true',
   }
   
-  // Parse pagination parameters
+  // Parse pagination parameters (standardized across all APIs)
   const pagination = {
     page: Number(searchParams.get('page')) || 1,
     limit: Number(searchParams.get('limit')) || 20,
-    sort_by: searchParams.get('sort_by') || 'created_at',
-    sort_order: (searchParams.get('sort_order') || 'desc') as 'asc' | 'desc',
+    sort_by: searchParams.get('sort_field') || 'created_at', // Accept standardized sort_field
+    sort_order: (searchParams.get('sort_direction') || 'desc') as 'asc' | 'desc', // Accept standardized sort_direction
   }
   
-  // Use the authenticated supabase client from withAuth middleware
-  const supabase = await createServerClient()
-  const teacherService = new TeacherService('teachers', () => Promise.resolve(supabase))
+  const teacherService = new OptimizedTeacherService()
   const result = await teacherService.getAll(search, pagination)
   
-  // Add cache headers for better performance
   const response = NextResponse.json(result)
-  response.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300')
+  response.headers.set('X-Total-Count', String(result.count || 0))
+  response.headers.set('X-Page-Count', String(result.total_pages || 0))
+  
   return response
-}, 'admin')
+}, 'admin'))
 
-export const POST = withAuth(async (request: NextRequest) => {
-  const body = await request.json()
+export const POST = withMiddleware(
+  withErrorBoundary,
+  withPerformanceMonitoring
+)(withAuth(async (request: NextRequest) => {
+  const rawBody = await request.json()
+  const body = sanitizeInput(rawBody)
   
   try {
     const validatedData = teacherInsertSchema.parse(body)
-    const supabase = await createServerClient()
-    const teacherService = new TeacherService('teachers', () => Promise.resolve(supabase))
+    const teacherService = new OptimizedTeacherService()
     const teacher = await teacherService.create(validatedData)
     
-    return NextResponse.json(teacher, { status: 201 })
+    const response = NextResponse.json(teacher, { status: 201 })
+    response.headers.set('Location', `/api/teachers/${teacher.id}`)
+    
+    return response
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
@@ -60,4 +70,4 @@ export const POST = withAuth(async (request: NextRequest) => {
     
     throw error // Let withAuth wrapper handle the error
   }
-}, 'admin')
+}, 'admin'))
