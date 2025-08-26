@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { IntegratedRankingsLeaderboard } from './integrated-rankings-leaderboard'
 import { ReferralAchievementsIntegration } from './referral-achievements-integration'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -84,9 +84,95 @@ const mockUsers: User[] = [
   }
 ]
 
+interface RankingsStats {
+  totalUsers: number
+  studentsCount: number
+  teachersCount: number
+  totalPoints: number
+  activeAchievements: number
+  averageEngagement: number
+}
+
+interface AnalyticsData {
+  overview: {
+    totalParticipants: number
+    participantGrowth: string
+    avgPointsPerUser: number
+    totalAchievements: number
+    mostActiveDay: string
+  }
+  pointsByCategory: Array<{
+    category: string
+    points: number
+  }>
+  achievementDistribution: Array<{
+    label: string
+    percentage: number
+  }>
+}
+
 export function WorkingRankings() {
   const [activeTab, setActiveTab] = useState('overview')
+  const [stats, setStats] = useState<RankingsStats>({
+    totalUsers: 0,
+    studentsCount: 0,
+    teachersCount: 0,
+    totalPoints: 0,
+    activeAchievements: 0,
+    averageEngagement: 0
+  })
+  const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [analyticsLoading, setAnalyticsLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
+
+  useEffect(() => {
+    const fetchRankingsStats = async () => {
+      try {
+        setLoading(true)
+        
+        // Fetch rankings data from API
+        const response = await fetch('/api/rankings')
+        const data = await response.json()
+        
+        if (data && data.stats) {
+          setStats({
+            totalUsers: data.stats.total_users || 0,
+            studentsCount: data.stats.students_count || 0,
+            teachersCount: data.stats.teachers_count || 0,
+            totalPoints: data.stats.total_points || 0,
+            activeAchievements: 0, // We'll calculate this from achievements API
+            averageEngagement: data.stats.average_engagement || 0
+          })
+        }
+      } catch (error) {
+        console.error('Failed to fetch rankings stats:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    const fetchAnalyticsData = async () => {
+      try {
+        setAnalyticsLoading(true)
+        
+        // Fetch analytics data from API
+        const response = await fetch('/api/rankings/analytics')
+        const data = await response.json()
+        
+        if (data) {
+          setAnalyticsData(data)
+        }
+      } catch (error) {
+        console.error('Failed to fetch analytics data:', error)
+      } finally {
+        setAnalyticsLoading(false)
+      }
+    }
+
+    fetchRankingsStats()
+    fetchAnalyticsData()
+  }, [])
 
   const filteredUsers = mockUsers.filter(user => 
     user.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -113,8 +199,10 @@ export function WorkingRankings() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">245</div>
-            <p className="text-xs text-muted-foreground">220 students, 25 teachers</p>
+            <div className="text-2xl font-bold">{loading ? '...' : stats.totalUsers}</div>
+            <p className="text-xs text-muted-foreground">
+              {loading ? 'Loading...' : `${stats.studentsCount} students, ${stats.teachersCount} teachers`}
+            </p>
           </CardContent>
         </Card>
         
@@ -126,10 +214,10 @@ export function WorkingRankings() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">15,420</div>
+            <div className="text-2xl font-bold">{loading ? '...' : stats.totalPoints.toLocaleString()}</div>
             <p className="text-xs text-muted-foreground">
               <TrendingUp className="inline h-3 w-3 mr-1" />
-              +12% from last month
+              Total points awarded
             </p>
           </CardContent>
         </Card>
@@ -142,8 +230,8 @@ export function WorkingRankings() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">24</div>
-            <p className="text-xs text-muted-foreground">8 pending rewards</p>
+            <div className="text-2xl font-bold">{loading ? '...' : stats.activeAchievements}</div>
+            <p className="text-xs text-muted-foreground">Available achievements</p>
           </CardContent>
         </Card>
         
@@ -155,7 +243,7 @@ export function WorkingRankings() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">87.5%</div>
+            <div className="text-2xl font-bold">{loading ? '...' : `${stats.averageEngagement}%`}</div>
             <p className="text-xs text-muted-foreground">Across all participants</p>
           </CardContent>
         </Card>
@@ -426,23 +514,66 @@ export function WorkingRankings() {
                 <CardContent>
                   <div className="grid gap-4 md:grid-cols-4 mb-6">
                     <Card className="p-4">
-                      <div className="text-2xl font-bold">245</div>
+                      <div className="text-2xl font-bold">
+                        {analyticsLoading ? '...' : (analyticsData?.overview?.totalParticipants || 0)}
+                      </div>
                       <div className="text-sm text-muted-foreground">Total Participants</div>
                     </Card>
                     <Card className="p-4">
-                      <div className="text-2xl font-bold">62.9</div>
+                      <div className="text-2xl font-bold">
+                        {analyticsLoading ? '...' : (analyticsData?.overview?.avgPointsPerUser?.toFixed(1) || '0.0')}
+                      </div>
                       <div className="text-sm text-muted-foreground">Avg Points Per User</div>
                     </Card>
                     <Card className="p-4">
-                      <div className="text-2xl font-bold">158</div>
+                      <div className="text-2xl font-bold">
+                        {analyticsLoading ? '...' : (analyticsData?.overview?.totalAchievements || 0)}
+                      </div>
                       <div className="text-sm text-muted-foreground">Total Achievements</div>
                     </Card>
                     <Card className="p-4">
-                      <div className="text-2xl font-bold">Wednesday</div>
+                      <div className="text-2xl font-bold">
+                        {analyticsLoading ? '...' : (analyticsData?.overview?.mostActiveDay || 'Monday')}
+                      </div>
                       <div className="text-sm text-muted-foreground">Most Active Day</div>
                     </Card>
                   </div>
-                  <p className="text-muted-foreground">Detailed analytics charts coming soon...</p>
+                  
+                  {/* Points by Category Chart */}
+                  {analyticsData?.pointsByCategory && (
+                    <div className="mt-6">
+                      <h3 className="text-lg font-medium mb-4">Points by Category</h3>
+                      <div className="grid gap-4 md:grid-cols-2">
+                        {analyticsData.pointsByCategory.map((category, index) => (
+                          <Card key={index} className="p-4">
+                            <div className="flex items-center justify-between">
+                              <div className="capitalize font-medium">{category.category}</div>
+                              <div className="text-lg font-bold">{category.points}</div>
+                            </div>
+                          </Card>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Achievement Distribution */}
+                  {analyticsData?.achievementDistribution && (
+                    <div className="mt-6">
+                      <h3 className="text-lg font-medium mb-4">Achievement Distribution</h3>
+                      <div className="space-y-2">
+                        {analyticsData.achievementDistribution.map((achievement, index) => (
+                          <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded">
+                            <div className="font-medium">{achievement.label}</div>
+                            <div className="text-sm text-muted-foreground">{achievement.percentage}%</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {!analyticsData && !analyticsLoading && (
+                    <p className="text-muted-foreground">No analytics data available</p>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>

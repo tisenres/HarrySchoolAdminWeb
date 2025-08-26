@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
       // Points analytics
       supabase
         .from('points_transactions')
-        .select('points_awarded, category, created_at')
+        .select('points_change, category, created_at')
         .eq('organization_id', profile.organization_id)
         .is('deleted_at', null)
         .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()), // Last 30 days
@@ -64,7 +64,7 @@ export async function GET(request: NextRequest) {
       // Points by category
       supabase
         .from('points_transactions')
-        .select('points_awarded, category')
+        .select('points_change, category')
         .eq('organization_id', profile.organization_id)
         .is('deleted_at', null)
         .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
@@ -85,7 +85,7 @@ export async function GET(request: NextRequest) {
 
     // Calculate average points per user
     const totalParticipants = participantsData.data?.length || 1
-    const totalPointsThisMonth = pointsData.data?.reduce((sum, p) => sum + (p.points_awarded || 0), 0) || 0
+    const totalPointsThisMonth = pointsData.data?.reduce((sum, p) => sum + (p.points_change || 0), 0) || 0
     const avgPointsPerUser = (totalPointsThisMonth / totalParticipants).toFixed(1)
 
     // Calculate achievement distribution
@@ -115,7 +115,7 @@ export async function GET(request: NextRequest) {
     // Calculate points by category
     const pointsByCategory = categoryData.data?.reduce((acc: any, transaction: any) => {
       const category = transaction.category || 'other'
-      acc[category] = (acc[category] || 0) + (transaction.points_awarded || 0)
+      acc[category] = (acc[category] || 0) + (transaction.points_change || 0)
       return acc
     }, {}) || {}
 
