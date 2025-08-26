@@ -23,9 +23,9 @@ import {
 } from '@/components/ui/alert-dialog'
 import { SkeletonTable } from '@/components/ui/skeleton-table-new'
 
-// Optimized lazy loading with preloading
+// PERFORMANCE OPTIMIZATION: Use virtual table for better rendering performance  
 const GroupsTable = lazy(() => 
-  import('@/components/admin/groups/groups-table').then(mod => ({ default: mod.GroupsTable }))
+  import('@/components/admin/groups/groups-virtual-table').then(mod => ({ default: mod.GroupsVirtualTable }))
 )
 const GroupsFilters = lazy(() => 
   import('@/components/admin/groups/groups-filters').then(mod => ({ default: mod.GroupsFilters }))

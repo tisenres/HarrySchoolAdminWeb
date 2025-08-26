@@ -1,4 +1,5 @@
 'use client'
+import { useState, useCallback, useEffect, useMemo, lazy, Suspense } from 'react'
 import { motion } from 'framer-motion'
 import { useTranslations } from 'next-intl'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -19,9 +20,9 @@ import { SkeletonTable } from '@/components/ui/skeleton-table-new'
 import { fadeVariants, getAnimationConfig } from '@/lib/animations'
 import { StatsCardsSkeleton } from '@/components/ui/suspense-fallbacks'
 
-// Optimized lazy loading with preloading
+// PERFORMANCE OPTIMIZATION: Use virtual table for better rendering performance
 const StudentsTable = lazy(() => 
-  import('@/components/admin/students/students-table').then(mod => ({ default: mod.StudentsTable }))
+  import('@/components/admin/students/students-virtual-table').then(mod => ({ default: mod.StudentsVirtualTable }))
 )
 const StudentsFilters = lazy(() => 
   import('@/components/admin/students/students-filters').then(mod => ({ default: mod.StudentsFilters }))

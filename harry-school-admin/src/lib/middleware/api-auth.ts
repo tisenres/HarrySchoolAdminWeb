@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase-server'
+import { getCachedProfile } from '@/lib/supabase-cached'
 import type { UserRole } from '@/types/database'
 
 export interface AuthContext {
@@ -24,35 +25,25 @@ export async function requireAuth(): Promise<{ user: any; profile: any } | NextR
       )
     }
     
-    // Get the user's profile with organization
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', user.id)
-      .single()
-    
-    if (profileError || !profile) {
+    // OPTIMIZATION: Use cached profile query for better performance
+    try {
+      const profile = await getCachedProfile(user.id)()
+      
+      if (!profile) {
+        return NextResponse.json(
+          { success: false, error: 'User profile not found' },
+          { status: 401 }
+        )
+      }
+      
+      return { user, profile }
+    } catch (profileError) {
       console.error('Profile fetch error:', profileError)
       return NextResponse.json(
         { success: false, error: 'User profile not found' },
         { status: 401 }
       )
     }
-    
-    // Get organization separately if profile exists
-    if (profile.organization_id) {
-      const { data: organization } = await supabase
-        .from('organizations')
-        .select('id, name, slug, settings')
-        .eq('id', profile.organization_id)
-        .single()
-      
-      if (organization) {
-        profile.organizations = organization
-      }
-    }
-    
-    return { user, profile }
   } catch (error) {
     console.error('Auth middleware error:', error)
     return NextResponse.json(
