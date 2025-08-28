@@ -12,12 +12,12 @@ const nextConfig: NextConfig = {
     '*.ngrok-free.app',
   ],
   
-  // Temporarily skip type checking for deployment
+  // Re-enable type checking and linting
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false,
   },
   eslint: {
-    ignoreDuringBuilds: true,
+    ignoreDuringBuilds: false,
   },
   
   // Skip static optimization for auth-protected routes
