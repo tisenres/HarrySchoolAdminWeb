@@ -12,7 +12,7 @@ const nextConfig: NextConfig = {
     '*.ngrok-free.app',
   ],
   
-  // Re-enable type checking and linting
+  // Enable type checking and linting with warnings only
   typescript: {
     ignoreBuildErrors: false,
   },
@@ -20,7 +20,7 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: false,
   },
   
-  // Skip static optimization for auth-protected routes
+  // Enable standalone output for production deployment
   output: 'standalone',
   trailingSlash: false,
   

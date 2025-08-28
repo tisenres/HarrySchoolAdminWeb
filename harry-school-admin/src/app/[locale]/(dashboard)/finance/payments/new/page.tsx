@@ -15,8 +15,8 @@ import { ArrowLeft, Save, DollarSign, CreditCard, Receipt, Calculator } from 'lu
 import Link from 'next/link'
 
 export default async function NewPaymentPage() {
-  const t = await getTranslations('finance')
-  const tCommon = await getTranslations('common')
+  // const t = await getTranslations('finance') // Temporarily commented out for TypeScript
+  // const tCommon = await getTranslations('common') // Temporarily commented out for TypeScript
 
   return (
     <div className="space-y-6">

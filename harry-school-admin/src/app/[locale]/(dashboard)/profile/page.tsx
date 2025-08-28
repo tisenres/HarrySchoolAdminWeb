@@ -1,17 +1,29 @@
-import { getCurrentProfile } from '@/lib/auth'
-import { redirect } from 'next/navigation'
+'use client'
+
+import { useProfile } from '@/lib/auth/client-auth'
 import { ProfileView } from '@/components/admin/profile/profile-view'
-import { getTranslations } from 'next-intl/server'
+import { useTranslations } from 'next-intl'
+import { Card, CardContent } from '@/components/ui/card'
+import { Loader2 } from 'lucide-react'
 
-// Force dynamic rendering for authenticated routes
-export const dynamic = 'force-dynamic'
+export default function ProfilePage() {
+  const profile = useProfile()
+  const t = useTranslations('profile')
 
-export default async function ProfilePage() {
-  const profile = await getCurrentProfile()
-  const t = await getTranslations('profile')
-
+  // Show loading state while profile is being fetched
   if (!profile) {
-    redirect('/sign-in')
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-center min-h-[200px]">
+          <Card className="w-full max-w-md">
+            <CardContent className="flex flex-col items-center justify-center p-8">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <p className="mt-4 text-sm text-muted-foreground">Loading profile...</p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    )
   }
 
   return (

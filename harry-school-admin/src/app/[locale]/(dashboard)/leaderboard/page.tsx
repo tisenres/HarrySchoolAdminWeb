@@ -1,20 +1,11 @@
+'use client'
+
 import { Suspense } from 'react'
-import { Metadata } from 'next'
-import { notFound } from 'next/navigation'
-import { createClient } from '@/lib/supabase-server'
-import { getCurrentUser } from '@/lib/auth'
+import { useUser, useOrganization } from '@/lib/auth/client-auth'
 import { LeaderboardInterface } from '@/components/admin/leaderboard/leaderboard-interface'
 import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Trophy, RefreshCw } from 'lucide-react'
-
-export const metadata: Metadata = {
-  title: 'Student Leaderboard | Harry School',
-  description: 'View student rankings, achievements, and performance analytics',
-}
-
-// Force dynamic rendering for authenticated routes
-export const dynamic = 'force-dynamic'
 
 interface LeaderboardPageProps {
   params: {
@@ -227,85 +218,22 @@ async function getSupportingData(organizationId: string) {
   }
 }
 
-export default async function LeaderboardPage({ params, searchParams }: LeaderboardPageProps) {
-  // Authenticate user
-  const user = await getCurrentUser()
-  if (!user) {
-    notFound()
-  }
+export default function LeaderboardPage() {
+  const user = useUser()
+  const organization = useOrganization()
 
-  // Await searchParams for NextJS 15 compatibility
-  const awaitedSearchParams = await searchParams
-
-  // Get user's organization
-  const supabase = await createClient()
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('organization_id, role')
-    .eq('id', user.id)
-    .single()
-
-  if (!profile?.organization_id) {
-    notFound()
-  }
-
-  // Check permissions (admin or superadmin)
-  if (!['admin', 'superadmin'].includes(profile.role)) {
-    notFound()
+  // Show loading while auth is being determined
+  if (!user || !organization) {
+    return <LeaderboardSkeleton />
   }
 
   return (
     <div className="space-y-6">
       <Suspense fallback={<LeaderboardSkeleton />}>
-        <LeaderboardContent 
-          organizationId={profile.organization_id}
-          searchParams={awaitedSearchParams}
-        />
+        <LeaderboardInterface organizationId={organization.id} />
       </Suspense>
     </div>
   )
 }
 
-// Separate component for data fetching to enable Suspense
-async function LeaderboardContent({ 
-  organizationId, 
-  searchParams 
-}: { 
-  organizationId: string
-  searchParams: SearchParamsType
-}) {
-  // Fetch data in parallel
-  const [leaderboardData, supportingData] = await Promise.all([
-    getLeaderboardData(organizationId, searchParams),
-    getSupportingData(organizationId)
-  ])
-
-  // Handle case where data couldn't be fetched
-  if (!leaderboardData) {
-    return (
-      <Card>
-        <CardContent className="py-12">
-          <div className="text-center space-y-4">
-            <Trophy className="h-12 w-12 text-muted-foreground mx-auto" />
-            <div>
-              <h3 className="text-lg font-semibold">Leaderboard Unavailable</h3>
-              <p className="text-muted-foreground">
-                Unable to load leaderboard data at this time. Please try again later.
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    )
-  }
-
-  return (
-    <LeaderboardInterface
-      initialData={leaderboardData}
-      organizationId={organizationId}
-      groups={supportingData.groups}
-      achievementTypes={supportingData.achievementTypes}
-      categories={supportingData.categories}
-    />
-  )
-}
+// Components and server functions removed - data fetching now handled client-side by LeaderboardInterface

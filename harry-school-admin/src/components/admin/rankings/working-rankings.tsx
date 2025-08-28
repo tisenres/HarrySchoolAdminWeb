@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { IntegratedRankingsLeaderboard } from './integrated-rankings-leaderboard'
 import { ReferralAchievementsIntegration } from './referral-achievements-integration'
+import { StatisticsDashboard } from './statistics-dashboard'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
@@ -506,76 +507,7 @@ export function WorkingRankings() {
             </TabsContent>
 
             <TabsContent value="analytics" className="mt-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Analytics Dashboard</CardTitle>
-                  <CardDescription>Performance metrics and insights</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid gap-4 md:grid-cols-4 mb-6">
-                    <Card className="p-4">
-                      <div className="text-2xl font-bold">
-                        {analyticsLoading ? '...' : (analyticsData?.overview?.totalParticipants || 0)}
-                      </div>
-                      <div className="text-sm text-muted-foreground">Total Participants</div>
-                    </Card>
-                    <Card className="p-4">
-                      <div className="text-2xl font-bold">
-                        {analyticsLoading ? '...' : (analyticsData?.overview?.avgPointsPerUser?.toFixed(1) || '0.0')}
-                      </div>
-                      <div className="text-sm text-muted-foreground">Avg Points Per User</div>
-                    </Card>
-                    <Card className="p-4">
-                      <div className="text-2xl font-bold">
-                        {analyticsLoading ? '...' : (analyticsData?.overview?.totalAchievements || 0)}
-                      </div>
-                      <div className="text-sm text-muted-foreground">Total Achievements</div>
-                    </Card>
-                    <Card className="p-4">
-                      <div className="text-2xl font-bold">
-                        {analyticsLoading ? '...' : (analyticsData?.overview?.mostActiveDay || 'Monday')}
-                      </div>
-                      <div className="text-sm text-muted-foreground">Most Active Day</div>
-                    </Card>
-                  </div>
-                  
-                  {/* Points by Category Chart */}
-                  {analyticsData?.pointsByCategory && (
-                    <div className="mt-6">
-                      <h3 className="text-lg font-medium mb-4">Points by Category</h3>
-                      <div className="grid gap-4 md:grid-cols-2">
-                        {analyticsData.pointsByCategory.map((category, index) => (
-                          <Card key={index} className="p-4">
-                            <div className="flex items-center justify-between">
-                              <div className="capitalize font-medium">{category.category}</div>
-                              <div className="text-lg font-bold">{category.points}</div>
-                            </div>
-                          </Card>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  
-                  {/* Achievement Distribution */}
-                  {analyticsData?.achievementDistribution && (
-                    <div className="mt-6">
-                      <h3 className="text-lg font-medium mb-4">Achievement Distribution</h3>
-                      <div className="space-y-2">
-                        {analyticsData.achievementDistribution.map((achievement, index) => (
-                          <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded">
-                            <div className="font-medium">{achievement.label}</div>
-                            <div className="text-sm text-muted-foreground">{achievement.percentage}%</div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  
-                  {!analyticsData && !analyticsLoading && (
-                    <p className="text-muted-foreground">No analytics data available</p>
-                  )}
-                </CardContent>
-              </Card>
+              <StatisticsDashboard />
             </TabsContent>
           </Tabs>
         </CardContent>
