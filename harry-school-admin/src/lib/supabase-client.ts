@@ -18,7 +18,21 @@ if (!supabaseUrl || !supabaseAnonKey) {
 let supabaseClient: ReturnType<typeof createClient<Database>> | null = null
 
 try {
-  supabaseClient = createClient<Database>(supabaseUrl, supabaseAnonKey)
+  supabaseClient = createClient<Database>(supabaseUrl, supabaseAnonKey, {
+    global: {
+      fetch: (url, options = {}) => {
+        return fetch(url, {
+          ...options,
+          signal: AbortSignal.timeout(30000), // 30 second timeout
+        })
+      },
+    },
+    auth: {
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: true
+    }
+  })
 } catch (error) {
   console.error('Failed to create Supabase client:', error)
   supabaseClient = null

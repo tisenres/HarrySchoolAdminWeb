@@ -481,7 +481,7 @@ export const StudentsVirtualTable = memo<StudentsVirtualTableProps>(({
       render: (student: Student) => (
         <div className="flex items-center space-x-1">
           <Users className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm">{student.groups.length}</span>
+          <span className="text-sm">{student.groups?.length || 0}</span>
         </div>
       ),
     },

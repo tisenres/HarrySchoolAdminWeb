@@ -1655,7 +1655,7 @@ export function CrossImpactAchievementSystem() {
                   <div className="space-y-2 text-sm">
                     <div>Coefficient: {selectedPair.correlation_coefficient.toFixed(3)}</div>
                     <div>Confidence Interval: [{selectedPair.confidence_interval[0].toFixed(2)}, {selectedPair.confidence_interval[1].toFixed(2)}]</div>
-                    <div>Statistical Significance: p < {selectedPair.statistical_significance}</div>
+                    <div>Statistical Significance: p &lt; {selectedPair.statistical_significance}</div>
                     <div>Prediction Confidence: {Math.round(selectedPair.prediction_confidence * 100)}%</div>
                   </div>
                 </div>

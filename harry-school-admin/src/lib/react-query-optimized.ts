@@ -8,14 +8,21 @@ import { QueryClient, QueryCache, MutationCache } from '@tanstack/react-query'
 // Performance monitoring for queries
 const queryCache = new QueryCache({
   onError: (error, query) => {
-    console.error('Query error:', { 
-      key: query.queryKey, 
-      error: error instanceof Error ? error.message : error 
-    })
+    // Safely serialize query key and error for logging
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    const queryKey = Array.isArray(query.queryKey) ? query.queryKey.map(k => typeof k === 'object' ? JSON.stringify(k) : k) : query.queryKey
+    
+    if (process.env.NODE_ENV === 'development') {
+      console.error('[React Query] Query failed:', {
+        queryKey,
+        error: errorMessage
+      })
+    }
   },
   onSuccess: (data, query) => {
     if (process.env.NODE_ENV === 'development') {
-      console.log('Query success:', query.queryKey)
+      const queryKey = Array.isArray(query.queryKey) ? query.queryKey.map(k => typeof k === 'object' ? JSON.stringify(k) : k) : query.queryKey
+      console.log('[React Query] Query success:', queryKey)
     }
   }
 })
@@ -23,14 +30,19 @@ const queryCache = new QueryCache({
 // Performance monitoring for mutations
 const mutationCache = new MutationCache({
   onError: (error, variables, context, mutation) => {
-    console.error('Mutation error:', { 
-      mutation: mutation.options.mutationKey,
-      error: error instanceof Error ? error.message : error 
-    })
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    const mutationKey = mutation.options.mutationKey
+    
+    if (process.env.NODE_ENV === 'development') {
+      console.error('[React Query] Mutation failed:', {
+        mutationKey,
+        error: errorMessage
+      })
+    }
   },
   onSuccess: (data, variables, context, mutation) => {
     if (process.env.NODE_ENV === 'development') {
-      console.log('Mutation success:', mutation.options.mutationKey)
+      console.log('[React Query] Mutation success:', mutation.options.mutationKey)
     }
   }
 })

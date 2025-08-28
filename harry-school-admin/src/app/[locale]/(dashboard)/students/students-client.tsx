@@ -28,9 +28,7 @@ const StudentsTable = lazy(() =>
 const StudentsFilters = lazy(() => 
   import('@/components/admin/students/students-filters').then(mod => ({ default: mod.StudentsFilters }))
 )
-const StudentForm = lazy(() => 
-  import('@/components/admin/students/student-form').then(mod => ({ default: mod.StudentForm }))
-)
+import { StudentForm } from '@/components/admin/students/student-form'
 
 export default function StudentsClient() {
   const t = useTranslations('students')
@@ -95,18 +93,26 @@ export default function StudentsClient() {
       const result = await response.json()
       
       if (result.success && result.data) {
-        const allStudents = result.data
+        const allStudents = result.data || []
+        
+        // Calculate status counts using enrollment_status
+        const statusCounts = allStudents.reduce((acc: any, student: any) => {
+          const status = student.enrollment_status || 'unknown'
+          acc[status] = (acc[status] || 0) + 1
+          return acc
+        }, {})
+        
         setStatistics({
-          total_students: result.pagination?.total || 0,
-          active_students: allStudents.filter((s: any) => s.status === 'active').length,
-          inactive_students: allStudents.filter((s: any) => s.status === 'inactive').length,
-          graduated_students: allStudents.filter((s: any) => s.status === 'graduated').length,
-          suspended_students: allStudents.filter((s: any) => s.status === 'suspended').length,
-          total_enrollment: 0,
+          total_students: result.pagination?.total || allStudents.length,
+          active_students: allStudents.filter((s: any) => s.enrollment_status === 'active').length,
+          inactive_students: allStudents.filter((s: any) => s.enrollment_status === 'inactive').length,
+          graduated_students: allStudents.filter((s: any) => s.enrollment_status === 'graduated').length,
+          suspended_students: allStudents.filter((s: any) => s.enrollment_status === 'suspended').length,
+          total_enrollment: allStudents.filter((s: any) => s.enrollment_status === 'active').length,
           pending_payments: allStudents.filter((s: any) => s.payment_status === 'pending').length,
           overdue_payments: allStudents.filter((s: any) => s.payment_status === 'overdue').length,
           total_balance: allStudents.reduce((sum: number, s: any) => sum + (s.balance || 0), 0),
-          by_status: {},
+          by_status: statusCounts,
           by_level: {},
           by_payment_status: {},
           enrollment_trend: []
@@ -382,7 +388,7 @@ export default function StudentsClient() {
           </CardHeader>
           <CardContent>
             <div className="flex flex-wrap gap-4">
-              {Object.entries(statistics.by_status).map(([status, count]) => (
+              {statistics.by_status && Object.entries(statistics.by_status).map(([status, count]) => (
                 <div key={status} className="flex items-center space-x-2">
                   <Badge 
                     variant="outline" 
@@ -439,24 +445,22 @@ export default function StudentsClient() {
 
       {/* Student Form Dialog */}
       {isFormOpen && (
-        <Suspense fallback={<div className="flex items-center justify-center min-h-[400px]">Loading form...</div>}>
-          <StudentForm
-            student={editingStudent}
-            onSubmit={handleFormSubmit}
-            onCancel={() => {
-              setIsFormOpen(false)
-              setEditingStudent(undefined)
-            }}
-            loading={formLoading}
-            open={isFormOpen}
-            onOpenChange={(open) => {
-              setIsFormOpen(open)
-              if (!open) {
-                setEditingStudent(undefined)
-            }
+        <StudentForm
+          student={editingStudent}
+          onSubmit={handleFormSubmit}
+          onCancel={() => {
+            setIsFormOpen(false)
+            setEditingStudent(undefined)
           }}
-          />
-        </Suspense>
+          loading={formLoading}
+          open={isFormOpen}
+          onOpenChange={(open) => {
+            setIsFormOpen(open)
+            if (!open) {
+              setEditingStudent(undefined)
+          }
+        }}
+        />
       )}
 
       {/* Loading State */}

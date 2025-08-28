@@ -68,6 +68,13 @@ const formatDescription = (log: ActivityLog): string => {
 
 export async function getRecentActivities(limit: number = 10): Promise<Activity[]> {
   try {
+    // Get current user's session to ensure proper RLS context
+    const { data: { session } } = await supabase.auth.getSession()
+    
+    if (!session) {
+      console.warn('No active session for fetching activities')
+      return []
+    }
     
     const { data, error } = await supabase
       .from('activity_logs')
@@ -77,7 +84,13 @@ export async function getRecentActivities(limit: number = 10): Promise<Activity[
       .limit(limit)
     
     if (error) {
-      console.error('Error fetching activities:', error)
+      console.error('Error fetching activities:', {
+        message: error.message || 'Unknown error',
+        code: error.code || 'NO_CODE',
+        details: error.details || 'No details',
+        hint: error.hint || 'No hint',
+        error: error
+      })
       return []
     }
     
@@ -92,7 +105,11 @@ export async function getRecentActivities(limit: number = 10): Promise<Activity[
     }))
     
   } catch (error) {
-    console.error('Error in getRecentActivities:', error)
+    console.error('Error in getRecentActivities:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      error: error
+    })
     return []
   }
 }
@@ -177,7 +194,11 @@ export async function getDashboardStats() {
     return stats
     
   } catch (error) {
-    console.error('Error fetching dashboard stats:', error)
+    console.error('Error fetching dashboard stats:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      error: error
+    })
     return {
       totalStudents: 0,
       activeStudents: 0,

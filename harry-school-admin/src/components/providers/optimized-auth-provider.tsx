@@ -9,8 +9,10 @@ import { useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
 import { useAuthStore, useAuthActions, getAuthState } from '@/lib/stores/auth-store'
+import { sessionCache } from '@/lib/session-cache'
 import type { Database } from '@/types/database'
 import type { RealtimeChannel } from '@supabase/supabase-js'
+import type { CachedSessionData } from '@/lib/session-cache'
 
 // Create Supabase client once, not on every render
 let supabaseClient: ReturnType<typeof createBrowserClient<Database>> | null = null
@@ -27,15 +29,25 @@ const getSupabaseClient = () => {
 
 export function OptimizedAuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter()
-  const authActions = useAuthActions()
   const subscriptionRef = useRef<RealtimeChannel | null>(null)
   const initRef = useRef(false)
   
-  // Memoized profile fetcher to prevent duplicate requests
+  // Get actions without subscribing to prevent infinite loops
+  const getActions = useCallback(() => useAuthStore.getState(), [])
+  
+  // Memoized profile fetcher with Redis caching
   const fetchProfile = useCallback(async (userId: string) => {
     const supabase = getSupabaseClient()
     
     try {
+      // Try to get from cache first
+      const cachedProfile = await sessionCache.getAuthProfile(userId)
+      if (cachedProfile) {
+        console.log('📦 Profile loaded from cache:', userId)
+        return cachedProfile
+      }
+
+      // Fetch from database
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -47,6 +59,7 @@ export function OptimizedAuthProvider({ children }: { children: React.ReactNode 
         return null
       }
       
+      console.log('🔄 Profile fetched from database:', userId)
       return data
     } catch (error) {
       console.error('Profile fetch exception:', error)
@@ -65,14 +78,34 @@ export function OptimizedAuthProvider({ children }: { children: React.ReactNode 
     
     const initializeAuth = async () => {
       try {
-        // Check for existing session
+        // Check for cached session first
+        let cachedSession: CachedSessionData | null = null
+        const currentState = getAuthState()
+        
+        if (currentState.user?.id) {
+          cachedSession = await sessionCache.getUserSession(currentState.user.id)
+        }
+
+        if (cachedSession && !sessionCache.isSessionExpired?.(cachedSession)) {
+          console.log('📦 Session loaded from cache')
+          const actions = getActions()
+          actions.setAuthData({
+            user: cachedSession.user,
+            session: cachedSession.session,
+            profile: cachedSession.profile
+          })
+          return
+        }
+
+        // Fallback to Supabase session
         const { data: { session }, error } = await supabase.auth.getSession()
         
         if (!mounted) return
         
         if (error) {
-          authActions.setError(error)
-          authActions.setLoading(false)
+          const actions = getActions()
+          actions.setError(error)
+          actions.setLoading(false)
           return
         }
         
@@ -81,20 +114,48 @@ export function OptimizedAuthProvider({ children }: { children: React.ReactNode 
           const profile = await fetchProfile(session.user.id)
           
           if (!mounted) return
+
+          // Cache the complete session data
+          if (profile) {
+            const sessionData: CachedSessionData = {
+              user: session.user,
+              session: session,
+              profile: profile,
+              organization: {
+                id: profile.organization_id,
+                name: 'Harry School', // Would fetch from org table
+                is_active: true
+              },
+              metadata: {
+                cached_at: Date.now(),
+                expires_at: Date.now() + (30 * 60 * 1000), // 30 minutes
+                version: 1
+              }
+            }
+
+            await sessionCache.cacheSession(
+              session.access_token,
+              session.user.id,
+              sessionData
+            )
+          }
           
           // Update all auth data atomically (single re-render)
-          authActions.setAuthData({
+          const actions = getActions()
+          actions.setAuthData({
             user: session.user,
             session: session,
             profile: profile
           })
         } else {
-          authActions.setLoading(false)
+          const actions = getActions()
+          actions.setLoading(false)
         }
       } catch (error) {
         if (!mounted) return
-        authActions.setError(error as Error)
-        authActions.setLoading(false)
+        const actions = getActions()
+        actions.setError(error as Error)
+        actions.setLoading(false)
       }
     }
     
@@ -111,7 +172,8 @@ export function OptimizedAuthProvider({ children }: { children: React.ReactNode 
           case 'SIGNED_IN':
             if (session?.user) {
               const profile = await fetchProfile(session.user.id)
-              authActions.setAuthData({
+              const actions = getActions()
+              actions.setAuthData({
                 user: session.user,
                 session: session,
                 profile: profile
@@ -120,20 +182,23 @@ export function OptimizedAuthProvider({ children }: { children: React.ReactNode 
             break
             
           case 'SIGNED_OUT':
-            authActions.clearAuth()
+            const actions1 = getActions()
+            actions1.clearAuth()
             router.push('/login')
             break
             
           case 'TOKEN_REFRESHED':
             if (session) {
-              authActions.setSession(session)
+              const actions2 = getActions()
+              actions2.setSession(session)
             }
             break
             
           case 'USER_UPDATED':
             if (session?.user) {
               const profile = await fetchProfile(session.user.id)
-              authActions.setAuthData({
+              const actions3 = getActions()
+              actions3.setAuthData({
                 user: session.user,
                 session: session,
                 profile: profile
@@ -154,7 +219,7 @@ export function OptimizedAuthProvider({ children }: { children: React.ReactNode 
         subscriptionRef.current = null
       }
     }
-  }, [authActions, fetchProfile, router])
+  }, [getActions, fetchProfile, router])
   
   return <>{children}</>
 }

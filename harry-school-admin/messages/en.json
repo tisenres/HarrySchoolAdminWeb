@@ -124,6 +124,7 @@
     "inactive": "Inactive",
     "pending": "Pending",
     "overdue": "Overdue",
+    "unknown": "Unknown",
     "actions": "Actions"
   },
   "leaderboard": {
@@ -425,6 +426,7 @@
     "title": "Students",
     "subtitle": "Manage student profiles, enrollment, and academic progress",
     "addStudent": "Add Student",
+    "loading": "Loading students...",
     "totalStudents": "Total Students",
     "activeStudents": "Active Students",
     "activeEnrollments": "Active Enrollments",
@@ -879,7 +881,8 @@
         "exportAll": "Export All"
       },
       "actions": "Actions",
-      "viewProfile": "View Profile"
+      "viewProfile": "View Profile",
+      "openMenu": "Open menu"
     },
     "groupsTable": {
       "columns": {

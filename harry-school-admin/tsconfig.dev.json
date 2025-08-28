@@ -1,0 +1,49 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    // Relax strict settings for development
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noImplicitReturns": false,
+    "noUncheckedIndexedAccess": false,
+    "noPropertyAccessFromIndexSignature": false,
+    "exactOptionalPropertyTypes": false,
+    
+    // Enable incremental compilation
+    "incremental": true,
+    "tsBuildInfoFile": "./.next/cache/tsconfig.tsbuildinfo",
+    
+    // Skip lib checking for faster builds
+    "skipLibCheck": true,
+    
+    // Reduce type checking scope
+    "assumeChangesOnlyAffectDirectDependencies": true,
+    
+    // Faster source maps for development
+    "sourceMap": true,
+    
+    // Enable composite builds for better caching
+    "composite": false,
+    "declaration": false
+  },
+  "exclude": [
+    "node_modules",
+    ".next",
+    "out",
+    "build", 
+    "dist",
+    "coverage",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.spec.ts", 
+    "**/*.spec.tsx",
+    "e2e/**/*"
+  ],
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    "src/**/*"
+  ]
+}

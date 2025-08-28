@@ -88,7 +88,7 @@ export function StudentForm({
   open,
   onOpenChange,
 }: StudentFormProps) {
-  const t = useTranslations('studentForm')
+  const t = useTranslations('components.studentForm')
   const [selectedSubjects, setSelectedSubjects] = useState<string[]>(
     student?.preferred_subjects || []
   )

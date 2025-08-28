@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { OptimizedTeacherService } from '@/lib/services/optimized-teacher-service'
-import { teacherInsertSchema } from '@/lib/validations'
+import { createTeacherSchema } from '@/lib/validations/teacher'
 import { withAuth } from '@/lib/middleware/api-auth'
 import { withMiddleware, withCaching, withErrorBoundary, withPerformanceMonitoring, sanitizeInput } from '@/lib/middleware/performance'
 import { z } from 'zod'
@@ -52,7 +52,14 @@ export const POST = withMiddleware(
   const body = sanitizeInput(rawBody)
   
   try {
-    const validatedData = teacherInsertSchema.parse(body)
+    // Preprocess date fields from strings to Date objects
+    const preprocessedBody = {
+      ...body,
+      hire_date: body.hire_date ? new Date(body.hire_date) : undefined,
+      date_of_birth: body.date_of_birth ? new Date(body.date_of_birth) : undefined,
+    }
+    
+    const validatedData = createTeacherSchema.parse(preprocessedBody)
     const teacherService = new OptimizedTeacherService()
     const teacher = await teacherService.create(validatedData)
     
@@ -62,12 +69,14 @@ export const POST = withMiddleware(
     return response
   } catch (error) {
     if (error instanceof z.ZodError) {
+      console.error('Teacher validation error:', error.issues)
       return NextResponse.json(
         { error: 'Validation error', details: error.issues },
         { status: 400 }
       )
     }
     
+    console.error('Teacher creation error:', error)
     throw error // Let withAuth wrapper handle the error
   }
 }, 'admin'))
