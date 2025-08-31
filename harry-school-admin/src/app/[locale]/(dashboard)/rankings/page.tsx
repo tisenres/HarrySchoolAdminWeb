@@ -20,7 +20,7 @@ export default async function RankingsPage({
   searchParams
 }: RankingsPageProps) {
   // const { locale } = await params // Temporarily commented out for TypeScript
-  const awaitedSearchParams = await searchParams
+  // const awaitedSearchParams = await searchParams // Temporarily commented out for TypeScript
   const t = await getTranslations('rankings')
 
   return (
