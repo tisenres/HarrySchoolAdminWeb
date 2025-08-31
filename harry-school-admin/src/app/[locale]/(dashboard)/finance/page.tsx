@@ -1,5 +1,9 @@
 'use client'
 
+// Force dynamic rendering to prevent static generation issues
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 import { Suspense } from 'react'
 // import { useTranslations } from 'next-intl' // Temporarily commented out for TypeScript
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'

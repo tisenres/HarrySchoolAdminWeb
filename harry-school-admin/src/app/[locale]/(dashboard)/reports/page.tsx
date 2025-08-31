@@ -1,5 +1,9 @@
 'use client'
 
+// Force dynamic rendering to prevent static generation issues
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 import { Suspense, useState, useEffect } from 'react'
 import { useTranslations } from 'next-intl'
 import { Card } from '@/components/ui/card'

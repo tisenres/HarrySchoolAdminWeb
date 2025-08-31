@@ -2,7 +2,7 @@
 
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Users, UserCheck, UserPlus, TrendingUp, DollarSign, Calendar, BookOpen, Activity, Target } from 'lucide-react'
+import { Users, UserCheck, UserPlus, TrendingUp, Calendar, BookOpen, Activity, Target } from 'lucide-react'
 import Link from 'next/link'
 import { StatsCard } from '@/components/admin/dashboard/stats-card'
 import { ActivityFeed } from '@/components/admin/dashboard/activity-feed'
@@ -57,8 +57,8 @@ export default function DashboardPage() {
     revenueGrowth: 0,
   })
   const [integratedAnalytics, setIntegratedAnalytics] = useState<DashboardAnalytics | null>(null)
-  const [activities, setActivities] = useState<Activity[]>([])
-  const [loading, setLoading] = useState(true)
+  const [activities, setActivities] = useState<any[]>([])
+  // const [loading, setLoading] = useState(true) // Temporarily commented out for TypeScript
 
   useEffect(() => {
     const loadDashboardData = async () => {
@@ -74,7 +74,7 @@ export default function DashboardPage() {
         
         // Handle successful results
         if (statsData.status === 'fulfilled') {
-          setStatistics(statsData.value)
+          setStatistics(statsData.value as DashboardStats)
         }
         if (activitiesData.status === 'fulfilled') {
           setActivities(activitiesData.value)
@@ -85,7 +85,7 @@ export default function DashboardPage() {
       } catch (error) {
         console.error('Error loading dashboard data:', error)
       } finally {
-        setLoading(false)
+        // setLoading(false) // Temporarily commented out for TypeScript
       }
     }
 

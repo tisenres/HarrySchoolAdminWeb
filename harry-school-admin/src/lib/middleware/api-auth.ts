@@ -2,10 +2,32 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase-server'
 import { authCache } from '@/lib/cache/auth-cache'
 import type { UserRole } from '@/types/database'
+import crypto from 'crypto'
 
 export interface AuthContext {
-  user: any
-  profile: any
+  user: {
+    id: string
+    email: string
+    aud: string
+    iat: number
+    exp: number
+  }
+  profile: {
+    id: string
+    email: string
+    full_name: string
+    role: UserRole
+    organization_id: string
+    is_active: boolean
+  }
+}
+
+/**
+ * Generate cryptographically secure session identifier
+ */
+function generateSecureSessionHash(user: any): string {
+  const data = `${user.id}:${user.email}:${user.aud}:${user.iat}:${process.env.SESSION_SECRET || 'fallback-secret'}`
+  return crypto.createHash('sha256').update(data).digest('hex').substring(0, 32)
 }
 
 /**
@@ -30,16 +52,14 @@ export async function requireAuth(): Promise<{ user: any; profile: any } | NextR
     
     user = currentUser
     
-    // Try to get from cache first
-    const sessionHash = user.aud + user.iat // Use audience + issued_at as session identifier
+    // Try to get from cache first - use secure session hash
+    const sessionHash = generateSecureSessionHash(user)
     const cached = authCache.get(user.id, sessionHash)
     
     if (cached) {
-      console.log(`🎯 [AUTH-CACHE] Hit for user ${user.id}`)
+      // Cache hit - return cached data
       return { user: cached.user, profile: cached.profile }
     }
-    
-    console.log(`🔍 [AUTH-CACHE] Miss for user ${user.id} - fetching from database`)
     
     // Cache miss - fetch from database
     const { data: profile, error: profileError } = await supabase
@@ -49,7 +69,11 @@ export async function requireAuth(): Promise<{ user: any; profile: any } | NextR
       .single()
     
     if (profileError || !profile) {
-      console.error('Profile fetch error:', profileError)
+      // Don't log sensitive database errors in production
+      const isDev = process.env.NODE_ENV === 'development'
+      if (isDev) {
+        console.error('Profile fetch error:', profileError)
+      }
       return NextResponse.json(
         { success: false, error: 'User profile not found' },
         { status: 401 }
@@ -76,7 +100,11 @@ export async function requireAuth(): Promise<{ user: any; profile: any } | NextR
     
     return { user, profile }
   } catch (error) {
-    console.error('Auth middleware error:', error)
+    // Only log errors in development
+    const isDev = process.env.NODE_ENV === 'development'
+    if (isDev) {
+      console.error('Auth middleware error:', error)
+    }
     
     // Invalidate cache on error to prevent stale data
     if (user?.id) {
@@ -103,7 +131,11 @@ export async function requireRole(requiredRoles: UserRole[]): Promise<{ user: an
   const { profile } = authResult
   
   if (!requiredRoles.includes(profile.role)) {
-    console.log(`🚫 [AUTH] Access denied for user ${profile.id} with role ${profile.role}. Required: ${requiredRoles.join(', ')}`)
+    // Only log access denials in development
+    const isDev = process.env.NODE_ENV === 'development'
+    if (isDev) {
+      console.log(`🚫 [AUTH] Access denied for user ${profile.id} with role ${profile.role}. Required: ${requiredRoles.join(', ')}`)
+    }
     return NextResponse.json(
       { success: false, error: 'Insufficient permissions' },
       { status: 403 }
@@ -156,7 +188,11 @@ export function withAuth(
     try {
       return await handler(request, authResult, ...args)
     } catch (error) {
-      console.error('API route error:', error)
+      // Only log errors in development
+      const isDev = process.env.NODE_ENV === 'development'
+      if (isDev) {
+        console.error('API route error:', error)
+      }
       return NextResponse.json(
         { success: false, error: 'Internal server error' },
         { status: 500 }

@@ -1,3 +1,7 @@
+// Force dynamic rendering to prevent static generation issues
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 import { getTranslations } from 'next-intl/server'
 import { WorkingRankings } from '@/components/admin/rankings/working-rankings'
 
@@ -12,10 +16,10 @@ interface RankingsPageProps {
 }
 
 export default async function RankingsPage({
-  params,
+  // params, // Temporarily commented out for TypeScript
   searchParams
 }: RankingsPageProps) {
-  const { locale } = await params
+  // const { locale } = await params // Temporarily commented out for TypeScript
   const awaitedSearchParams = await searchParams
   const t = await getTranslations('rankings')
 

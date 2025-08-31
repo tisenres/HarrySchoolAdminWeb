@@ -1,5 +1,9 @@
 'use client'
 
+
+// Force dynamic rendering to prevent static generation issues
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
 import { useState } from 'react'
 // import { useTranslations } from 'next-intl' // Temporarily disabled for deployment
 import { motion } from 'framer-motion'

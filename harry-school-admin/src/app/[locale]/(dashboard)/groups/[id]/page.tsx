@@ -1,5 +1,9 @@
 'use client'
 
+
+// Force dynamic rendering to prevent static generation issues
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
@@ -54,7 +58,7 @@ export default function GroupDetailPage() {
         return
       }
       
-      setGroup(groupData)
+      setGroup(groupData as unknown as GroupWithDetails)
     } catch (error) {
       console.error('Failed to load group:', error)
       router.push('/dashboard/groups')

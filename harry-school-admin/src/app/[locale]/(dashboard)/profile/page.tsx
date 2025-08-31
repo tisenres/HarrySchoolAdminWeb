@@ -1,5 +1,9 @@
 'use client'
 
+
+// Force dynamic rendering to prevent static generation issues
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
 import { useProfile } from '@/lib/auth/client-auth'
 import { ProfileView } from '@/components/admin/profile/profile-view'
 import { useTranslations } from 'next-intl'

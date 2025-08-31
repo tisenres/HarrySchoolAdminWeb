@@ -1,6 +1,7 @@
 import createMiddleware from 'next-intl/middleware';
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
+import { applyRateLimit } from '@/lib/middleware/rate-limit';
 
 // Define locales directly to avoid circular imports
 const locales = ['en', 'ru', 'uz'] as const;
@@ -16,13 +17,21 @@ const intlMiddleware = createMiddleware({
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   
-  // Early return for static assets and API routes
+  // Early return for static assets and build files (no rate limiting needed)
   if (
     pathname.startsWith('/_next/') ||
-    pathname.startsWith('/api/') ||
     pathname.startsWith('/favicon.ico') ||
-    pathname.includes('.')
+    pathname.includes('.') && !pathname.includes('/api/')
   ) {
+    return NextResponse.next();
+  }
+
+  // Apply rate limiting to API routes first
+  if (pathname.startsWith('/api/')) {
+    const rateLimitResult = await applyRateLimit(request, 'api');
+    if (rateLimitResult && rateLimitResult.status === 429) {
+      return rateLimitResult;
+    }
     return NextResponse.next();
   }
   
@@ -40,6 +49,28 @@ export async function middleware(request: NextRequest) {
   if (pathname.startsWith('/dashboard')) {
     const cleanPath = pathname.replace('/dashboard', '') || '/';
     return NextResponse.redirect(new URL(`/${defaultLocale}${cleanPath}`, request.url));
+  }
+
+  // Apply rate limiting for authentication routes
+  const isAuthRoute = pathname.includes('/login') || 
+                     pathname.includes('/sign-in') ||
+                     pathname.includes('/forgot-password');
+  
+  if (isAuthRoute) {
+    const rateLimitResult = await applyRateLimit(request, 'auth');
+    if (rateLimitResult && rateLimitResult.status === 429) {
+      return rateLimitResult;
+    }
+  }
+
+  // Apply general dashboard rate limiting for protected routes
+  const isDashboardRoute = /^\/[a-z]{2}(?:\/|$)/.test(pathname) && !pathname.includes('/login') && !pathname.includes('/sign-in') && !pathname.includes('/forgot-password') && !pathname.includes('/maintenance');
+  
+  if (isDashboardRoute) {
+    const rateLimitResult = await applyRateLimit(request, 'dashboard');
+    if (rateLimitResult && rateLimitResult.status === 429) {
+      return rateLimitResult;
+    }
   }
 
   // Get the next-intl response first to handle locale properly

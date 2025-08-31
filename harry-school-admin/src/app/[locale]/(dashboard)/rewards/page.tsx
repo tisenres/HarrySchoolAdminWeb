@@ -1,3 +1,7 @@
+// Force dynamic rendering to prevent static generation issues
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 import { Metadata } from 'next'
 import { useTranslations } from 'next-intl'
 import RewardsManagementDashboard from '@/components/admin/rewards/rewards-management-dashboard'

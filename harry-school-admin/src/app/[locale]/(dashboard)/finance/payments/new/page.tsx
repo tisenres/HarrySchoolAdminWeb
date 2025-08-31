@@ -1,4 +1,8 @@
-import { getTranslations } from 'next-intl/server'
+// Force dynamic rendering to prevent static generation issues
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
+// import { getTranslations } from 'next-intl/server' // Temporarily commented out for TypeScript
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'

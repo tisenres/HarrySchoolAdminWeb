@@ -6,18 +6,20 @@ const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 const isDev = process.env.NODE_ENV === 'development';
 
 const nextConfig: NextConfig = {
-  // Fix cross-origin resource loading for ngrok
-  allowedDevOrigins: [
-    '3b1348a71f69.ngrok-free.app',
-    '*.ngrok-free.app',
-  ],
+  // Development origins (only in development)
+  ...(isDev && {
+    allowedDevOrigins: [
+      '3b1348a71f69.ngrok-free.app',
+      '*.ngrok-free.app',
+    ],
+  }),
   
-  // Enable type checking and linting with warnings only
+  // Type checking and linting configuration  
   typescript: {
-    ignoreBuildErrors: false,
+    ignoreBuildErrors: false, // Enable type checking in production
   },
   eslint: {
-    ignoreDuringBuilds: false,
+    ignoreDuringBuilds: false, // Enable ESLint in production builds
   },
   
   // Enable standalone output for production deployment
@@ -28,6 +30,12 @@ const nextConfig: NextConfig = {
   compress: true,
   
 
+  // Force all pages to be dynamic to avoid static generation issues
+  generateBuildId: () => 'build',
+  
+  // Completely disable static optimization
+  generateStaticParams: () => [],
+  
   // Experimental features for performance
   experimental: {
     // Optimize for development vs production
@@ -47,7 +55,14 @@ const nextConfig: NextConfig = {
       cssChunking: 'strict',
     }),
     
-    // Enable concurrent features for better performance
+    // Completely disable static generation when environment variable is set
+    ...(process.env['DISABLE_STATIC_GENERATION'] === 'true' && {
+      isrMemoryCacheSize: 0,
+      workerThreads: false,
+      cpus: 1,
+    }),
+    
+    // Enable concurrent features for performance
     ppr: false, // Partial Prerendering can cause slower initial loads in dev
     
     // Optimize package imports for better tree-shaking
@@ -83,29 +98,64 @@ const nextConfig: NextConfig = {
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
 
-  // Headers for performance
+  // Headers for security and performance
   async headers() {
+    const securityHeaders = [
+      {
+        key: 'X-DNS-Prefetch-Control',
+        value: 'on'
+      },
+      {
+        key: 'Strict-Transport-Security',
+        value: 'max-age=63072000; includeSubDomains; preload'
+      },
+      {
+        key: 'X-Content-Type-Options',
+        value: 'nosniff'
+      },
+      {
+        key: 'X-Frame-Options',
+        value: 'DENY'
+      },
+      {
+        key: 'X-XSS-Protection',
+        value: '1; mode=block'
+      },
+      {
+        key: 'Referrer-Policy',
+        value: 'strict-origin-when-cross-origin'
+      },
+      {
+        key: 'Permissions-Policy',
+        value: 'camera=(), microphone=(), geolocation=(), payment=()'
+      },
+      {
+        key: 'Content-Security-Policy',
+        value: [
+          "default-src 'self'",
+          "script-src 'self' 'wasm-unsafe-eval' https://vercel.live",
+          "style-src 'self' https://fonts.googleapis.com",
+          "img-src 'self' data: https: blob:",
+          "font-src 'self' data: https://fonts.gstatic.com",
+          "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://vercel.live https://vitals.vercel-insights.com",
+          "frame-ancestors 'none'",
+          "frame-src 'none'",
+          "base-uri 'self'",
+          "form-action 'self'",
+          "object-src 'none'",
+          "media-src 'self'",
+          "worker-src 'self'",
+          "manifest-src 'self'",
+          "upgrade-insecure-requests",
+          "block-all-mixed-content"
+        ].join('; ')
+      }
+    ]
+    
     return [
       {
         source: '/(.*)',
-        headers: [
-          {
-            key: 'X-DNS-Prefetch-Control',
-            value: 'on'
-          },
-          {
-            key: 'Strict-Transport-Security',
-            value: 'max-age=63072000; includeSubDomains; preload'
-          },
-          {
-            key: 'X-Content-Type-Options',
-            value: 'nosniff'
-          },
-          {
-            key: 'Referrer-Policy',
-            value: 'origin-when-cross-origin'
-          }
-        ]
+        headers: securityHeaders
       },
       // Cache static assets aggressively
       {

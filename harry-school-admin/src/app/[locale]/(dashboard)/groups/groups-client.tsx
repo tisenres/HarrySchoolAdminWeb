@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, lazy, Suspense, useMemo, useCallback } from 'react'
+import { useState, useEffect, lazy, Suspense, useCallback } from 'react'
 import { useTranslations } from 'next-intl'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -42,7 +42,7 @@ import {
   Trash2,
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
-import { debounce } from 'lodash'
+// import { debounce } from 'lodash' // Temporarily commented out for TypeScript
 import type { GroupTableRow, GroupFilters, GroupStatistics, Group, GroupSortConfig } from '@/types/group'
 
 export default function GroupsClient() {
@@ -111,12 +111,11 @@ export default function GroupsClient() {
   // Update pagination when data changes
   useEffect(() => {
     if (groupsResponse) {
-      setPagination(prev => ({
-        ...prev,
-        current_page: pagination.current_page,
+      setPagination({
+        ...pagination,
         total_pages: groupsResponse.total_pages || 1,
         count: groupsResponse.count || 0
-      }))
+      })
     }
   }, [groupsResponse])
 
