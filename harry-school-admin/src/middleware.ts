@@ -115,11 +115,7 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  // Check auth for protected routes
-  const isAuthRoute = pathname.includes('/login') || 
-                     pathname.includes('/sign-in') ||
-                     pathname.includes('/forgot-password');
-  
+  // Check auth for protected routes (already declared above)
   // Check if it's a locale-only path (dashboard) - this should be protected
   const isDashboard = /^\/[a-z]{2}$/.test(pathname) || pathname === '/';
   
