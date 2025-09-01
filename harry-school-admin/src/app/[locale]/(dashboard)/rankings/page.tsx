@@ -16,10 +16,10 @@ interface RankingsPageProps {
 }
 
 export default async function RankingsPage({
-  // params, // Temporarily commented out for TypeScript
+  params,
 }: RankingsPageProps) {
-  // const { locale } = await params // Temporarily commented out for TypeScript
-  const t = await getTranslations('rankings')
+  const { locale } = await params
+  const t = await getTranslations({ locale, namespace: 'rankings' })
 
   return (
     <div className="container mx-auto py-6 space-y-6">
@@ -43,7 +43,7 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>
 }) {
   const { locale } = await params
-  const t = await getTranslations('rankings')
+  const t = await getTranslations({ locale, namespace: 'rankings' })
   
   return {
     title: t('title'),

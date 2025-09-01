@@ -1,15 +1,12 @@
 'use client'
 
-import { useTranslations } from 'next-intl'
 import { useSearchParams } from 'next/navigation'
 import { SettingsDashboard } from '@/components/admin/settings/settings-dashboard'
 import { supabase } from '@/lib/supabase/client'
 import { useQuery } from '@tanstack/react-query'
 import { Loader2 } from 'lucide-react'
-import { User } from '@supabase/supabase-js'
 
 export function SettingsPageClient() {
-  const t = useTranslations('settings')
   const searchParams = useSearchParams()
   
   // Get initial tab from URL params
@@ -32,7 +29,7 @@ export function SettingsPageClient() {
 
       return {
         user: currentUser,
-        organizationId: profile?.organization_id || null
+        organizationId: (profile as any)?.organization_id || null
       }
     },
     staleTime: 0, // Always fresh for button responsiveness

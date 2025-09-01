@@ -5,7 +5,6 @@ export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
 import { Suspense, useState, useEffect } from 'react'
-import { useTranslations } from 'next-intl'
 import { Card } from '@/components/ui/card'
 import { ReportDashboard } from '@/components/admin/reports/report-dashboard'
 import { useOrganization } from '@/lib/auth/client-auth'
@@ -22,7 +21,6 @@ import {
 } from 'lucide-react'
 
 export default function ReportsPage() {
-  const t = useTranslations('reports')
   const organization = useOrganization()
   const [hasAdvancedReporting, setHasAdvancedReporting] = useState(true)
 

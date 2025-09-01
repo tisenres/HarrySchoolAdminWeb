@@ -1,5 +1,5 @@
 'use client'
-import { useState, useCallback, useEffect, useMemo, lazy, Suspense } from 'react'
+import { useState, useCallback, useEffect, lazy, Suspense } from 'react'
 import { motion } from 'framer-motion'
 import { useTranslations } from 'next-intl'
 import { useQuery } from '@tanstack/react-query'
@@ -38,7 +38,7 @@ export default function StudentsClient() {
   const [selectedStudents, setSelectedStudents] = useState<string[]>([])
   const [filters, setFilters] = useState<StudentFilters>({})
   const [sortConfig, setSortConfig] = useState<StudentSortConfig>({
-    field: 'first_name',
+    field: 'first_name' as any,
     direction: 'asc'
   })
   const [pagination, setPagination] = useState({
@@ -61,12 +61,12 @@ export default function StudentsClient() {
       const params = new URLSearchParams({
         page: pagination.current_page.toString(),
         limit: pagination.page_size.toString(),
-        sort_field: sortConfig.field,
+        sort_field: sortConfig.field as string,
         sort_direction: sortConfig.direction,
         ...(filters.search && { query: filters.search }),
-        ...(filters.status && { status: filters.status }),
-        ...(filters.grade_level && { grade_level: filters.grade_level })
-      })
+        ...(filters.status && { status: filters.status as any }),
+        ...(filters.grade_level && { grade_level: filters.grade_level as any })
+      } as any)
 
       const response = await fetch(`/api/students?${params.toString()}`)
       const result = await response.json()
@@ -126,12 +126,12 @@ export default function StudentsClient() {
   // Update pagination when data changes
   useEffect(() => {
     if (studentsResponse?.pagination) {
-      setPagination(prev => ({
-        ...prev,
+      setPagination({
+        ...pagination,
         current_page: studentsResponse.pagination.page,
         total_pages: studentsResponse.pagination.total_pages,
         count: studentsResponse.pagination.total
-      }))
+      })
     }
   }, [studentsResponse])
 
@@ -201,11 +201,11 @@ export default function StudentsClient() {
       }
       await refetch()
       await loadStatistics()
-      setSelectedStudents(prev => prev.filter(id => id !== studentId))
+      setSelectedStudents(selectedStudents.filter(id => id !== studentId))
     } catch (error) {
       console.error('Error deleting student:', error)
     }
-  }, [students, refetch, loadStatistics])
+  }, [selectedStudents, refetch, loadStatistics])
 
   const handleBulkDelete = useCallback(async (studentIds: string[]) => {
     const confirmed = window.confirm(`Are you sure you want to delete ${studentIds.length} student(s)? This action cannot be undone.`)
@@ -253,13 +253,13 @@ export default function StudentsClient() {
 
   const handleFiltersChange = useCallback((newFilters: StudentFilters) => {
     setFilters(newFilters)
-    setPagination(prev => ({ ...prev, current_page: 1 }))
-  }, [])
+    setPagination({ ...pagination, current_page: 1 })
+  }, [pagination])
 
   const handleClearFilters = useCallback(() => {
     setFilters({})
-    setPagination(prev => ({ ...prev, current_page: 1 }))
-  }, [])
+    setPagination({ ...pagination, current_page: 1 })
+  }, [pagination])
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('uz-UZ', {
@@ -434,8 +434,8 @@ export default function StudentsClient() {
               totalPages={pagination.total_pages}
               pageSize={pagination.page_size}
               totalCount={pagination.count}
-              onPageChange={(page) => setPagination(prev => ({ ...prev, current_page: page }))}
-              onPageSizeChange={(size) => setPagination(prev => ({ ...prev, page_size: size }))}
+              onPageChange={(page) => setPagination({ ...pagination, current_page: page })}
+              onPageSizeChange={(size) => setPagination({ ...pagination, page_size: size })}
               loading={loading}
               showArchived={showArchived}
             />

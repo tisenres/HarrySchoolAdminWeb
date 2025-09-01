@@ -95,7 +95,7 @@ export default function StudentDetailPage() {
     try {
       const studentData = await studentService.getById(studentId)
       if (studentData) {
-        setStudent(studentData)
+        setStudent(studentData as any)
       } else {
         setError('Student not found')
       }
@@ -112,8 +112,8 @@ export default function StudentDetailPage() {
 
     setFormLoading(true)
     try {
-      const updatedStudent = await studentService.update(student.id, data)
-      setStudent(updatedStudent)
+      const updatedStudent = await studentService.update(student.id, data as any)
+      setStudent(updatedStudent as any)
       setIsFormOpen(false)
     } catch (err) {
       console.error('Error updating student:', err)
@@ -130,8 +130,8 @@ export default function StudentDetailPage() {
       const updatedGroups = [...student.groups, groupId]
       const updatedStudent = await studentService.update(student.id, {
         groups: updatedGroups
-      })
-      setStudent(updatedStudent)
+      } as any)
+      setStudent(updatedStudent as any)
     } catch (err) {
       console.error('Error enrolling student:', err)
     }
@@ -145,8 +145,8 @@ export default function StudentDetailPage() {
       const updatedGroups = student.groups.filter(id => id !== groupId)
       const updatedStudent = await studentService.update(student.id, {
         groups: updatedGroups
-      })
-      setStudent(updatedStudent)
+      } as any)
+      setStudent(updatedStudent as any)
     } catch (err) {
       console.error('Error withdrawing student:', err)
     }
@@ -165,8 +165,8 @@ export default function StudentDetailPage() {
       const updatedStudent = await studentService.update(student.id, {
         payment_status: data.payment_status,
         balance: data.balance
-      })
-      setStudent(updatedStudent)
+      } as any)
+      setStudent(updatedStudent as any)
     } catch (err) {
       console.error('Error updating payment:', err)
     }
