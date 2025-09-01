@@ -79,7 +79,22 @@ function generateRateLimitKey(request: NextRequest, type: string): string {
   
   // Include user agent hash to prevent simple IP rotation attacks
   const userAgent = request.headers.get('user-agent') || 'unknown'
-  const userAgentHash = require('crypto').createHash('md5').update(userAgent).digest('hex').substring(0, 8)
+  let userAgentHash: string
+  
+  try {
+    // Try to use Node.js crypto
+    const crypto = require('crypto')
+    userAgentHash = crypto.createHash('md5').update(userAgent).digest('hex').substring(0, 8)
+  } catch (e) {
+    // Fallback to simple hash for edge runtime
+    let hash = 0
+    for (let i = 0; i < userAgent.length; i++) {
+      const char = userAgent.charCodeAt(i)
+      hash = ((hash << 5) - hash) + char
+      hash = hash & hash // Convert to 32bit integer
+    }
+    userAgentHash = Math.abs(hash).toString(16).substring(0, 8).padStart(8, '0')
+  }
   
   return `${type}:${ip}:${userAgentHash}`
 }
@@ -220,7 +235,22 @@ export async function applyUserRateLimit(
   config: { windowMs: number; max: number; message?: string }
 ): Promise<NextResponse | null> {
   const userAgent = request.headers.get('user-agent') || 'unknown'
-  const userAgentHash = require('crypto').createHash('md5').update(userAgent).digest('hex').substring(0, 8)
+  let userAgentHash: string
+  
+  try {
+    // Try to use Node.js crypto
+    const crypto = require('crypto')
+    userAgentHash = crypto.createHash('md5').update(userAgent).digest('hex').substring(0, 8)
+  } catch (e) {
+    // Fallback to simple hash for edge runtime
+    let hash = 0
+    for (let i = 0; i < userAgent.length; i++) {
+      const char = userAgent.charCodeAt(i)
+      hash = ((hash << 5) - hash) + char
+      hash = hash & hash // Convert to 32bit integer
+    }
+    userAgentHash = Math.abs(hash).toString(16).substring(0, 8).padStart(8, '0')
+  }
   const key = `user:${userId}:${userAgentHash}`
   
   const { count, resetTime } = rateLimitStore.increment(key, config.windowMs)

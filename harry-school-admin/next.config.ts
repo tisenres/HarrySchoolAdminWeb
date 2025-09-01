@@ -33,9 +33,6 @@ const nextConfig: NextConfig = {
   // Force all pages to be dynamic to avoid static generation issues
   generateBuildId: () => 'build',
   
-  // Completely disable static optimization
-  generateStaticParams: () => [],
-  
   // Experimental features for performance
   experimental: {
     // Optimize for development vs production
@@ -55,9 +52,8 @@ const nextConfig: NextConfig = {
       cssChunking: 'strict',
     }),
     
-    // Completely disable static generation when environment variable is set
+    // Optimize worker configuration
     ...(process.env['DISABLE_STATIC_GENERATION'] === 'true' && {
-      isrMemoryCacheSize: 0,
       workerThreads: false,
       cpus: 1,
     }),

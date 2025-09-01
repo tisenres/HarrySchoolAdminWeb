@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { IntegratedRankingsLeaderboard } from './integrated-rankings-leaderboard'
 import { ReferralAchievementsIntegration } from './referral-achievements-integration'
 import { StatisticsDashboard } from './statistics-dashboard'
+import { AwardAchievementModal } from './award-achievement-modal'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
@@ -40,50 +41,37 @@ interface User {
   initials: string
 }
 
-const mockUsers: User[] = [
-  {
-    id: '1',
-    name: 'Nargiza Karimova',
-    userType: 'teacher',
-    points: 3200,
-    level: 15,
-    efficiency: 94.5,
-    coins: 160,
-    performanceTier: 'excellent',
-    initials: 'NK'
-  },
-  {
-    id: '2',
-    name: 'Jasur Rakhimov',
-    userType: 'teacher',
-    points: 2980,
-    level: 14,
-    efficiency: 89.1,
-    coins: 149,
-    performanceTier: 'excellent',
-    initials: 'JR'
-  },
-  {
-    id: '3',
-    name: 'Ali Karimov',
-    userType: 'student',
-    points: 2850,
-    level: 12,
-    coins: 145,
-    performanceTier: 'excellent',
-    initials: 'AK'
-  },
-  {
-    id: '4',
-    name: 'Malika Nazarova',
-    userType: 'student',
-    points: 2640,
-    level: 11,
-    coins: 132,
-    performanceTier: 'good',
-    initials: 'MN'
+// API response interface for rankings
+interface RankingUser {
+  user_id: string
+  total_points: number
+  total_coins: number
+  current_level: number
+  current_rank: number
+  user_type: 'student' | 'teacher'
+  user: {
+    id: string
+    full_name: string
+    avatar_url?: string
+    email: string
   }
-]
+}
+
+// Transform API data to local User interface
+const transformRankingUser = (apiUser: RankingUser): User => ({
+  id: apiUser.user_id,
+  name: apiUser.user.full_name,
+  userType: apiUser.user_type,
+  points: apiUser.total_points || 0,
+  level: apiUser.current_level || 1,
+  coins: apiUser.total_coins || 0,
+  performanceTier: apiUser.total_points > 2500 ? 'excellent' : apiUser.total_points > 1500 ? 'good' : 'standard',
+  initials: apiUser.user.full_name
+    .split(' ')
+    .map(name => name.charAt(0))
+    .join('')
+    .toUpperCase()
+})
 
 interface RankingsStats {
   totalUsers: number
@@ -126,6 +114,10 @@ export function WorkingRankings() {
   const [loading, setLoading] = useState(true)
   const [analyticsLoading, setAnalyticsLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
+  const [users, setUsers] = useState<User[]>([])
+  const [usersLoading, setUsersLoading] = useState(true)
+  const [selectedUser, setSelectedUser] = useState<User | null>(null)
+  const [showAchievementModal, setShowAchievementModal] = useState(false)
 
   useEffect(() => {
     const fetchRankingsStats = async () => {
@@ -171,11 +163,69 @@ export function WorkingRankings() {
       }
     }
 
+    const fetchUsers = async () => {
+      try {
+        setUsersLoading(true)
+        const response = await fetch('/api/rankings?limit=100')
+        const data = await response.json()
+        
+        if (data && data.rankings) {
+          const transformedUsers = data.rankings.map(transformRankingUser)
+          setUsers(transformedUsers)
+        }
+      } catch (error) {
+        console.error('Failed to fetch users:', error)
+      } finally {
+        setUsersLoading(false)
+      }
+    }
+
     fetchRankingsStats()
     fetchAnalyticsData()
+    fetchUsers()
   }, [])
 
-  const filteredUsers = mockUsers.filter(user => 
+  const refreshData = useCallback(async () => {
+    setLoading(true)
+    setUsersLoading(true)
+    try {
+      // Refresh all data
+      const [statsResponse, usersResponse] = await Promise.all([
+        fetch('/api/rankings'),
+        fetch('/api/rankings?limit=100')
+      ])
+      
+      const [statsData, usersData] = await Promise.all([
+        statsResponse.json(),
+        usersResponse.json()
+      ])
+      
+      // Update stats
+      if (statsData && statsData.stats) {
+        setStats({
+          totalUsers: statsData.stats.total_users || 0,
+          studentsCount: statsData.stats.students_count || 0,
+          teachersCount: statsData.stats.teachers_count || 0,
+          totalPoints: statsData.stats.total_points || 0,
+          activeAchievements: 0,
+          averageEngagement: statsData.stats.average_engagement || 0
+        })
+      }
+      
+      // Update users
+      if (usersData && usersData.rankings) {
+        const transformedUsers = usersData.rankings.map(transformRankingUser)
+        setUsers(transformedUsers)
+      }
+    } catch (error) {
+      console.error('Failed to refresh data:', error)
+    } finally {
+      setLoading(false)
+      setUsersLoading(false)
+    }
+  }, [])
+
+  const filteredUsers = users.filter(user => 
     user.name.toLowerCase().includes(searchQuery.toLowerCase())
   ).sort((a, b) => b.points - a.points)
 
@@ -313,15 +363,29 @@ export function WorkingRankings() {
                         <User className="h-4 w-4" />
                         Student Actions
                       </h4>
-                      <Button className="w-full justify-start" size="sm">
+                      <Button 
+                        className="w-full justify-start" 
+                        size="sm"
+                        onClick={() => console.log('Award Points clicked - Implementation needed')}
+                      >
                         <Award className="h-4 w-4 mr-2" />
                         Award Points
                       </Button>
-                      <Button className="w-full justify-start" variant="outline" size="sm">
+                      <Button 
+                        className="w-full justify-start" 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => setShowAchievementModal(true)}
+                      >
                         <Medal className="h-4 w-4 mr-2" />
                         Give Achievement
                       </Button>
-                      <Button className="w-full justify-start" variant="outline" size="sm">
+                      <Button 
+                        className="w-full justify-start" 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => console.log('Approve Reward clicked - Implementation needed')}
+                      >
                         <Gift className="h-4 w-4 mr-2" />
                         Approve Reward
                       </Button>
@@ -512,6 +576,14 @@ export function WorkingRankings() {
           </Tabs>
         </CardContent>
       </Card>
+
+      {/* Achievement Award Modal */}
+      <AwardAchievementModal
+        open={showAchievementModal}
+        onOpenChange={setShowAchievementModal}
+        users={users}
+        onSuccess={refreshData}
+      />
     </div>
   )
 }

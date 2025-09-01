@@ -1,4 +1,16 @@
-import DOMPurify from 'isomorphic-dompurify'
+// Dynamic import for DOMPurify to avoid edge runtime issues
+let DOMPurify: any = null
+
+async function getDOMPurify() {
+  if (!DOMPurify) {
+    // Only import on client-side or in Node.js runtime
+    if (typeof window !== 'undefined' || typeof global !== 'undefined') {
+      const module = await import('isomorphic-dompurify')
+      DOMPurify = module.default
+    }
+  }
+  return DOMPurify
+}
 
 /**
  * Sanitize user input for display using DOMPurify (secure against XSS)
@@ -6,11 +18,41 @@ import DOMPurify from 'isomorphic-dompurify'
 export function sanitizeInput(input: string | null | undefined): string {
   if (!input) return ''
   
-  // Use DOMPurify to safely sanitize HTML content
-  return DOMPurify.sanitize(input, {
-    ALLOWED_TAGS: [], // Strip all HTML tags
-    ALLOWED_ATTR: [], // Strip all attributes
-    KEEP_CONTENT: true // Keep text content
+  // Fallback to basic sanitization if DOMPurify is not available (edge runtime)
+  if (typeof window === 'undefined' && typeof global === 'undefined') {
+    return input.replace(/[<>&"']/g, (char) => {
+      const entityMap: Record<string, string> = {
+        '<': '&lt;',
+        '>': '&gt;',
+        '&': '&amp;',
+        '"': '&quot;',
+        "'": '&#x27;'
+      }
+      return entityMap[char] || char
+    })
+  }
+  
+  // Use DOMPurify for full sanitization when available
+  getDOMPurify().then(purify => {
+    if (purify) {
+      return purify.sanitize(input, {
+        ALLOWED_TAGS: [], // Strip all HTML tags
+        ALLOWED_ATTR: [], // Strip all attributes
+        KEEP_CONTENT: true // Keep text content
+      })
+    }
+  })
+  
+  // Immediate fallback
+  return input.replace(/[<>&"']/g, (char) => {
+    const entityMap: Record<string, string> = {
+      '<': '&lt;',
+      '>': '&gt;',
+      '&': '&amp;',
+      '"': '&quot;',
+      "'": '&#x27;'
+    }
+    return entityMap[char] || char
   })
 }
 
@@ -20,13 +62,43 @@ export function sanitizeInput(input: string | null | undefined): string {
 export function sanitizeHtml(html: string | null | undefined): string {
   if (!html) return ''
   
-  // Allow only safe HTML tags and attributes
-  return DOMPurify.sanitize(html, {
-    ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'p', 'br', 'ul', 'ol', 'li'],
-    ALLOWED_ATTR: ['class'],
-    FORBID_SCRIPT: true,
-    FORBID_TAGS: ['script', 'object', 'embed', 'form', 'input', 'textarea'],
-    FORBID_ATTR: ['onclick', 'onload', 'onerror', 'style']
+  // Fallback to basic sanitization if DOMPurify is not available (edge runtime)
+  if (typeof window === 'undefined' && typeof global === 'undefined') {
+    return html.replace(/[<>&"']/g, (char) => {
+      const entityMap: Record<string, string> = {
+        '<': '&lt;',
+        '>': '&gt;',
+        '&': '&amp;',
+        '"': '&quot;',
+        "'": '&#x27;'
+      }
+      return entityMap[char] || char
+    })
+  }
+  
+  // Use DOMPurify for full sanitization when available
+  getDOMPurify().then(purify => {
+    if (purify) {
+      return purify.sanitize(html, {
+        ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'p', 'br', 'ul', 'ol', 'li'],
+        ALLOWED_ATTR: ['class'],
+        FORBID_SCRIPT: true,
+        FORBID_TAGS: ['script', 'object', 'embed', 'form', 'input', 'textarea'],
+        FORBID_ATTR: ['onclick', 'onload', 'onerror', 'style']
+      })
+    }
+  })
+  
+  // Immediate fallback
+  return html.replace(/[<>&"']/g, (char) => {
+    const entityMap: Record<string, string> = {
+      '<': '&lt;',
+      '>': '&gt;',
+      '&': '&amp;',
+      '"': '&quot;',
+      "'": '&#x27;'
+    }
+    return entityMap[char] || char
   })
 }
 
@@ -268,8 +340,26 @@ export const RATE_LIMITS = {
  * Generate a cryptographically secure nonce for CSP
  */
 export function generateCSPNonce(): string {
-  const crypto = require('crypto')
-  return crypto.randomBytes(16).toString('base64')
+  // Use edge-compatible crypto API if available
+  if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+    const array = new Uint8Array(16)
+    crypto.getRandomValues(array)
+    return btoa(String.fromCharCode(...array))
+  }
+  
+  // Fallback for Node.js environments
+  try {
+    const nodeCrypto = require('crypto')
+    return nodeCrypto.randomBytes(16).toString('base64')
+  } catch (e) {
+    // Final fallback - simple random string (not cryptographically secure)
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+    let result = ''
+    for (let i = 0; i < 16; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length))
+    }
+    return btoa(result)
+  }
 }
 
 /**

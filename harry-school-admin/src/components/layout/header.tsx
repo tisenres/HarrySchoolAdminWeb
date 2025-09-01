@@ -5,21 +5,35 @@ import { Badge } from '@/components/ui/badge'
 import { LanguageSwitch } from '@/components/ui/language-switch'
 import { LogoutButton } from '@/components/auth/logout-button'
 import { NotificationBell } from '@/components/admin/notifications/notification-bell'
-import { User, Wrench } from 'lucide-react'
+import { User, Wrench, Menu } from 'lucide-react'
 import { useParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { useSystemSettings } from '@/lib/services/system-settings-service.client'
 import Link from 'next/link'
 
-export function Header() {
+interface HeaderProps {
+  onMenuClick?: () => void
+}
+
+export function Header({ onMenuClick }: HeaderProps) {
   const params = useParams()
   const locale = params?.locale as string || 'en'
   const t = useTranslations('navigation')
   const { settings } = useSystemSettings()
 
   return (
-    <header className="flex h-16 items-center justify-between border-b bg-background px-6">
+    <header className="flex h-16 items-center justify-between border-b bg-background px-4 md:px-6">
       <div className="flex items-center gap-4">
+        {/* Mobile menu button */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="md:hidden"
+          onClick={onMenuClick}
+        >
+          <Menu className="h-5 w-5" />
+        </Button>
+        
         <h2 className="text-lg font-semibold">{t('adminDashboard')}</h2>
         {settings?.maintenance_mode && (
           <Badge variant="destructive" className="flex items-center gap-1">
