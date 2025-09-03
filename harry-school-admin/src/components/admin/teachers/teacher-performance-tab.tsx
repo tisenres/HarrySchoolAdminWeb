@@ -99,106 +99,87 @@ export function TeacherPerformanceTab({ teacher }: TeacherPerformanceTabProps) {
     }
   }, [teacher.teacher_id])
 
-  // Mock data (will be gradually replaced with real API calls)
-  const [performanceHistory] = useState<TeacherEvaluationSession[]>([
-    {
-      id: '1',
-      teacher_id: teacher.teacher_id,
-      evaluator_id: 'admin-1',
-      evaluation_period_start: '2025-01-01',
-      evaluation_period_end: '2025-01-31',
-      criteria_scores: [
-        { criteria_id: '1', criteria_name: 'Teaching Quality', score: 92, max_points: 100, weight_percentage: 30, notes: 'Excellent student engagement' },
-        { criteria_id: '2', criteria_name: 'Student Performance', score: 88, max_points: 100, weight_percentage: 25, notes: 'Good improvement in test scores' },
-        { criteria_id: '3', criteria_name: 'Professional Development', score: 95, max_points: 100, weight_percentage: 20, notes: 'Completed advanced training' },
-        { criteria_id: '4', criteria_name: 'Administrative Tasks', score: 85, max_points: 100, weight_percentage: 15, notes: 'Timely submissions' },
-        { criteria_id: '5', criteria_name: 'Collaboration', score: 90, max_points: 100, weight_percentage: 10, notes: 'Great teamwork' }
-      ],
-      overall_score: 90.2,
-      efficiency_percentage: 87.5,
-      quality_score: 90.4,
-      performance_tier: 'excellent',
-      compensation_recommendation: {
-        adjustment_type: 'bonus',
-        amount: 1500,
-        justification: 'Excellent performance with outstanding student engagement'
-      },
-      created_at: '2025-02-01T10:00:00Z',
-      updated_at: '2025-02-01T10:00:00Z'
+  // Real performance history data
+  const [performanceHistory, setPerformanceHistory] = useState<TeacherEvaluationSession[]>([])
+  const [performanceHistoryLoading, setPerformanceHistoryLoading] = useState(true)
+  
+  // Load performance history from API
+  useEffect(() => {
+    const loadPerformanceHistory = async () => {
+      try {
+        setPerformanceHistoryLoading(true)
+        const response = await fetch(`/api/teachers/${teacher.teacher_id}/evaluations`)
+        if (response.ok) {
+          const data = await response.json()
+          setPerformanceHistory(data.evaluations || [])
+        }
+      } catch (err) {
+        console.error('Error loading performance history:', err)
+        // Keep empty array on error
+        setPerformanceHistory([])
+      } finally {
+        setPerformanceHistoryLoading(false)
+      }
     }
-  ])
 
-  const [recentTransactions] = useState<PointsTransaction[]>([
-    {
-      id: '1',
-      user_id: teacher.teacher_id,
-      organization_id: 'org-1',
-      user_type: 'teacher',
-      transaction_type: 'earned',
-      points_amount: 25,
-      coins_earned: 12,
-      reason: 'Outstanding Teaching Performance',
-      category: 'teaching_quality',
-      awarded_by: 'admin-1',
-      efficiency_impact: 5,
-      quality_impact: 8,
-      affects_salary: true,
-      monetary_impact: 50,
-      created_at: '2025-02-01T14:30:00Z',
-      awarded_by_profile: {
-        full_name: 'Admin User'
-      }
-    },
-    {
-      id: '2',
-      user_id: teacher.teacher_id,
-      organization_id: 'org-1',
-      user_type: 'teacher',
-      transaction_type: 'bonus',
-      points_amount: 15,
-      coins_earned: 7,
-      reason: 'Innovation in Teaching Methods',
-      category: 'professional_development',
-      awarded_by: 'admin-1',
-      efficiency_impact: 2,
-      quality_impact: 6,
-      affects_salary: false,
-      created_at: '2025-01-28T09:15:00Z',
-      awarded_by_profile: {
-        full_name: 'Admin User'
-      }
+    if (teacher.teacher_id) {
+      loadPerformanceHistory()
     }
-  ])
+  }, [teacher.teacher_id])
 
-  const [recentAchievements] = useState<StudentAchievement[]>([
-    {
-      id: '1',
-      student_id: teacher.teacher_id, // Using teacher_id as user_id for teacher achievements
-      achievement_id: 'ach-1',
-      organization_id: 'org-1',
-      earned_at: '2025-01-25T16:00:00Z',
-      awarded_by: 'admin-1',
-      notes: 'Exceptional student feedback scores',
-      achievement: {
-        id: 'ach-1',
-        organization_id: 'org-1',
-        name: 'Outstanding Teaching',
-        description: 'Exceptional teaching performance with student satisfaction > 95%',
-        icon: 'award',
-        badge_color: 'gold',
-        points_required: 100,
-        coins_reward: 50,
-        bonus_points: 25,
-        achievement_type: 'teaching_quality',
-        target_user_type: 'teacher',
-        professional_development: false,
-        is_active: true,
-        created_by: 'admin-1',
-        created_at: '2025-01-01',
-        updated_at: '2025-01-01'
+  // Real transactions data
+  const [recentTransactions, setRecentTransactions] = useState<PointsTransaction[]>([])
+  const [transactionsLoading, setTransactionsLoading] = useState(true)
+  
+  // Load recent transactions from API
+  useEffect(() => {
+    const loadTransactions = async () => {
+      try {
+        setTransactionsLoading(true)
+        const response = await fetch(`/api/teachers/${teacher.teacher_id}/transactions?limit=10`)
+        if (response.ok) {
+          const data = await response.json()
+          setRecentTransactions(data.transactions || [])
+        }
+      } catch (err) {
+        console.error('Error loading transactions:', err)
+        setRecentTransactions([])
+      } finally {
+        setTransactionsLoading(false)
       }
     }
-  ])
+
+    if (teacher.teacher_id) {
+      loadTransactions()
+    }
+  }, [teacher.teacher_id])
+
+  // Real achievements data
+  const [recentAchievements, setRecentAchievements] = useState<StudentAchievement[]>([])
+  const [achievementsLoading, setAchievementsLoading] = useState(true)
+  
+  // Load recent achievements from API
+  useEffect(() => {
+    const loadAchievements = async () => {
+      try {
+        setAchievementsLoading(true)
+        const response = await fetch(`/api/teachers/${teacher.teacher_id}/achievements?limit=5`)
+        if (response.ok) {
+          const data = await response.json()
+          setRecentAchievements(data.achievements || [])
+        }
+      } catch (err) {
+        console.error('Error loading achievements:', err)
+        setRecentAchievements([])
+      } finally {
+        setAchievementsLoading(false)
+      }
+    }
+
+    if (teacher.teacher_id) {
+      loadAchievements()
+    }
+  }, [teacher.teacher_id])
 
   // Performance metrics calculation - use real data when available
   const currentMetrics = performanceMetrics || {

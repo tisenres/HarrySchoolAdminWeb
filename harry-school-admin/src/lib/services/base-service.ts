@@ -1,18 +1,7 @@
-import type { Database } from '@/types/database.types'
+import type { Database } from '@/types/database'
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { authCache } from '@/lib/utils/auth-cache'
+import { authCache } from '@/lib/cache/auth-cache'
 import { withTimeout, CircuitBreaker } from '@/lib/middleware/performance'
-// Import optimized functions conditionally
-let createOptimizedServerClient: any = null
-let releaseSupabaseClient: any = null
-
-try {
-  const supabaseServer = require('@/lib/supabase-server')
-  createOptimizedServerClient = supabaseServer.createOptimizedServerClient
-  releaseSupabaseClient = supabaseServer.releaseSupabaseClient
-} catch (error) {
-  console.warn('Optimized Supabase clients not available, using fallback')
-}
 
 export abstract class BaseService {
   protected tableName: keyof Database['public']['Tables']
@@ -20,6 +9,7 @@ export abstract class BaseService {
   private supabaseClientProvider: () => Promise<SupabaseClient<Database>> | null = null
   private circuitBreaker: CircuitBreaker
   private timeoutMs = 30000 // 30 seconds default timeout
+  private authContext: { user: any; profile: any } | null = null
 
   constructor(
     tableName: keyof Database['public']['Tables'], 
@@ -33,107 +23,142 @@ export abstract class BaseService {
   }
 
   /**
-   * Get Supabase client with proper authentication context and connection pooling
+   * Get Supabase client with proper authentication context
    */
   protected async getSupabase(): Promise<SupabaseClient<Database>> {
     if (!this.supabaseClient) {
       if (this.supabaseClientProvider) {
         this.supabaseClient = await this.supabaseClientProvider()
       } else {
-        if (createOptimizedServerClient) {
+        // Determine environment and use appropriate client
+        if (typeof window === 'undefined') {
+          // Server environment - use server client
           try {
-            // Use optimized server client with connection pooling
-            this.supabaseClient = await createOptimizedServerClient()
+            const { createClient } = await import('@/lib/supabase-server')
+            this.supabaseClient = await createClient()
           } catch (error) {
-            console.warn('Failed to create optimized client, falling back to standard client')
-            // Fallback to client-side for browser environments
+            console.error('Failed to create server client:', error)
+            // Fallback to client-side
             const { getSupabaseClient } = await import('@/lib/supabase-client')
             this.supabaseClient = getSupabaseClient()
           }
         } else {
-          // Use standard client if optimized version not available
+          // Browser environment - use client
           const { getSupabaseClient } = await import('@/lib/supabase-client')
           this.supabaseClient = getSupabaseClient()
         }
       }
     }
+    
+    if (!this.supabaseClient) {
+      throw new Error('Failed to initialize Supabase client')
+    }
+    
     return this.supabaseClient
   }
 
   /**
-   * Release Supabase client back to the pool
+   * Release Supabase client (simplified - no connection pooling)
    */
   protected releaseSupabase() {
-    if (this.supabaseClient && releaseSupabaseClient) {
-      try {
-        releaseSupabaseClient(this.supabaseClient)
-      } catch (error) {
-        console.warn('Failed to release Supabase client:', error)
-      }
-      this.supabaseClient = null
-    }
+    this.supabaseClient = null
   }
 
   /**
-   * Get the current authenticated user with enhanced caching
+   * Set authenticated context to avoid redundant auth calls
+   */
+  setAuthContext(context: { user: any; profile: any }) {
+    this.authContext = context
+  }
+
+  /**
+   * Get the current authenticated user with error handling
    */
   protected async getCurrentUser() {
-    const supabase = await this.getSupabase()
-    const { data: { user }, error } = await supabase.auth.getUser()
-    
-    if (error || !user) {
-      throw new Error('User not authenticated')
+    // Use cached auth context if available
+    if (this.authContext?.user) {
+      return this.authContext.user
     }
     
-    // Check if we have cached user data first
-    const cachedUser = authCache.getUser(user.id)
-    if (cachedUser && cachedUser.id === user.id) {
-      return cachedUser
+    try {
+      const supabase = await this.getSupabase()
+      const { data: { user }, error } = await supabase.auth.getUser()
+      
+      if (error) {
+        console.error('Auth error:', error)
+        throw new Error(`Authentication failed: ${error.message}`)
+      }
+      
+      if (!user) {
+        throw new Error('User not authenticated - please sign in')
+      }
+      
+      // Try cache first for performance
+      const cachedAuth = authCache.get(user.id)
+      if (cachedAuth?.user && cachedAuth.user.id === user.id) {
+        return cachedAuth.user
+      }
+      
+      // Cache will be set by middleware
+      
+      return user
+    } catch (error) {
+      console.error('Failed to get current user:', error)
+      throw error
     }
-    
-    // Cache the fresh user data
-    authCache.setUser(user.id, user)
-    
-    return user
   }
 
   /**
-   * Get the current user's organization ID with enhanced caching
+   * Get the current user's organization ID with robust error handling
    */
   protected async getCurrentOrganization() {
-    const user = await this.getCurrentUser()
-    
-    // Check organization cache first
-    const cachedOrg = authCache.getOrganization(user.id)
-    if (cachedOrg) {
-      return cachedOrg
+    // Use cached auth context if available
+    if (this.authContext?.profile?.organization_id) {
+      return this.authContext.profile.organization_id
     }
     
-    // If not cached, try to get from profile cache
-    const cachedProfile = authCache.getProfile(user.id)
-    if (cachedProfile?.organization_id) {
-      authCache.setOrganization(user.id, cachedProfile.organization_id)
-      return cachedProfile.organization_id
+    try {
+      const user = await this.getCurrentUser()
+      
+      // Check auth cache first for performance
+      const cachedAuth = authCache.get(user.id)
+      if (cachedAuth?.organization?.id) {
+        return cachedAuth.organization.id
+      }
+      
+      // Try profile cache next
+      if (cachedAuth?.profile?.organization_id) {
+        return cachedAuth.profile.organization_id
+      }
+      
+      // Query database with proper error handling
+      const supabase = await this.getSupabase()
+      
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('organization_id, role')
+        .eq('id', user.id)
+        .is('deleted_at', null)
+        .single()
+      
+      if (error) {
+        console.error('Profile query error:', error)
+        throw new Error(`Failed to get user profile: ${error.message}`)
+      }
+      
+      if (!data || !data.organization_id) {
+        throw new Error('User profile not found or user not associated with an organization')
+      }
+      
+      // Cache both organization and profile data for future use
+      authCache.setOrganization(user.id, data.organization_id)
+      authCache.setProfile(user.id, data)
+      
+      return data.organization_id
+    } catch (error) {
+      console.error('Failed to get current organization:', error)
+      throw error
     }
-    
-    const supabase = await this.getSupabase()
-    
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('organization_id, role')
-      .eq('id', user.id)
-      .is('deleted_at', null)
-      .single()
-    
-    if (error || !data) {
-      throw new Error('User profile not found or user not associated with an organization')
-    }
-    
-    // Cache both organization and profile data
-    authCache.setOrganization(user.id, data.organization_id)
-    authCache.setProfile(user.id, data)
-    
-    return data.organization_id
   }
 
   /**
@@ -185,12 +210,17 @@ export abstract class BaseService {
    * Get the current user's role with caching
    */
   protected async getCurrentUserRole() {
+    // Use cached auth context if available
+    if (this.authContext?.profile?.role) {
+      return this.authContext.profile.role
+    }
+    
     const user = await this.getCurrentUser()
     
     // Check cache first
-    const cachedProfile = authCache.getProfile(user.id)
-    if (cachedProfile?.role) {
-      return cachedProfile.role
+    const cachedAuth = authCache.get(user.id)
+    if (cachedAuth?.profile?.role) {
+      return cachedAuth.profile.role
     }
     
     const supabase = await this.getSupabase()
@@ -206,9 +236,7 @@ export abstract class BaseService {
       throw new Error('User profile not found')
     }
     
-    // Cache the full profile data for future use
-    authCache.setProfile(user.id, data)
-    authCache.setOrganization(user.id, data.organization_id)
+    // Cache will be set by middleware
     
     return data.role
   }

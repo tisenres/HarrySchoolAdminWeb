@@ -96,6 +96,11 @@ const nextConfig: NextConfig = {
 
   // Headers for security and performance
   async headers() {
+    // Skip CSP in development to avoid white screen issues
+    if (isDev) {
+      return []
+    }
+    
     const securityHeaders = [
       {
         key: 'X-DNS-Prefetch-Control',

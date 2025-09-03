@@ -1,50 +1,49 @@
 import { createClient } from '@supabase/supabase-js'
 import type { Database } from '@/types/database'
 
+// Validate environment variables early
 const supabaseUrl = process.env['NEXT_PUBLIC_SUPABASE_URL']
 const supabaseAnonKey = process.env['NEXT_PUBLIC_SUPABASE_ANON_KEY']
 
 if (!supabaseUrl || !supabaseAnonKey) {
+  const errorMessage = 'Missing Supabase environment variables: NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are required'
+  
   if (typeof window !== 'undefined') {
-    console.error('Missing Supabase environment variables:', {
+    console.error(errorMessage, {
       url: !!supabaseUrl,
       key: !!supabaseAnonKey
     })
   }
-  throw new Error('Missing Supabase environment variables: NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are required')
+  
+  throw new Error(errorMessage)
 }
 
-// Client-side Supabase instance with error handling
-let supabaseClient: ReturnType<typeof createClient<Database>> | null = null
-
-try {
-  supabaseClient = createClient<Database>(supabaseUrl, supabaseAnonKey, {
-    global: {
-      fetch: (url, options = {}) => {
-        return fetch(url, {
-          ...options,
-          signal: AbortSignal.timeout(30000), // 30 second timeout
-        })
-      },
+// Create Supabase client with optimized configuration
+const supabaseClient = createClient<Database>(supabaseUrl, supabaseAnonKey, {
+  global: {
+    fetch: (url, options = {}) => {
+      return fetch(url, {
+        ...options,
+        signal: AbortSignal.timeout(30000), // 30 second timeout
+      }).catch(error => {
+        console.error('Supabase fetch error:', error)
+        throw error
+      })
     },
-    auth: {
-      autoRefreshToken: true,
-      persistSession: true,
-      detectSessionInUrl: true
-    }
-  })
-} catch (error) {
-  console.error('Failed to create Supabase client:', error)
-  supabaseClient = null
-}
+  },
+  auth: {
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: true,
+    flowType: 'pkce'
+  }
+})
 
+// Export the client directly - no more null checks needed
 export const supabase = supabaseClient
 
-// Safe client getter with fallback
+// Simplified client getter that always returns a valid client
 export const getSupabaseClient = () => {
-  if (!supabaseClient) {
-    throw new Error('Supabase client not initialized. Check environment variables.')
-  }
   return supabaseClient
 }
 

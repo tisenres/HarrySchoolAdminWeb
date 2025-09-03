@@ -152,16 +152,7 @@ export class OptimizedStudentService extends BaseService {
       const validatedSearch = studentSearchSchema.parse(search)
       
       if (validatedSearch.query) {
-        query = query.or(`
-          full_name.ilike.%${validatedSearch.query}%,
-          first_name.ilike.%${validatedSearch.query}%,
-          last_name.ilike.%${validatedSearch.query}%,
-          email.ilike.%${validatedSearch.query}%,
-          primary_phone.ilike.%${validatedSearch.query}%,
-          student_id.ilike.%${validatedSearch.query}%,
-          parent_name.ilike.%${validatedSearch.query}%,
-          parent_phone.ilike.%${validatedSearch.query}%
-        `)
+        query = query.or(`full_name.ilike.%${validatedSearch.query}%,first_name.ilike.%${validatedSearch.query}%,last_name.ilike.%${validatedSearch.query}%,email.ilike.%${validatedSearch.query}%,primary_phone.ilike.%${validatedSearch.query}%,student_id.ilike.%${validatedSearch.query}%,parent_name.ilike.%${validatedSearch.query}%,parent_phone.ilike.%${validatedSearch.query}%`)
       }
       
       if (validatedSearch.enrollment_status) {
