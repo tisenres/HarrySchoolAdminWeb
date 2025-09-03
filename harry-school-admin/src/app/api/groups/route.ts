@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { GroupService } from '@/lib/services/group-service'
+import { OptimizedGroupService } from '@/lib/services/optimized-group-service'
 import { groupInsertSchema } from '@/lib/validations'
 import { withAuth } from '@/lib/middleware/api-auth'
 import { withMiddleware, withCaching, withErrorBoundary, withPerformanceMonitoring, sanitizeInput } from '@/lib/middleware/performance'
@@ -27,15 +27,15 @@ export const GET = withMiddleware(
     start_date_to: searchParams.get('start_date_to') || undefined,
   }
   
-  // Parse pagination parameters
+  // Parse pagination parameters (standardized across all APIs)
   const pagination = {
     page: Number(searchParams.get('page')) || 1,
     limit: Number(searchParams.get('limit')) || 20,
-    sort_by: searchParams.get('sort_by') || 'created_at',
-    sort_order: (searchParams.get('sort_order') || 'desc') as 'asc' | 'desc',
+    sort_by: searchParams.get('sort_field') || 'created_at', // Accept standardized sort_field  
+    sort_order: (searchParams.get('sort_direction') || 'desc') as 'asc' | 'desc', // Accept standardized sort_direction
   }
   
-  const groupService = new GroupService()
+  const groupService = new OptimizedGroupService()
   const result = await groupService.getAll(search, pagination)
   
   const response = NextResponse.json(result)
@@ -54,7 +54,7 @@ export const POST = withMiddleware(
   
   try {
     const validatedData = groupInsertSchema.parse(body)
-    const groupService = new GroupService()
+    const groupService = new OptimizedGroupService()
     const group = await groupService.create(validatedData)
     
     const response = NextResponse.json(group, { status: 201 })

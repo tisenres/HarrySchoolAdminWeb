@@ -113,6 +113,9 @@ export const GroupsVirtualTable = memo<GroupsVirtualTableProps>(({
 }) => {
   const router = useRouter()
   const [internalSelectedIds, setInternalSelectedIds] = useState<string[]>(selectedIds)
+  
+  // Ensure groups is always an array
+  const safeGroups = groups || []
 
   // Update internal state when external state changes
   React.useEffect(() => {
@@ -151,10 +154,10 @@ export const GroupsVirtualTable = memo<GroupsVirtualTableProps>(({
 
   // Selection handlers
   const handleSelectAll = useCallback((checked: boolean) => {
-    const newSelection = checked ? groups.map(g => g.id) : []
+    const newSelection = checked ? safeGroups.map(g => g.id) : []
     setInternalSelectedIds(newSelection)
     onSelectionChange?.(newSelection)
-  }, [groups, onSelectionChange])
+  }, [safeGroups, onSelectionChange])
 
   const handleSelectGroup = useCallback((groupId: string, checked: boolean) => {
     const newSelection = checked 
@@ -171,6 +174,7 @@ export const GroupsVirtualTable = memo<GroupsVirtualTableProps>(({
 
   const formatSchedule = useCallback((schedule: string) => {
     // Truncate long schedules
+    if (!schedule) return 'No schedule'
     if (schedule.length > 30) {
       return schedule.substring(0, 30) + '...'
     }
@@ -184,9 +188,9 @@ export const GroupsVirtualTable = memo<GroupsVirtualTableProps>(({
       key: 'select',
       header: (
         <Checkbox
-          checked={internalSelectedIds.length === groups.length && groups.length > 0}
+          checked={internalSelectedIds.length === safeGroups.length && safeGroups.length > 0}
           onCheckedChange={handleSelectAll}
-          indeterminate={internalSelectedIds.length > 0 && internalSelectedIds.length < groups.length}
+          indeterminate={internalSelectedIds.length > 0 && internalSelectedIds.length < safeGroups.length}
         />
       ),
       width: 50,
@@ -348,7 +352,7 @@ export const GroupsVirtualTable = memo<GroupsVirtualTableProps>(({
       ),
     },
   ], [
-    groups,
+    safeGroups,
     internalSelectedIds,
     sortConfig,
     getSortButton,
@@ -368,7 +372,7 @@ export const GroupsVirtualTable = memo<GroupsVirtualTableProps>(({
       transition={{ duration: 0.3 }}
     >
       <VirtualTable
-        data={groups}
+        data={safeGroups}
         columns={columns}
         height={height}
         itemHeight={60}

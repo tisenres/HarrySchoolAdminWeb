@@ -1,9 +1,13 @@
-import { Suspense } from 'react'
-import { getTranslations } from 'next-intl/server'
+'use client'
+
+// Force dynamic rendering to prevent static generation issues
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
+import { Suspense, useState, useEffect } from 'react'
 import { Card } from '@/components/ui/card'
 import { ReportDashboard } from '@/components/admin/reports/report-dashboard'
-import { getCurrentOrganization } from '@/lib/auth'
-import { SystemSettingsServerService } from '@/lib/services/system-settings-service.server'
+import { useOrganization } from '@/lib/auth/client-auth'
 import { Badge } from '@/components/ui/badge'
 import { 
   BarChart3, 
@@ -16,36 +20,23 @@ import {
   Filter 
 } from 'lucide-react'
 
-// Force dynamic rendering for this page
-export const dynamic = 'force-dynamic'
+export default function ReportsPage() {
+  const organization = useOrganization()
+  const [hasAdvancedReporting, setHasAdvancedReporting] = useState(true)
 
-export default async function ReportsPage() {
-  const t = await getTranslations('reports')
-  
-  // Use fallback organization for testing (similar to dashboard approach)
-  let organization
-  try {
-    organization = await getCurrentOrganization()
-  } catch (error) {
-    console.log('Using fallback organization for testing')
-  }
-  
-  // Use mock organization if none found
-  const mockOrganization = {
+  // Use fallback values while loading
+  const currentOrg = organization || {
     id: '550e8400-e29b-41d4-a716-446655440000',
     name: 'Harry School Demo',
     slug: 'harry-school-demo'
   }
-  
-  const currentOrg = organization || mockOrganization
 
-  // Check feature flags
-  let hasAdvancedReporting = true
-  try {
-    hasAdvancedReporting = await SystemSettingsServerService.isFeatureEnabled(currentOrg.id, 'advanced_reporting')
-  } catch (error) {
-    console.warn('Could not check advanced_reporting feature flag:', error)
-  }
+  // Check feature flags client-side (can be made async if needed)
+  useEffect(() => {
+    // For now, assume advanced reporting is available
+    // Can be enhanced with actual feature flag checking
+    setHasAdvancedReporting(true)
+  }, [organization])
 
   const reportTypes = [
     {

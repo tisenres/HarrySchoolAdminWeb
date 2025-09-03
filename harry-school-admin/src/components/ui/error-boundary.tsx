@@ -29,6 +29,15 @@ export class ErrorBoundary extends Component<Props, State> {
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('Error caught by boundary:', error, errorInfo)
     console.error('Component stack:', errorInfo.componentStack)
+    
+    // Log specific error types for better debugging
+    if (error.message?.includes('Supabase') || error.message?.includes('database')) {
+      console.error('Database connection error detected:', {
+        message: error.message,
+        name: error.name,
+        stack: error.stack
+      })
+    }
   }
 
   handleReset = () => {
@@ -49,7 +58,9 @@ export class ErrorBoundary extends Component<Props, State> {
               <CardTitle>Something went wrong</CardTitle>
             </div>
             <CardDescription>
-              {this.props.componentName 
+              {this.state.error?.message?.includes('Supabase') || this.state.error?.message?.includes('database')
+                ? 'Database connection issue detected. Please check your connection and try again.'
+                : this.props.componentName 
                 ? `Error loading ${this.props.componentName}` 
                 : 'An error occurred while loading this component'}
             </CardDescription>

@@ -12,10 +12,10 @@ export const queryClient = new QueryClient({
       // Cache data for 5 minutes by default
       staleTime: 5 * 60 * 1000, // 5 minutes
       
-      // Keep data in cache for 10 minutes after component unmounts
-      gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
+      // OPTIMIZATION: Longer cache time for better performance
+      gcTime: 20 * 60 * 1000, // 20 minutes (formerly cacheTime)
       
-      // Retry failed requests 2 times with exponential backoff
+      // Retry failed requests with intelligent backoff
       retry: (failureCount, error: any) => {
         // Don't retry on 4xx errors (client errors)
         if (error?.response?.status >= 400 && error?.response?.status < 500) {
@@ -24,14 +24,14 @@ export const queryClient = new QueryClient({
         return failureCount < 2
       },
       
-      // Enable background refetching for better UX
-      refetchOnWindowFocus: true,
-      refetchOnReconnect: true,
+      // OPTIMIZATION: Reduce aggressive refetching that causes lag
+      refetchOnWindowFocus: false, // Disabled to prevent unnecessary requests
+      refetchOnReconnect: true,    // Keep for network recovery
       
       // Don't refetch on mount if data is still fresh
-      refetchOnMount: false,
+      refetchOnMount: 'never',     // More aggressive cache strategy
       
-      // Use stale-while-revalidate pattern
+      // OPTIMIZATION: No automatic refetching to reduce server load
       refetchInterval: false,
     },
     mutations: {
@@ -92,28 +92,28 @@ export const queryKeys = {
  * Cache time configurations for different data types
  */
 export const cacheConfig = {
-  // Very stable data - cache for longer
+  // OPTIMIZATION: More aggressive caching for better performance
   staticData: {
-    staleTime: 15 * 60 * 1000, // 15 minutes
-    gcTime: 30 * 60 * 1000,    // 30 minutes
+    staleTime: 30 * 60 * 1000, // 30 minutes - very stable data
+    gcTime: 60 * 60 * 1000,    // 1 hour
   },
   
-  // User/org data - moderate caching
+  // User/org data - longer caching since this rarely changes  
   userData: {
+    staleTime: 20 * 60 * 1000, // 20 minutes
+    gcTime: 40 * 60 * 1000,    // 40 minutes
+  },
+  
+  // List data - moderate caching with better performance
+  listData: {
     staleTime: 10 * 60 * 1000, // 10 minutes
     gcTime: 20 * 60 * 1000,    // 20 minutes
   },
   
-  // List data - balanced caching
-  listData: {
-    staleTime: 5 * 60 * 1000,  // 5 minutes
-    gcTime: 10 * 60 * 1000,    // 10 minutes
-  },
-  
-  // Dashboard/stats - frequent updates
+  // Dashboard/stats - less frequent updates to reduce lag
   dashboardData: {
-    staleTime: 30 * 1000,      // 30 seconds
-    gcTime: 2 * 60 * 1000,     // 2 minutes
+    staleTime: 5 * 60 * 1000,  // 5 minutes (was 30 seconds)
+    gcTime: 10 * 60 * 1000,    // 10 minutes
   },
   
   // Real-time data - minimal caching

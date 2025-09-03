@@ -1,3 +1,7 @@
+// Force dynamic rendering to prevent static generation issues
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 import { getTranslations } from 'next-intl/server'
 import { WorkingRankings } from '@/components/admin/rankings/working-rankings'
 
@@ -13,11 +17,9 @@ interface RankingsPageProps {
 
 export default async function RankingsPage({
   params,
-  searchParams
 }: RankingsPageProps) {
   const { locale } = await params
-  const awaitedSearchParams = await searchParams
-  const t = await getTranslations('rankings')
+  const t = await getTranslations({ locale, namespace: 'rankings' })
 
   return (
     <div className="container mx-auto py-6 space-y-6">
@@ -41,7 +43,7 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>
 }) {
   const { locale } = await params
-  const t = await getTranslations('rankings')
+  const t = await getTranslations({ locale, namespace: 'rankings' })
   
   return {
     title: t('title'),

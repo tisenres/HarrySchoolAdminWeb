@@ -8,21 +8,22 @@
 import React, { useMemo, Suspense } from 'react'
 import Link from 'next/link'
 import { Users, UserCheck, UserPlus, TrendingUp, DollarSign, Calendar, BookOpen, Activity, Target } from 'lucide-react'
-import { useTranslations } from 'next-intl'
+// import { useTranslations } from 'next-intl' // Currently unused
 
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { StatsCard } from '@/components/admin/dashboard/stats-card-optimized'
 import { ActivityFeed } from '@/components/admin/dashboard/activity-feed'
-import { Skeleton } from '@/components/ui/skeleton'
-import { StatsCardsSkeleton, ActivityFeedSkeleton, QuickActionsSkeleton } from '@/components/ui/suspense-fallbacks'
+// import { Skeleton } from '@/components/ui/skeleton' // Temporarily disabled for deployment
+import { StatsCardsSkeleton, ActivityFeedSkeleton } from '@/components/ui/suspense-fallbacks'
+// import { QuickActionsSkeleton } from '@/components/ui/suspense-fallbacks' // Temporarily disabled
 
 // Optimized React Query hooks - UPDATED to use parallel loading
 import { useDashboardDataParallel } from '@/hooks/use-dashboard'
 
 // Memoized components for better performance
 const QuickActionsSection = React.memo(() => {
-  const tQuickActions = useTranslations('quickActions')
+  // const tQuickActions = useTranslations('quickActions') // Temporarily disabled for deployment
   
   return (
     <Card className="p-6">
@@ -79,7 +80,7 @@ const StatsOverview = React.memo(({ statistics, integratedAnalytics, loading }: 
   integratedAnalytics: any
   loading: boolean
 }) => {
-  const t = useTranslations('dashboard')
+  // const t = useTranslations('dashboard') // Currently unused
   
   // Memoize stats data to prevent unnecessary re-renders
   const statsData = useMemo(() => {
@@ -144,9 +145,8 @@ const StatsOverview = React.memo(({ statistics, integratedAnalytics, loading }: 
 
 StatsOverview.displayName = 'StatsOverview'
 
-const RecentActivitySection = React.memo(({ activities, loading }: {
+const RecentActivitySection = React.memo(({ activities }: {
   activities: any[]
-  loading: boolean
 }) => {
   return (
     <Card className="p-6">
@@ -157,7 +157,7 @@ const RecentActivitySection = React.memo(({ activities, loading }: {
           <span>2 activities</span>
         </div>
       </div>
-      <ActivityFeed activities={activities} loading={loading} />
+      <ActivityFeed activities={activities} />
     </Card>
   )
 })
@@ -165,8 +165,8 @@ const RecentActivitySection = React.memo(({ activities, loading }: {
 RecentActivitySection.displayName = 'RecentActivitySection'
 
 export default function DashboardClient() {
-  const t = useTranslations('dashboard')
-  const tCommon = useTranslations('common')
+  // const t = useTranslations('dashboard') // Currently unused
+  // const tCommon = useTranslations('common') // Currently unused
   
   // OPTIMIZED: Single hook for all dashboard data with parallel loading (40-60% faster)
   const {
@@ -271,7 +271,7 @@ export default function DashboardClient() {
         
         {/* Recent Activity - Memoized with Suspense */}
         <Suspense fallback={<ActivityFeedSkeleton />}>
-          <RecentActivitySection activities={activities || []} loading={isLoading} />
+          <RecentActivitySection activities={activities || []} />
         </Suspense>
       </div>
     </div>

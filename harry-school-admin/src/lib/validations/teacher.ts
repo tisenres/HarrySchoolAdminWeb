@@ -2,18 +2,18 @@ import { z } from 'zod'
 
 // Address schema
 export const addressSchema = z.object({
-  street: z.string().min(1, 'Street address is required'),
-  city: z.string().min(1, 'City is required'),
-  region: z.string().min(1, 'Region is required'),
+  street: z.string().optional(),
+  city: z.string().optional(),
+  region: z.string().optional(),
   postal_code: z.string().optional(),
-  country: z.string().min(1, 'Country is required'),
+  country: z.string().optional(),
 })
 
 // Emergency contact schema
 export const emergencyContactSchema = z.object({
-  name: z.string().min(1, 'Emergency contact name is required'),
-  relationship: z.string().min(1, 'Relationship is required'),
-  phone: z.string().regex(/^\+998\d{9}$/, 'Phone must be valid Uzbekistan format (+998XXXXXXXXX)'),
+  name: z.string().optional(),
+  relationship: z.string().optional(),
+  phone: z.string().optional(),
   email: z.string().email('Invalid email format').optional().or(z.literal('')),
   address: addressSchema.optional(),
 })

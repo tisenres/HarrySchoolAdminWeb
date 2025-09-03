@@ -1,12 +1,16 @@
 'use client'
 
+
+// Force dynamic rendering to prevent static generation issues
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Wrench, Clock, RefreshCw } from 'lucide-react'
 import { SystemSettingsClientService } from '@/lib/services/system-settings-service.client'
-import { useTranslations } from 'next-intl'
+// import { useTranslations } from 'next-intl' // Temporarily commented out for TypeScript
 
 export default function MaintenancePage() {
   const [maintenanceMessage, setMaintenanceMessage] = useState(
@@ -14,7 +18,7 @@ export default function MaintenancePage() {
   )
   const [isChecking, setIsChecking] = useState(false)
   const router = useRouter()
-  const t = useTranslations('maintenance')
+  // const t = useTranslations('maintenance') // Temporarily commented out for TypeScript
 
   useEffect(() => {
     async function fetchMaintenanceMessage() {

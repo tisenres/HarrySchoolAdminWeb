@@ -88,7 +88,7 @@ export function StudentForm({
   open,
   onOpenChange,
 }: StudentFormProps) {
-  const t = useTranslations('studentForm')
+  const t = useTranslations('components.studentForm')
   const [selectedSubjects, setSelectedSubjects] = useState<string[]>(
     student?.preferred_subjects || []
   )
@@ -337,7 +337,7 @@ export function StudentForm({
                           name="parent_name"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>{t('fields.parentName')} {t('required')}</FormLabel>
+                              <FormLabel>{t('fields.parentName')}</FormLabel>
                               <FormControl>
                                 <Input placeholder={t('placeholders.parentName')} {...field} />
                               </FormControl>
@@ -351,7 +351,7 @@ export function StudentForm({
                           name="parent_phone"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>{t('fields.parentPhone')} {t('required')}</FormLabel>
+                              <FormLabel>{t('fields.parentPhone')}</FormLabel>
                               <FormControl>
                                 <Input placeholder="+998901234567" {...field} />
                               </FormControl>
@@ -484,7 +484,7 @@ export function StudentForm({
                           name="emergency_contact.name"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>{t('fields.emergencyContactName')} {t('required')}</FormLabel>
+                              <FormLabel>{t('fields.emergencyContactName')}</FormLabel>
                               <FormControl>
                                 <Input placeholder={t('placeholders.emergencyName')} {...field} />
                               </FormControl>
@@ -498,7 +498,7 @@ export function StudentForm({
                           name="emergency_contact.relationship"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>{t('fields.relationship')} {t('required')}</FormLabel>
+                              <FormLabel>{t('fields.relationship')}</FormLabel>
                               <Select onValueChange={field.onChange} defaultValue={field.value}>
                                 <FormControl>
                                   <SelectTrigger>
@@ -523,7 +523,7 @@ export function StudentForm({
                           name="emergency_contact.phone"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>{t('fields.emergencyContactPhone')} {t('required')}</FormLabel>
+                              <FormLabel>{t('fields.emergencyContactPhone')}</FormLabel>
                               <FormControl>
                                 <Input placeholder="+998901234567" {...field} />
                               </FormControl>

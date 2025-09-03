@@ -279,3 +279,27 @@ export function StudentFileUpload(props: Omit<FileUploadProps, 'acceptedTypes'>)
     />
   )
 }
+
+// Image upload component with 5MB limit
+export function ImageUpload(props: Omit<FileUploadProps, 'acceptedTypes' | 'maxSizeMB'>) {
+  return (
+    <FileUpload
+      {...props}
+      acceptedTypes={['.jpg', '.jpeg', '.png', '.webp']}
+      maxSizeMB={5}
+      placeholder="Upload profile image (JPG, PNG, WebP - max 5MB)"
+    />
+  )
+}
+
+// Profile image upload specifically for teachers
+export function TeacherProfileImageUpload(props: Omit<FileUploadProps, 'acceptedTypes' | 'maxSizeMB'>) {
+  return (
+    <FileUpload
+      {...props}
+      acceptedTypes={['.jpg', '.jpeg', '.png', '.webp']}
+      maxSizeMB={5}
+      placeholder="Upload teacher profile image (JPG, PNG, WebP - max 5MB)"
+    />
+  )
+}

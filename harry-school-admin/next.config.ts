@@ -1,24 +1,28 @@
 import type { NextConfig } from "next";
+import path from 'path';
 import createNextIntlPlugin from 'next-intl/plugin';
 
 const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
+const isDev = process.env.NODE_ENV === 'development';
 
 const nextConfig: NextConfig = {
-  // Fix cross-origin resource loading for ngrok
-  allowedDevOrigins: [
-    '3b1348a71f69.ngrok-free.app',
-    '*.ngrok-free.app',
-  ],
+  // Development origins (only in development)
+  ...(isDev && {
+    allowedDevOrigins: [
+      '3b1348a71f69.ngrok-free.app',
+      '*.ngrok-free.app',
+    ],
+  }),
   
-  // Temporarily skip type checking for deployment
+  // Type checking and linting configuration  
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false, // Enable type checking in production
   },
   eslint: {
-    ignoreDuringBuilds: true,
+    ignoreDuringBuilds: false, // Enable ESLint in production builds
   },
   
-  // Skip static optimization for auth-protected routes
+  // Enable standalone output for production deployment
   output: 'standalone',
   trailingSlash: false,
   
@@ -26,35 +30,58 @@ const nextConfig: NextConfig = {
   compress: true,
   
 
+  // Force all pages to be dynamic to avoid static generation issues
+  generateBuildId: () => 'build',
+  
   // Experimental features for performance
   experimental: {
-    optimizeCss: true,
-    optimizeServerReact: true,
-    webpackBuildWorker: true,
-    esmExternals: true,
-    // Memory optimization (Next.js 15+)
-    webpackMemoryOptimizations: true,
-    // Enable concurrent features for better performance
+    // Optimize for development vs production
+    ...(isDev ? {
+      // Development optimizations
+      optimizeCss: false, // Skip CSS optimization in dev
+      optimizeServerReact: false, // Skip server optimization in dev
+    } : {
+      // Production optimizations
+      optimizeCss: true,
+      optimizeServerReact: true,
+      webpackBuildWorker: true,
+      esmExternals: true,
+      // Memory optimization (Next.js 15+)
+      webpackMemoryOptimizations: true,
+      // CSS chunking for better caching
+      cssChunking: 'strict',
+    }),
+    
+    // Optimize worker configuration
+    ...(process.env['DISABLE_STATIC_GENERATION'] === 'true' && {
+      workerThreads: false,
+      cpus: 1,
+    }),
+    
+    // Enable concurrent features for performance
     ppr: false, // Partial Prerendering can cause slower initial loads in dev
+    
     // Optimize package imports for better tree-shaking
     optimizePackageImports: [
-      'lucide-react',
-      'recharts',
-      '@radix-ui/react-icons',
-      'date-fns',
-      '@tanstack/react-query',
-      'framer-motion',
-      'react-hook-form',
+      'date-fns',                    // Optimize date imports (major savings)
+      'lucide-react',               // Icon tree-shaking
+      'recharts',                   // Chart library optimization
+      '@radix-ui/react-icons',      // Icon optimization
+      '@tanstack/react-query',      // Query optimization
+      'framer-motion',              // Animation tree-shaking
+      'react-hook-form',            // Form optimization
       '@radix-ui/react-alert-dialog',
       '@radix-ui/react-dialog',
       '@radix-ui/react-dropdown-menu',
       '@radix-ui/react-select',
       '@radix-ui/react-tabs',
+      'axios',                      // HTTP client optimization
+      'clsx',                       // Class utility optimization
+      'tailwind-merge',             // Tailwind optimization
     ],
+    
     // Server Components HMR cache for faster dev
     serverComponentsHmrCache: true,
-    // CSS chunking for better caching
-    cssChunking: 'strict',
   },
 
   // Image optimization
@@ -67,29 +94,69 @@ const nextConfig: NextConfig = {
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
 
-  // Headers for performance
+  // Headers for security and performance
   async headers() {
+    // Skip CSP in development to avoid white screen issues
+    if (isDev) {
+      return []
+    }
+    
+    const securityHeaders = [
+      {
+        key: 'X-DNS-Prefetch-Control',
+        value: 'on'
+      },
+      {
+        key: 'Strict-Transport-Security',
+        value: 'max-age=63072000; includeSubDomains; preload'
+      },
+      {
+        key: 'X-Content-Type-Options',
+        value: 'nosniff'
+      },
+      {
+        key: 'X-Frame-Options',
+        value: 'DENY'
+      },
+      {
+        key: 'X-XSS-Protection',
+        value: '1; mode=block'
+      },
+      {
+        key: 'Referrer-Policy',
+        value: 'strict-origin-when-cross-origin'
+      },
+      {
+        key: 'Permissions-Policy',
+        value: 'camera=(), microphone=(), geolocation=(), payment=()'
+      },
+      {
+        key: 'Content-Security-Policy',
+        value: [
+          "default-src 'self'",
+          "script-src 'self' 'wasm-unsafe-eval' https://vercel.live",
+          "style-src 'self' https://fonts.googleapis.com",
+          "img-src 'self' data: https: blob:",
+          "font-src 'self' data: https://fonts.gstatic.com",
+          "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://vercel.live https://vitals.vercel-insights.com",
+          "frame-ancestors 'none'",
+          "frame-src 'none'",
+          "base-uri 'self'",
+          "form-action 'self'",
+          "object-src 'none'",
+          "media-src 'self'",
+          "worker-src 'self'",
+          "manifest-src 'self'",
+          "upgrade-insecure-requests",
+          "block-all-mixed-content"
+        ].join('; ')
+      }
+    ]
+    
     return [
       {
         source: '/(.*)',
-        headers: [
-          {
-            key: 'X-DNS-Prefetch-Control',
-            value: 'on'
-          },
-          {
-            key: 'Strict-Transport-Security',
-            value: 'max-age=63072000; includeSubDomains; preload'
-          },
-          {
-            key: 'X-Content-Type-Options',
-            value: 'nosniff'
-          },
-          {
-            key: 'Referrer-Policy',
-            value: 'origin-when-cross-origin'
-          }
-        ]
+        headers: securityHeaders
       },
       // Cache static assets aggressively
       {
@@ -106,6 +173,49 @@ const nextConfig: NextConfig = {
 
   // Webpack optimizations
   webpack: (config, { dev, isServer }) => {
+    // Development optimizations for faster builds
+    if (dev) {
+      // Enable persistent filesystem caching for development
+      config.cache = {
+        type: 'filesystem',
+        cacheDirectory: path.resolve('.next/cache/webpack'),
+        buildDependencies: {
+          config: [__filename, path.resolve('package.json')],
+        },
+        // Cache for 24 hours in development
+        maxAge: 1000 * 60 * 60 * 24,
+        maxMemoryGenerations: 1,
+        allowCollectingMemory: true,
+        compression: false, // Disable compression for faster writes in dev
+      };
+
+      // Use Next.js default devtool in development
+      // config.devtool = 'eval-cheap-module-source-map'; // Let Next.js handle this
+
+      // Reduce bundle size checks in development
+      config.performance = {
+        hints: false
+      };
+
+      // Enable webpack 5 snapshot optimizations
+      config.snapshot = {
+        managedPaths: [path.resolve('node_modules')],
+        immutablePaths: [],
+        buildDependencies: {
+          hash: true,
+          timestamp: true,
+        },
+        module: {
+          timestamp: true,
+          hash: true,
+        },
+        resolve: {
+          timestamp: true,
+          hash: true,
+        },
+      };
+    }
+    
     // Performance optimizations for production builds
     if (!dev && !isServer) {
       config.optimization = {

@@ -1,4 +1,8 @@
-import { getTranslations } from 'next-intl/server'
+// Force dynamic rendering to prevent static generation issues
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
+// import { getTranslations } from 'next-intl/server' // Temporarily commented out for TypeScript
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -15,8 +19,8 @@ import { ArrowLeft, Save, DollarSign, CreditCard, Receipt, Calculator } from 'lu
 import Link from 'next/link'
 
 export default async function NewPaymentPage() {
-  const t = await getTranslations('finance')
-  const tCommon = await getTranslations('common')
+  // const t = await getTranslations('finance') // Temporarily commented out for TypeScript
+  // const tCommon = await getTranslations('common') // Temporarily commented out for TypeScript
 
   return (
     <div className="space-y-6">

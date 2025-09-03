@@ -220,7 +220,7 @@ export const VirtualTable = memo(<T extends any>({
     )
   }
 
-  if (data.length === 0) {
+  if (!data || data.length === 0) {
     return (
       <div className={cn('border rounded-lg bg-background', className)}>
         {/* Header for empty state */}
@@ -294,7 +294,7 @@ export const VirtualTable = memo(<T extends any>({
         ref={listRef}
         height={height - 48} // Subtract header height
         width={totalWidth}
-        itemCount={data.length}
+        itemCount={data?.length || 0}
         itemSize={itemHeight}
         itemData={rowData as any}
         overscanCount={overscan}

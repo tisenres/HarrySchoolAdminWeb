@@ -8,6 +8,11 @@ interface TemplateData {
 }
 
 export class TeachersTemplateService {
+  private organizationId: string
+
+  constructor(organizationId?: string) {
+    this.organizationId = organizationId || 'default'
+  }
   
   generateTemplate(): TemplateData {
     const template = this.getTemplateData()

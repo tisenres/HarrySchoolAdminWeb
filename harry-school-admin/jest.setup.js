@@ -1,5 +1,16 @@
 import '@testing-library/jest-dom'
 
+// Mock Next.js Web API globals for Node.js environment
+global.Request = global.Request || class MockRequest {
+  constructor() {
+    this.url = ''
+    this.method = 'GET'
+    this.headers = new Map()
+  }
+}
+global.Response = global.Response || class MockResponse {}
+global.Headers = global.Headers || class MockHeaders extends Map {}
+
 // Mock Next.js router
 jest.mock('next/router', () => ({
   useRouter() {

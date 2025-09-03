@@ -1,4 +1,7 @@
-import { getTranslations } from 'next-intl/server'
+// Force dynamic rendering to prevent static generation issues
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -15,7 +18,6 @@ import { ArrowLeft, Save, UserPlus } from 'lucide-react'
 import Link from 'next/link'
 
 export default async function NewStudentPage() {
-  const t = await getTranslations('students')
 
   return (
     <div className="space-y-6">
