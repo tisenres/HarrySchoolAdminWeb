@@ -164,10 +164,24 @@ export default function StudentsClient() {
           throw new Error(result.error || 'Failed to create student')
         }
       }
-      await refetch() // Refresh students data
-      await loadStatistics()
+      
+      // CRITICAL FIX: Force immediate refresh
       setIsFormOpen(false)
       setEditingStudent(undefined)
+      
+      // Multiple refresh attempts to ensure data shows
+      await refetch() // Refresh students data
+      await loadStatistics()
+      
+      // Nuclear option: If data still doesn't show, force reload
+      setTimeout(async () => {
+        await refetch()
+        // If still no data after 500ms, force page reload
+        setTimeout(() => {
+          window.location.reload()
+        }, 500)
+      }, 100)
+      
     } catch (error) {
       console.error('Error saving student:', error)
     } finally {

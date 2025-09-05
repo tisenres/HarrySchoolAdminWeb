@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
     // Prepare student data with defaults
     const studentData = {
       ...body,
-      organization_id: body.organization_id || 'default-org',
+      organization_id: body.organization_id || '90bb0700-eca6-4925-b618-c0796f2e2187', // Use real org ID
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     }

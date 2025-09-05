@@ -13,116 +13,77 @@ export const addressSchema = z.object({
 export const emergencyContactSchema = z.object({
   name: z.string().optional(),
   relationship: z.string().optional(),
-  phone: z.string().regex(/^\+998\d{9}$/, 'Phone must be valid Uzbekistan format (+998XXXXXXXXX)').optional(),
+  phone: z.string().optional(),
   email: z.string().email('Invalid email format').optional().or(z.literal('')),
 })
 
-// Age validation helper
-const getMinBirthDate = () => {
-  const date = new Date()
-  date.setFullYear(date.getFullYear() - 25) // Maximum age 25
-  return date
-}
-
-const getMaxBirthDate = () => {
-  const date = new Date()
-  date.setFullYear(date.getFullYear() - 5) // Minimum age 5
-  return date
-}
-
-// Main student schema - Only starred fields are required
+// SIMPLIFIED: Only name and phone are required
 export const createStudentSchema = z.object({
-  // Basic Information (Required - starred in form)
+  // REQUIRED - Only these fields
   first_name: z.string()
     .min(1, 'First name is required')
-    .max(100, 'First name must be less than 100 characters')
-    .regex(/^[a-zA-Zа-яёА-ЯЁ\s]+$/, 'First name can only contain letters and spaces'),
+    .max(100, 'First name must be less than 100 characters'),
   
   last_name: z.string()
     .min(1, 'Last name is required')
-    .max(100, 'Last name must be less than 100 characters')
-    .regex(/^[a-zA-Zа-яёА-ЯЁ\s]+$/, 'Last name can only contain letters and spaces'),
-  
-  date_of_birth: z.string()
-    .min(1, 'Date of birth is required')
-    .refine((date) => {
-      const birthDate = new Date(date)
-      const minDate = getMinBirthDate()
-      const maxDate = getMaxBirthDate()
-      return birthDate >= minDate && birthDate <= maxDate
-    }, 'Student must be between 5 and 25 years old'),
-  
-  gender: z.enum(['male', 'female', 'other']).default('male'),
-  
-  email: z.string()
-    .email('Invalid email format')
-    .max(255, 'Email must be less than 255 characters')
-    .optional()
-    .or(z.literal('')),
+    .max(100, 'Last name must be less than 100 characters'),
   
   phone: z.string()
-    .regex(/^\+998\d{9}$/, 'Phone must be valid Uzbekistan format (+998XXXXXXXXX)'),
+    .min(1, 'Phone number is required'),
   
-  // Parent/Guardian Information (Optional - not starred in form)
-  parent_name: z.string()
-    .max(200, 'Parent name must be less than 200 characters')
-    .regex(/^[a-zA-Zа-яёА-ЯЁ\s]*$/, 'Parent name can only contain letters and spaces')
-    .optional()
-    .or(z.literal('')),
+  // OPTIONAL - Everything else
+  date_of_birth: z.string().optional(),
+  gender: z.enum(['male', 'female', 'other']).optional(),
+  email: z.string().email('Invalid email format').optional().or(z.literal('')),
   
-  parent_phone: z.string()
-    .regex(/^\+998\d{9}$/, 'Parent phone must be valid Uzbekistan format (+998XXXXXXXXX)')
-    .optional()
-    .or(z.literal('')),
+  // Parent/Guardian Information (Optional)
+  parent_name: z.string().optional(),
+  parent_phone: z.string().optional(),
+  parent_email: z.string().email('Invalid parent email format').optional().or(z.literal('')),
   
-  parent_email: z.string()
-    .email('Invalid parent email format')
-    .max(255, 'Parent email must be less than 255 characters')
-    .optional()
-    .or(z.literal('')),
-  
-  // Address Information (Optional - not starred in form)
+  // Address Information (Optional)
   address: addressSchema.partial().optional(),
   
-  // Enrollment Information (Required - starred in form)
-  enrollment_date: z.string()
-    .min(1, 'Enrollment date is required')
-    .refine((date) => new Date(date) <= new Date(), 'Enrollment date cannot be in the future'),
-  
+  // Enrollment Information (Optional)
+  enrollment_date: z.string().optional(),
   status: z.enum(['active', 'inactive', 'graduated', 'suspended', 'dropped']).default('active'),
-  
-  current_level: z.string()
-    .min(1, 'Current level is required')
-    .max(50, 'Current level must be less than 50 characters'),
-  
-  preferred_subjects: z.array(z.string()).min(1, 'At least one preferred subject is required'),
+  current_level: z.string().optional(),
+  preferred_subjects: z.array(z.string()).optional(),
   
   // Academic Information (Optional)
   groups: z.array(z.string()).default([]),
-  academic_year: z.string().max(10, 'Academic year must be less than 10 characters').optional(),
-  grade_level: z.string().max(20, 'Grade level must be less than 20 characters').optional(),
+  academic_year: z.string().optional(),
+  grade_level: z.string().optional(),
   
-  // Medical & Emergency (Optional - not starred in form)
-  medical_notes: z.string().max(1000, 'Medical notes must be less than 1000 characters').optional(),
+  // Medical & Emergency (Optional)
+  medical_notes: z.string().optional(),
   emergency_contact: emergencyContactSchema.partial().optional(),
   
   // Financial Information (Optional with defaults)
   payment_status: z.enum(['paid', 'pending', 'overdue', 'partial']).default('pending'),
-  balance: z.number().min(0, 'Balance must be non-negative').default(0),
-  tuition_fee: z.number().min(0, 'Tuition fee must be non-negative').optional(),
+  balance: z.number().default(0),
+  tuition_fee: z.number().optional(),
+  monthly_fee: z.number().optional(), // NEW: Monthly payment tracking
+  last_payment_date: z.string().optional(), // NEW: Track last payment
+  
+  // Student App Fields (NEW)
+  app_login_email: z.string().email().optional(),
+  app_login_phone: z.string().optional(),
+  push_notification_token: z.string().optional(),
+  outstanding_balance: z.number().default(0),
   
   // Additional Information (Optional)
-  notes: z.string().max(2000, 'Notes must be less than 2000 characters').optional(),
+  notes: z.string().optional(),
   
   // System fields
   is_active: z.boolean().default(true),
 })
 
 export const updateStudentSchema = createStudentSchema.partial().extend({
-  id: z.string().uuid('Invalid student ID'),
+  id: z.string().uuid('Invalid student ID').optional(),
 })
 
-// Filter schema
+// Filter schema - REMOVED age restrictions
 export const studentFiltersSchema = z.object({
   search: z.string().optional(),
   status: z.array(z.string()).optional(),
@@ -133,8 +94,7 @@ export const studentFiltersSchema = z.object({
   groups: z.array(z.string()).optional(),
   enrollment_date_from: z.date().optional(),
   enrollment_date_to: z.date().optional(),
-  age_from: z.number().min(5).max(25).optional(),
-  age_to: z.number().min(5).max(25).optional(),
+  // REMOVED: age_from and age_to
   has_balance: z.boolean().optional(),
   is_active: z.boolean().optional(),
 })
@@ -161,9 +121,21 @@ export const studentSortSchema = z.object({
 export const enrollmentSchema = z.object({
   student_id: z.string().uuid('Invalid student ID'),
   group_id: z.string().uuid('Invalid group ID'),
-  start_date: z.string().refine((date) => new Date(date) >= new Date(), 'Start date cannot be in the past'),
-  tuition_amount: z.number().min(0, 'Tuition amount must be non-negative').optional(),
+  start_date: z.string().optional(),
+  tuition_amount: z.number().optional(),
   payment_status: z.enum(['paid', 'pending', 'overdue', 'partial']).default('pending'),
+})
+
+// Monthly Payment Schema (NEW)
+export const monthlyPaymentSchema = z.object({
+  student_id: z.string().uuid('Invalid student ID'),
+  month: z.string(), // Format: "2024-01"
+  amount: z.number().min(0),
+  paid: z.boolean().default(false),
+  due_date: z.string(),
+  paid_date: z.string().optional(),
+  payment_method: z.enum(['cash', 'card', 'transfer']).optional(),
+  notes: z.string().optional(),
 })
 
 // Payment update schema
@@ -187,5 +159,6 @@ export type UpdateStudentRequest = z.infer<typeof updateStudentSchema>
 export type StudentFilters = z.infer<typeof studentFiltersSchema>
 export type StudentSort = z.infer<typeof studentSortSchema>
 export type EnrollmentRequest = z.infer<typeof enrollmentSchema>
+export type MonthlyPayment = z.infer<typeof monthlyPaymentSchema>
 export type PaymentUpdateRequest = z.infer<typeof paymentUpdateSchema>
 export type BulkOperationRequest = z.infer<typeof bulkOperationSchema>
