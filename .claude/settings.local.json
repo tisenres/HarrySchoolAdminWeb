@@ -5,7 +5,8 @@
       "mcp__filesystem__list_directory",
       "Bash(test:*)",
       "Bash(cat:*)",
-      "Read(//var/folders/q3/54fpkjw11k18bwbw216sfjl80000gn/T/TemporaryItems/NSIRD_screencaptureui_s01amW/**)"
+      "Read(//var/folders/q3/54fpkjw11k18bwbw216sfjl80000gn/T/TemporaryItems/NSIRD_screencaptureui_s01amW/**)",
+      "Read(//Users/tisenres/Claude/**)"
     ],
     "deny": [],
     "ask": []

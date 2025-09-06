@@ -6,7 +6,7 @@ export async function withAuth(
   handler: (request: NextRequest) => Promise<NextResponse>
 ): Promise<NextResponse> {
   try {
-    const supabase = createClient()
+    const supabase = await createClient()
     
     // Get the user from the session
     const { data: { user }, error: userError } = await supabase.auth.getUser()
@@ -65,7 +65,7 @@ export async function withSuperAdminAuth(
   handler: (request: NextRequest) => Promise<NextResponse>
 ): Promise<NextResponse> {
   try {
-    const supabase = createClient()
+    const supabase = await createClient()
     
     const { data: { user }, error: userError } = await supabase.auth.getUser()
     
