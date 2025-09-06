@@ -2,6 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Harry School CRM Color Variables - Updated for #1d7452 */
 :root {
   --radius: 0.625rem;
   --background: 0 0% 100%;
@@ -10,7 +11,7 @@
   --card-foreground: 222.2 84% 4.9%;
   --popover: 0 0% 100%;
   --popover-foreground: 222.2 84% 4.9%;
-  /* Harry School CRM primary brand color #1d7452 */
+  /* PRIMARY COLOR: Harry School green #1d7452 = hsl(145, 58%, 29%) */
   --primary: 145 58% 29%;
   --primary-foreground: 0 0% 98.5%;
   --secondary: 0 0% 97%;

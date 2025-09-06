@@ -9,7 +9,7 @@ const nextConfig: NextConfig = {
     domains: ['xlcsegukheumsadygmgh.supabase.co'],
   },
   experimental: {
-    optimizeCss: true,
+    optimizeCss: false,
     webpackBuildWorker: true,
     webpackMemoryOptimizations: true,
   },
