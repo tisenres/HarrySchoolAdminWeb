@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Harry School CRM Color Variables - Updated for #1d7452 */
+/* Harry School CRM Color Variables - Updated for #1d7452 - Cache Bust v2.1 */
 :root {
   --radius: 0.625rem;
   --background: 0 0% 100%;
@@ -82,15 +82,24 @@
   }
 }
 
-/* CRITICAL: Harry School Green Color Override - Must be #1d7452 */
+/* CRITICAL: Harry School Green Color Override - Must be #1d7452 - v2.1 */
 :root {
   --primary: 145 58% 29% !important;
 }
 
+/* Force Harry School green #1d7452 on all primary elements */
 button[type="submit"],
 .bg-primary,
-[class*="bg-primary"] {
+[class*="bg-primary"],
+.text-primary,
+[class*="text-primary"] {
   background-color: #1d7452 !important;
+}
+
+.text-primary,
+[class*="text-primary"] {
+  color: #1d7452 !important;
+  background-color: transparent !important;
 }
 
 @layer utilities {
