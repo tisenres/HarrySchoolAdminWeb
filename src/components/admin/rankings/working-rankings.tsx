@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { IntegratedRankingsLeaderboard } from './integrated-rankings-leaderboard'
 import { ReferralAchievementsIntegration } from './referral-achievements-integration'
-import { StatisticsDashboard } from './statistics-dashboard'
+import { RankingsAnalyticsDashboard } from './rankings-analytics-dashboard'
 import { AwardAchievementModal } from './award-achievement-modal'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -102,6 +102,7 @@ interface AnalyticsData {
 
 export function WorkingRankings() {
   const [activeTab, setActiveTab] = useState('overview')
+  const [userTypeFilter, setUserTypeFilter] = useState<'student' | 'teacher' | 'combined'>('combined')
   const [stats, setStats] = useState<RankingsStats>({
     totalUsers: 0,
     studentsCount: 0,
@@ -571,7 +572,7 @@ export function WorkingRankings() {
             </TabsContent>
 
             <TabsContent value="analytics" className="mt-6">
-              <StatisticsDashboard />
+              <RankingsAnalyticsDashboard userTypeFilter={userTypeFilter} />
             </TabsContent>
           </Tabs>
         </CardContent>

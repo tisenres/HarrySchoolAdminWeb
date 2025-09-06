@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Harry School CRM Color Variables - Updated for #1d7452 - Cache Bust v2.1 */
+/* Harry School CRM Color Variables - Restored Original Teal */
 :root {
   --radius: 0.625rem;
   --background: 0 0% 100%;
@@ -11,8 +11,8 @@
   --card-foreground: 222.2 84% 4.9%;
   --popover: 0 0% 100%;
   --popover-foreground: 222.2 84% 4.9%;
-  /* PRIMARY COLOR: Harry School green #1d7452 = hsl(145, 58%, 29%) */
-  --primary: 145 58% 29%;
+  /* PRIMARY COLOR: Original teal #14B8A6 = hsl(162, 84%, 44%) */
+  --primary: 162 84% 44%;
   --primary-foreground: 0 0% 98.5%;
   --secondary: 0 0% 97%;
   --secondary-foreground: 0 0% 20.5%;
@@ -82,25 +82,6 @@
   }
 }
 
-/* CRITICAL: Harry School Green Color Override - Must be #1d7452 - v2.1 */
-:root {
-  --primary: 145 58% 29% !important;
-}
-
-/* Force Harry School green #1d7452 on all primary elements */
-button[type="submit"],
-.bg-primary,
-[class*="bg-primary"],
-.text-primary,
-[class*="text-primary"] {
-  background-color: #1d7452 !important;
-}
-
-.text-primary,
-[class*="text-primary"] {
-  color: #1d7452 !important;
-  background-color: transparent !important;
-}
 
 @layer utilities {
   /* Performance-optimized animations */
