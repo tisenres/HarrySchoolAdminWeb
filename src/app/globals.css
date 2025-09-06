@@ -157,7 +157,7 @@
     container-type: inline-size;
   }
 
-  /* Critical resource hints */
+  /* Critical resource hints - Updated for deployment */
   .preload-fonts {
     font-display: swap;
   }
