@@ -2,21 +2,18 @@
 
 ## 🎯 Project Overview
 
-**Harry School CRM** is a comprehensive educational management ecosystem for a private education center in Tashkent, consisting of:
+**Harry School CRM** is a comprehensive educational management system for a private education center in Tashkent, focusing on:
 - **Admin Panel**: Web-based management system (Next.js + Vercel)
-- **Teacher App**: Mobile application for educators (React Native + Expo)
-- **Student App**: Mobile application for learners (React Native + Expo)
 
 ## 🛠 Technology Stack
 
 | Component | Technology |
 |-----------|------------|
 | **Web Frontend** | Next.js 14+ (App Router), TypeScript, shadcn/ui, Tailwind CSS |
-| **Mobile Apps** | React Native, Expo SDK 49+, TypeScript, NativeWind |
 | **Backend** | Supabase (PostgreSQL, Auth, RLS, Storage) |
 | **State Management** | Zustand (client), React Query (server) |
 | **AI Services** | OpenAI GPT-4, Whisper API |
-| **Deployment** | Vercel (web), EAS Build (mobile) |
+| **Deployment** | Vercel (web) |
 | **Development** | Claude Code with MCP servers + Subagents |
 
 ## 📁 Context Management Strategy
@@ -58,7 +55,7 @@ Last Updated: [timestamp]
 |-------|---------------|--------|
 | `backend-architect` | Database schemas, API design, RLS policies | Blue |
 | `frontend-developer` | React components, state management | Yellow |
-| `mobile-developer` | React Native architecture, offline-first | Orange |
+| `mobile-developer` | *Not applicable - mobile apps removed* | Orange |
 | `ui-designer` | Design systems, visual specifications | Pink |
 | `whimsy-injector` | Animations, micro-interactions | Purple |
 
@@ -69,7 +66,7 @@ Last Updated: [timestamp]
 | `test-automator` | Test strategies, coverage planning | Purple |
 | `test-runner` | CI/CD pipelines, execution plans | Cyan |
 | `database-optimizer` | Query optimization, indexing | Green |
-| `performance-analyzer` | Web/mobile performance, caching | Yellow |
+| `performance-analyzer` | Web performance optimization, caching | Yellow |
 
 ### Coordination & Deployment Agents
 | Agent | Specialization | Color |
@@ -77,7 +74,7 @@ Last Updated: [timestamp]
 | `sprint-prioritizer` | Task breakdown, agent coordination | Pink |
 | `ux-researcher` | User workflows, information architecture | Green |
 | `ai-engineer` | LLM integration, prompt engineering | Blue |
-| `deployment-strategist` | Vercel/EAS deployment, CI/CD | Blue |
+| `deployment-strategist` | Vercel deployment, CI/CD | Blue |
 
 ## 🔧 MCP Server Configuration
 
@@ -134,7 +131,7 @@ Last Updated: [timestamp]
 # Architecture research
 "Use backend-architect to design database schema"
 "Use frontend-developer to plan component architecture"
-"Use mobile-developer to design offline-first strategy"
+"Focus on admin panel component architecture"
 
 # UX and design research
 "Use ux-researcher to analyze user workflows"
@@ -180,11 +177,6 @@ Last Updated: [timestamp]
 "Use security-auditor to review the authentication system, then implement necessary security improvements"
 ```
 
-### Mobile Development
-```bash
-# Mobile feature
-"Use mobile-developer to plan offline attendance marking, then implement for the Teacher app"
-```
 
 ## 📊 Development Phases
 
@@ -217,7 +209,6 @@ Last Updated: [timestamp]
 - **Performance**: LCP <2.5s, FID <100ms
 - **Bundle Size**: <500KB initial
 - **API Response**: <200ms
-- **Mobile FPS**: 60 FPS
 - **Security**: OWASP compliant
 
 ## 📚 Core Features
@@ -228,17 +219,6 @@ Last Updated: [timestamp]
 - Groups Management (scheduling, capacity)
 - Settings (users, configuration, archives)
 
-### Teacher App
-- Dashboard & Quick Actions
-- Attendance Marking (offline-capable)
-- Student Performance Tracking
-- AI-powered Homework Generation
-
-### Student App
-- Interactive Lessons (quiz, speaking, writing)
-- Vocabulary System (flashcards, translator)
-- Ranking & Achievements
-- Rewards Catalog
 
 ## 🔐 Key Configurations
 

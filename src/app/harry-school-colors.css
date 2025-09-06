@@ -1,0 +1,11 @@
+/* Harry School CRM - Force Color Override */
+:root {
+  --primary: 145 58% 29% !important;
+}
+
+/* Direct button override to ensure green color shows */
+button[type="submit"],
+.bg-primary,
+[class*="bg-primary"] {
+  background-color: #1d7452 !important;
+}

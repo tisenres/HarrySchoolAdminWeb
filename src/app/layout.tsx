@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { Suspense } from "react";
 import "./globals.css";
+import "./harry-school-colors.css";
 
 const inter = Inter({
   variable: "--font-inter",

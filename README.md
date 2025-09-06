@@ -1,19 +1,17 @@
 # Harry School CRM - Educational Management System
 
-A comprehensive educational management ecosystem for Harry School in Tashkent.
+A comprehensive educational management system for Harry School in Tashkent - Admin Panel focused.
 
 ## 🏗️ Project Structure
 
-This repository uses a **monorepo structure** containing multiple applications:
+This repository contains the Admin Panel application:
 
 ```
-HarrySchoolAdminWeb/
+HarrySchoolAdmin/
 ├── src/                    # Admin Panel (Next.js)
-├── mobile/                 # React Native Apps
-├── docs/                   # General Documentation
-├── admin-docs/             # Admin Panel Specific Documentation
-├── admin-tests/            # Admin Panel Tests
-├── database/               # Database schemas and migrations
+├── docs/                   # General Documentation  
+├── Admin Docs/             # Admin Panel Specific Documentation
+├── tests/                  # Admin Panel Tests
 ├── supabase/              # Supabase configuration
 ├── scripts/               # Build and deployment scripts
 ├── public/                # Static assets
