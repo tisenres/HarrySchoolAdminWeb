@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient } from '@/lib/supabase/client'
 import { z } from 'zod'
 import { Database } from '@/types/database'
 import { uuidSchema } from '@/lib/validations'

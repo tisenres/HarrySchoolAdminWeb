@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient } from '@/lib/supabase/client'
 import { z } from 'zod'
 import { Database } from '@/types/database'
 import { uuidSchema, nameSchema } from '@/lib/validations'
@@ -337,4 +337,6 @@ export class GroupService {
   }
 }
 
-export default new GroupService()
+const groupService = new GroupService()
+export default groupService
+export { groupService }

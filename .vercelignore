@@ -1,0 +1,88 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Testing
+coverage/
+.nyc_output
+__tests__/
+*.test.*
+*.spec.*
+
+# Build outputs (Vercel will rebuild)
+.next/
+out/
+dist/
+build/
+
+# Development files
+.git/
+.gitignore
+.github/
+.vscode/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.DS_Store
+
+# Documentation
+*.md
+docs/
+README.md
+CHANGELOG.md
+LICENSE
+
+# Config files
+.eslintrc*
+.prettierrc*
+jest.config.*
+tsconfig.tsbuildinfo
+playwright.config.ts
+
+# Scripts and tools
+scripts/
+e2e/
+cypress/
+tests/
+
+# Cache
+.cache/
+*.cache
+.turbo
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+
+# IDE
+.idea/
+*.swp
+*.swo
+*~
+
+# Performance reports
+performance-reports/
+lighthouse-reports/
+
+# Database files
+*.sql
+database/
+migrations/
+
+# Backup files
+*.backup
+*.bak
+
+# Large asset files
+public/videos/
+public/downloads/
+
+# Environment files (Vercel handles these separately)
+.env.local
+.env.development
+.env.test
+.env.production
