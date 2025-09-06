@@ -167,8 +167,8 @@ export default function LoginForm() {
       <Card className="border-0 shadow-xl">
         <CardHeader className="space-y-1 pb-4">
           <div className="flex items-center justify-center mb-4">
-            <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
-              <GraduationCap className="h-6 w-6 text-primary" />
+            <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center" style={{ backgroundColor: 'rgba(29, 116, 82, 0.1)' }}>
+              <GraduationCap className="h-6 w-6 text-primary" style={{ color: '#1d7452' }} />
             </div>
           </div>
           <CardTitle className="text-2xl text-center font-bold">
@@ -249,6 +249,7 @@ export default function LoginForm() {
                 <Link 
                   href="/forgot-password" 
                   className="text-sm text-primary hover:underline"
+                  style={{ color: '#1d7452' }}
                 >
                   {t('forgotPassword')}
                 </Link>
@@ -259,6 +260,7 @@ export default function LoginForm() {
                 className="w-full" 
                 size="lg"
                 disabled={loading}
+                style={{ backgroundColor: '#1d7452' }}
               >
                 {loading ? (
                   <>
