@@ -82,6 +82,17 @@
   }
 }
 
+/* CRITICAL: Harry School Green Color Override - Must be #1d7452 */
+:root {
+  --primary: 145 58% 29% !important;
+}
+
+button[type="submit"],
+.bg-primary,
+[class*="bg-primary"] {
+  background-color: #1d7452 !important;
+}
+
 @layer utilities {
   /* Performance-optimized animations */
   @keyframes shimmer {
