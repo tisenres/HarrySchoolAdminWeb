@@ -157,7 +157,7 @@
     container-type: inline-size;
   }
 
-  /* Critical resource hints - Updated for deployment */
+  /* Critical resource hints - Force CSS update with correct green #1d7452 */
   .preload-fonts {
     font-display: swap;
   }
