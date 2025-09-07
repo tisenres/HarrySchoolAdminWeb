@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/client'
 import { z } from 'zod'
 import { Database } from '@/types/database'
 import { uuidSchema, nameSchema, emailSchema, phoneSchema } from '@/lib/validations'
+import { createStudentAuth, getStudentCredentials } from '@/lib/utils/auth-generator'
 
 type Student = Database['public']['Tables']['students']['Row']
 type StudentInsert = Database['public']['Tables']['students']['Insert']
@@ -77,12 +78,13 @@ export class StudentService {
     return { user, profile }
   }
 
-  async create(studentData: z.infer<typeof studentInsertSchema>): Promise<Student> {
+  async create(studentData: z.infer<typeof studentInsertSchema>): Promise<Student & { credentials?: { username: string; password: string } }> {
     const { user } = await this.checkPermission(['admin', 'superadmin'])
     
     const validatedData = studentInsertSchema.parse(studentData)
 
-    const { data, error } = await this.supabase
+    // Create the student record first
+    const { data: student, error: studentError } = await this.supabase
       .from('students')
       .insert({
         ...validatedData,
@@ -93,8 +95,32 @@ export class StudentService {
       .select()
       .single()
 
-    if (error) throw error
-    return data
+    if (studentError) throw studentError
+
+    // Auto-generate authentication credentials for the student
+    try {
+      const { credentials } = await createStudentAuth(
+        validatedData.first_name,
+        validatedData.last_name,
+        validatedData.date_of_birth,
+        student.id,
+        validatedData.organization_id,
+        user.id
+      )
+
+      // Return student data with credentials for admin display
+      return {
+        ...student,
+        credentials: {
+          username: credentials.username,
+          password: credentials.password
+        }
+      }
+    } catch (authError) {
+      // If auth creation fails, still return the student but log the error
+      console.error('Failed to create student authentication:', authError)
+      return student
+    }
   }
 
   async getById(id: string): Promise<Student | null> {
@@ -114,6 +140,12 @@ export class StudentService {
 
     if (error && error.code !== 'PGRST116') throw error
     return data
+  }
+
+  async getCredentials(studentId: string): Promise<{ username: string; password: string } | null> {
+    await this.checkPermission(['admin', 'superadmin'])
+    
+    return await getStudentCredentials(studentId)
   }
 
   async getByOrganization(
