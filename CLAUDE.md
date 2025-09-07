@@ -239,6 +239,31 @@ Last Updated: [timestamp]
 - Russian
 - Uzbek (Latin)
 
+## 🚨 CRITICAL: Honesty and Status Reporting
+
+### NEVER claim something is "ready" or "production-ready" unless:
+- ✅ ALL functionality has been implemented AND tested
+- ✅ Backend integration is complete and working
+- ✅ All buttons and UI elements are functional
+- ✅ Error handling is implemented
+- ✅ Data validation is working
+- ✅ Authentication/authorization is properly implemented
+
+### ALWAYS be explicit about what IS and ISN'T working:
+- ❌ "The feature is ready" (when only UI exists)
+- ✅ "The UI components are implemented, but backend integration is needed"
+- ❌ "Everything is working"
+- ✅ "The form renders correctly, but submission isn't connected to the database yet"
+
+### Status Classification:
+- 🔴 **Concept/Design Only**: No working code
+- 🟡 **UI Shell**: Components exist but no functionality
+- 🟠 **Partial Implementation**: Some features work, others don't
+- 🟢 **Feature Complete**: All functionality implemented and tested
+- ✅ **Production Ready**: Fully tested, integrated, and deployed
+
+### Always specify current status when reporting progress
+
 ## 📝 Notes
 
 - **Primary Color**: #1d7452

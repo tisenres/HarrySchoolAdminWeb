@@ -6,7 +6,9 @@
       "Bash(test:*)",
       "Bash(cat:*)",
       "Read(//var/folders/q3/54fpkjw11k18bwbw216sfjl80000gn/T/TemporaryItems/NSIRD_screencaptureui_s01amW/**)",
-      "Read(//Users/tisenres/Claude/**)"
+      "Read(//Users/tisenres/Claude/**)",
+      "Bash(cd:*)",
+      "Bash(curl:*)"
     ],
     "deny": [],
     "ask": []
