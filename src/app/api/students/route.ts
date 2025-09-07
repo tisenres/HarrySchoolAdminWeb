@@ -1,11 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
-// PERFORMANCE FIX: Create a direct Supabase client for dev mode
-// This bypasses the slow cookie handling in Next.js 15 dev mode
+// Create service role client for server-side operations
+// This bypasses RLS policies for administrative operations
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  }
 )
 
 // Simplified GET - fetch students with minimal overhead
@@ -76,13 +82,19 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     
-    // Prepare student data with defaults
+    // Prepare student data with defaults and field mapping
     const studentData = {
       ...body,
+      // Map phone field to primary_phone for database compatibility
+      primary_phone: body.phone || body.primary_phone,
       organization_id: body.organization_id || '90bb0700-eca6-4925-b618-c0796f2e2187', // Use real org ID
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     }
+    
+    // Remove fields that shouldn't be inserted directly
+    delete studentData.phone // phone is mapped to primary_phone
+    delete studentData.full_name // full_name is auto-generated from first_name + last_name
     
     // Insert student
     const { data: newStudent, error: insertError } = await supabase
