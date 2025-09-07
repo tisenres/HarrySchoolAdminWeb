@@ -102,7 +102,7 @@ export async function POST(request: NextRequest) {
         .insert({
           id: TEST_ORG_ID,
           name: TEST_ORG_NAME,
-          domain: 'harry-school.uz',
+          slug: 'harry-school',
           address: 'Tashkent, Uzbekistan',
           settings: {
             language: 'en',
@@ -110,7 +110,11 @@ export async function POST(request: NextRequest) {
             currency: 'UZS',
             academic_year_start: '2024-09-01'
           },
-          is_active: true
+          subscription_plan: 'premium',
+          subscription_status: 'active',
+          max_students: 1000,
+          max_teachers: 100,
+          max_groups: 100
         })
         .select()
         .single()
