@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
-import { groupUpdateSchema } from '@/lib/validations'
+import { updateGroupSchema } from '@/lib/validations/group'
 import { z } from 'zod'
 
 export async function GET(
@@ -45,7 +45,7 @@ export async function PATCH(
   try {
     const { id } = await params
     const body = await request.json()
-    const validatedData = groupUpdateSchema.parse(body)
+    const validatedData = updateGroupSchema.parse(body)
     
     const supabase = await createServerClient()
     
@@ -84,6 +84,81 @@ export async function PATCH(
     return NextResponse.json(group)
   } catch (error) {
     console.error('Group PATCH error:', error)
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: 'Validation error', details: error.issues },
+        { status: 400 }
+      )
+    }
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Failed to update group' },
+      { status: 500 }
+    )
+  }
+}
+
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params
+    const body = await request.json()
+    const validatedData = updateGroupSchema.parse(body)
+    
+    const supabase = await createServerClient()
+    
+    // Get current user
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    if (userError || !user) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      )
+    }
+    
+    // Update group with proper field mapping
+    const { data: group, error } = await supabase
+      .from('groups')
+      .update({
+        name: validatedData.name,
+        group_code: validatedData.group_code,
+        subject: validatedData.subject,
+        level: validatedData.level,
+        group_type: validatedData.group_type,
+        description: validatedData.description,
+        max_students: validatedData.max_students,
+        schedule: validatedData.schedule,
+        classroom: validatedData.classroom,
+        online_meeting_url: validatedData.online_meeting_url,
+        start_date: validatedData.start_date,
+        end_date: validatedData.end_date,
+        duration_weeks: validatedData.duration_weeks,
+        price_per_student: validatedData.price_per_student,
+        currency: validatedData.currency,
+        payment_frequency: validatedData.payment_frequency,
+        notes: validatedData.notes,
+        updated_by: user.id,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id)
+      .is('deleted_at', null)
+      .select()
+      .single()
+    
+    if (error) {
+      if (error.code === 'PGRST116') {
+        return NextResponse.json(
+          { error: 'Group not found' },
+          { status: 404 }
+        )
+      }
+      throw new Error(`Failed to update group: ${error.message}`)
+    }
+    
+    return NextResponse.json(group)
+  } catch (error) {
+    console.error('Group PUT error:', error)
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Validation error', details: error.issues },

@@ -169,7 +169,7 @@ export const GroupsVirtualTable = memo<GroupsVirtualTableProps>(({
   }, [internalSelectedIds, onSelectionChange])
 
   const handleRowClick = useCallback((group: GroupTableRow) => {
-    router.push(`/dashboard/groups/${group.id}`)
+    router.push(`/en/groups/${group.id}`)
   }, [router])
 
   const formatSchedule = useCallback((schedule: string) => {
@@ -187,20 +187,24 @@ export const GroupsVirtualTable = memo<GroupsVirtualTableProps>(({
     {
       key: 'select',
       header: (
-        <Checkbox
-          checked={internalSelectedIds.length === safeGroups.length && safeGroups.length > 0}
-          onCheckedChange={handleSelectAll}
-          indeterminate={internalSelectedIds.length > 0 && internalSelectedIds.length < safeGroups.length}
-        />
+        <div onClick={(e) => e.stopPropagation()}>
+          <Checkbox
+            checked={internalSelectedIds.length === safeGroups.length && safeGroups.length > 0}
+            onCheckedChange={handleSelectAll}
+            indeterminate={internalSelectedIds.length > 0 && internalSelectedIds.length < safeGroups.length}
+          />
+        </div>
       ),
       width: 50,
       render: (group: GroupTableRow) => (
-        <Checkbox
-          checked={internalSelectedIds.includes(group.id)}
-          onCheckedChange={(checked) => 
-            handleSelectGroup(group.id, checked as boolean)
-          }
-        />
+        <div onClick={(e) => e.stopPropagation()}>
+          <Checkbox
+            checked={internalSelectedIds.includes(group.id)}
+            onCheckedChange={(checked) => 
+              handleSelectGroup(group.id, checked as boolean)
+            }
+          />
+        </div>
       ),
     },
 
@@ -316,14 +320,15 @@ export const GroupsVirtualTable = memo<GroupsVirtualTableProps>(({
       header: '',
       width: 60,
       render: (group: GroupTableRow) => (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
+        <div onClick={(e) => e.stopPropagation()}>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => router.push(`/dashboard/groups/${group.id}`)}>
+            <DropdownMenuItem onClick={() => router.push(`/en/groups/${group.id}`)}>
               <Eye className="h-4 w-4 mr-2" />
               View Details
             </DropdownMenuItem>
@@ -348,9 +353,10 @@ export const GroupsVirtualTable = memo<GroupsVirtualTableProps>(({
               Delete Group
             </DropdownMenuItem>
           </DropdownMenuContent>
-        </DropdownMenu>
+          </DropdownMenu>
+        </div>
       ),
-    },
+    }
   ], [
     safeGroups,
     internalSelectedIds,

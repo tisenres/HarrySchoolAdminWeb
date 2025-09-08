@@ -141,6 +141,99 @@ export const PUT = withAuth(async (
   }
 }, 'admin')
 
+// PATCH student (partial update) with authentication and proper organization handling
+export const PATCH = withAuth(async (
+  request: NextRequest,
+  context,
+  { params }: { params: Promise<{ id: string }> }
+) => {
+  try {
+    const { getApiClient, getCurrentOrganizationId } = await import('@/lib/supabase-unified')
+    const supabase = await getApiClient()
+    
+    // Await params in Next.js 15
+    const { id } = await params
+    
+    // Get organization ID from unified client
+    const organizationId = await getCurrentOrganizationId()
+    
+    if (!organizationId) {
+      return NextResponse.json(
+        { success: false, error: 'Organization not found' },
+        { status: 400 }
+      )
+    }
+    
+    // Parse and validate partial data
+    const body = await request.json()
+    const { updateStudentSchema } = await import('@/lib/validations/student')
+    
+    // For PATCH, make all fields optional except id
+    const partialSchema = updateStudentSchema.partial()
+    const validatedData = partialSchema.parse(body)
+    
+    console.log('📝 Updating student with ID:', id)
+    console.log('🏢 Organization ID:', organizationId)
+    
+    // Prepare update data - remove undefined values and academic_year
+    const updateData = Object.fromEntries(
+      Object.entries(validatedData).filter(([key, value]) => 
+        value !== undefined && key !== 'academic_year'
+      )
+    )
+    
+    // Add system fields
+    updateData.updated_at = new Date().toISOString()
+    
+    console.log('💾 Update data:', { ...updateData, primary_phone: updateData.primary_phone ? '[HIDDEN]' : undefined })
+    
+    const { data: student, error } = await supabase
+      .from('students')
+      .update(updateData)
+      .eq('id', id)
+      .eq('organization_id', organizationId)
+      .is('deleted_at', null)
+      .select()
+      .single()
+    
+    if (error) {
+      console.error('❌ Update error:', error)
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: 'Failed to update student',
+          details: error.message 
+        },
+        { status: 500 }
+      )
+    }
+    
+    if (!student) {
+      return NextResponse.json(
+        { success: false, error: 'Student not found' },
+        { status: 404 }
+      )
+    }
+    
+    console.log('🎉 Student updated successfully:', student.id)
+    
+    return NextResponse.json({
+      success: true,
+      data: student,
+      message: 'Student updated successfully'
+    })
+  } catch (error) {
+    console.error('❌ Server Error:', error)
+    return NextResponse.json(
+      { 
+        success: false,
+        error: error instanceof Error ? error.message : 'Internal server error'
+      },
+      { status: 500 }
+    )
+  }
+}, 'admin')
+
 // DELETE student (soft delete) with authentication and proper organization handling
 export const DELETE = withAuth(async (
   _request: NextRequest,

@@ -2,6 +2,7 @@ import type { Database } from '@/types/database'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { authCache } from '@/lib/cache/auth-cache'
 import { withTimeout, CircuitBreaker } from '@/lib/middleware/performance'
+import { getApiClient } from '@/lib/supabase-unified'
 
 export abstract class BaseService {
   protected tableName: keyof Database['public']['Tables']
@@ -23,23 +24,15 @@ export abstract class BaseService {
   }
 
   /**
-   * Get Supabase client with proper authentication context
+   * Get Supabase client using unified authentication system
    */
   protected async getSupabase(): Promise<SupabaseClient<Database>> {
     if (!this.supabaseClient) {
       if (this.supabaseClientProvider) {
         this.supabaseClient = await this.supabaseClientProvider()
       } else {
-        // Determine environment and use appropriate client
-        if (typeof window === 'undefined') {
-          // Server environment - use client (fixed for now)
-          const { createClient } = await import('@/lib/supabase/client')
-          this.supabaseClient = createClient()
-        } else {
-          // Browser environment - use client
-          const { createClient } = await import('@/lib/supabase/client')
-          this.supabaseClient = createClient()
-        }
+        // Always use unified client for consistency
+        this.supabaseClient = await getApiClient()
       }
     }
     
@@ -73,31 +66,16 @@ export abstract class BaseService {
       return this.authContext.user
     }
     
-    try {
-      const supabase = await this.getSupabase()
-      const { data: { user }, error } = await supabase.auth.getUser()
-      
-      if (error) {
-        console.error('Auth error:', error)
-        throw new Error(`Authentication failed: ${error.message}`)
-      }
-      
-      if (!user) {
-        throw new Error('User not authenticated - please sign in')
-      }
-      
-      // Try cache first for performance
-      const cachedAuth = authCache.get(user.id)
-      if (cachedAuth?.user && cachedAuth.user.id === user.id) {
-        return cachedAuth.user
-      }
-      
-      // Cache will be set by middleware
-      
-      return user
-    } catch (error) {
-      console.error('Failed to get current user:', error)
-      throw error
+    // With unified client using service role, no auth session needed
+    // Get organization from unified client instead
+    const { getCurrentOrganizationId } = await import('@/lib/supabase-unified')
+    const organizationId = await getCurrentOrganizationId()
+    
+    // Return minimal user for compatibility
+    return {
+      id: `org-${organizationId || 'unknown'}`,
+      email: 'system@harryschool.com',
+      role: 'service_role'
     }
   }
 
@@ -110,48 +88,15 @@ export abstract class BaseService {
       return this.authContext.profile.organization_id
     }
     
-    try {
-      const user = await this.getCurrentUser()
-      
-      // Check auth cache first for performance
-      const cachedAuth = authCache.get(user.id)
-      if (cachedAuth?.organization?.id) {
-        return cachedAuth.organization.id
-      }
-      
-      // Try profile cache next
-      if (cachedAuth?.profile?.organization_id) {
-        return cachedAuth.profile.organization_id
-      }
-      
-      // Query database with proper error handling
-      const supabase = await this.getSupabase()
-      
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('organization_id, role')
-        .eq('id', user.id)
-        .is('deleted_at', null)
-        .single()
-      
-      if (error) {
-        console.error('Profile query error:', error)
-        throw new Error(`Failed to get user profile: ${error.message}`)
-      }
-      
-      if (!data || !data.organization_id) {
-        throw new Error('User profile not found or user not associated with an organization')
-      }
-      
-      // Cache both organization and profile data for future use
-      authCache.setOrganization(user.id, data.organization_id)
-      authCache.setProfile(user.id, data)
-      
-      return data.organization_id
-    } catch (error) {
-      console.error('Failed to get current organization:', error)
-      throw error
+    // Use unified client to get organization ID
+    const { getCurrentOrganizationId } = await import('@/lib/supabase-unified')
+    const organizationId = await getCurrentOrganizationId()
+    
+    if (!organizationId) {
+      throw new Error('Organization ID not found')
     }
+    
+    return organizationId
   }
 
   /**

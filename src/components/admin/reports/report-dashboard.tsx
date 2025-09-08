@@ -105,50 +105,22 @@ export function ReportDashboard({ organizationId }: ReportDashboardProps) {
     try {
       setIsLoading(true)
       
-      // Get exportable data from reports service
-      const exportData = await reportsService.generateExportableData(reportType, dateRange)
-      const filename = `${reportType}_report_${new Date().toISOString().split('T')[0]}`
+      // Get detailed exportable data from reports service
+      const detailedExportData = await reportsService.generateDetailedExportData(reportType, dateRange)
       
       if (format === 'excel') {
-        // Create multi-sheet Excel with summary and details
-        const sheets = [
-          {
-            name: 'Summary',
-            headers: ['Metric', 'Value'],
-            data: Object.entries(exportData.summary || {}).map(([key, value]) => [
-              key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()),
-              value
-            ])
-          },
-          {
-            name: 'Details',
-            headers: exportData.headers,
-            data: exportData.rows
-          }
-        ]
-        
-        ImportExportService.exportMultiSheet(sheets, filename)
-        
-      } else if (format === 'csv') {
-        // Export as CSV with headers
-        const csvData = [exportData.headers, ...exportData.rows]
-        ImportExportService.exportToExcel(csvData, { 
-          filename, 
-          format: 'csv',
-          includeHeaders: true 
-        })
-        
+        await ImportExportService.exportDetailedExcel(detailedExportData)
       } else if (format === 'pdf') {
-        // PDF export not implemented yet
-        alert('PDF export is not yet implemented. Please use Excel or CSV format.')
-        return
+        await ImportExportService.exportDetailedPDF(detailedExportData)
+      } else if (format === 'csv') {
+        ImportExportService.exportDetailedCSV(detailedExportData)
       }
       
-      console.log(`Successfully exported ${reportType} report as ${format.toUpperCase()}`)
+      console.log(`Successfully exported detailed ${reportType} report as ${format.toUpperCase()}`)
       
     } catch (error) {
-      console.error('Error exporting report:', error)
-      alert(`Failed to export report: ${error.message}`)
+      console.error('Error exporting detailed report:', error)
+      alert(`Failed to export report: ${error instanceof Error ? error.message : 'Unknown error'}`)
     } finally {
       setIsLoading(false)
     }
@@ -217,7 +189,7 @@ export function ReportDashboard({ organizationId }: ReportDashboardProps) {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-4">
+            <div className="grid gap-4 md:grid-cols-4 items-end">
               <Select value={reportType} onValueChange={(value) => setReportType(value as ReportType)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select report type" />
@@ -231,7 +203,7 @@ export function ReportDashboard({ organizationId }: ReportDashboardProps) {
                 </SelectContent>
               </Select>
 
-              <div className="flex items-center px-3 py-2 border rounded-md bg-background">
+              <div className="flex items-center px-3 py-2 border rounded-md bg-background h-10">
                 <Calendar className="mr-2 h-4 w-4 text-muted-foreground" />
                 <span className="text-sm">
                   {dateRange ? 
@@ -259,11 +231,11 @@ export function ReportDashboard({ organizationId }: ReportDashboardProps) {
                 </SelectContent>
               </Select>
 
-              <div className="flex gap-2">
-                <Button onClick={generateReport} disabled={isLoading}>
+              <div className="flex gap-2 items-center">
+                <Button onClick={generateReport} disabled={isLoading} className="h-10">
                   {isLoading ? 'Generating...' : 'Generate Report'}
                 </Button>
-                <Button variant="outline" onClick={() => setShowImportDialog(true)} disabled={isLoading}>
+                <Button variant="outline" onClick={() => setShowImportDialog(true)} disabled={isLoading} className="h-10">
                   <Upload className="mr-2 h-4 w-4" />
                   Import Data
                 </Button>

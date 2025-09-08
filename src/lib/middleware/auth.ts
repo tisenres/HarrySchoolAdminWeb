@@ -1,31 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { getCurrentUser, getCurrentProfile } from '@/lib/supabase-unified'
 
 export async function withAuth(
   request: NextRequest,
   handler: (request: NextRequest) => Promise<NextResponse>
 ): Promise<NextResponse> {
   try {
-    const supabase = await createClient()
+    // Get user using unified auth system
+    const user = await getCurrentUser()
     
-    // Get the user from the session
-    const { data: { user }, error: userError } = await supabase.auth.getUser()
-    
-    if (userError || !user) {
+    if (!user) {
       return NextResponse.json(
         { error: 'Unauthorized', success: false },
         { status: 401 }
       )
     }
 
-    // Get the user's profile to check role and organization
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('role, organization_id')
-      .eq('id', user.id)
-      .single()
-
-    if (profileError || !profile) {
+    // Get user profile
+    const profile = await getCurrentProfile()
+    
+    if (!profile) {
       return NextResponse.json(
         { error: 'Profile not found', success: false },
         { status: 401 }
@@ -65,24 +59,20 @@ export async function withSuperAdminAuth(
   handler: (request: NextRequest) => Promise<NextResponse>
 ): Promise<NextResponse> {
   try {
-    const supabase = await createClient()
+    // Get user using unified auth system
+    const user = await getCurrentUser()
     
-    const { data: { user }, error: userError } = await supabase.auth.getUser()
-    
-    if (userError || !user) {
+    if (!user) {
       return NextResponse.json(
         { error: 'Unauthorized', success: false },
         { status: 401 }
       )
     }
 
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('role, organization_id')
-      .eq('id', user.id)
-      .single()
-
-    if (profileError || !profile) {
+    // Get user profile
+    const profile = await getCurrentProfile()
+    
+    if (!profile) {
       return NextResponse.json(
         { error: 'Profile not found', success: false },
         { status: 401 }

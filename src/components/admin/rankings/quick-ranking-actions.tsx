@@ -17,8 +17,9 @@ import {
 } from 'lucide-react'
 
 // Import existing modals (to be extended for teacher support)
-import { QuickPointAward } from '@/components/admin/students/ranking/quick-point-award'
+import { UnifiedQuickPointAward } from '@/components/admin/rankings/unified-quick-point-award'
 import { ManualAwardInterface } from '@/components/admin/achievements/manual-award-interface'
+import { RewardApprovalModal } from '@/components/admin/rewards/reward-approval-modal'
 
 interface QuickRankingActionsProps {
   userTypeFilter: 'student' | 'teacher' | 'combined'
@@ -28,6 +29,7 @@ export function QuickRankingActions({ userTypeFilter }: QuickRankingActionsProps
   const t = useTranslations('rankings')
   const [showPointAward, setShowPointAward] = useState(false)
   const [showAchievementAward, setShowAchievementAward] = useState(false)
+  const [showRewardApproval, setShowRewardApproval] = useState(false)
   const [selectedUserType, setSelectedUserType] = useState<'student' | 'teacher'>('student')
 
   // Mock recent activities (will be replaced with real API)
@@ -85,6 +87,20 @@ export function QuickRankingActions({ userTypeFilter }: QuickRankingActionsProps
     setShowAchievementAward(true)
   }
 
+  const handleRewardApproval = () => {
+    setShowRewardApproval(true)
+  }
+
+  const handlePointsAwarded = async (data: any) => {
+    console.log('Points awarded:', data)
+    // Could refresh rankings data here
+  }
+
+  const handleAchievementAwarded = async (data: any) => {
+    console.log('Achievement awarded:', data)
+    // Could refresh rankings data here
+  }
+
   return (
     <div className="grid gap-6 lg:grid-cols-3">
       {/* Quick Actions */}
@@ -127,6 +143,7 @@ export function QuickRankingActions({ userTypeFilter }: QuickRankingActionsProps
                   <Button 
                     variant="outline" 
                     size="sm"
+                    onClick={handleRewardApproval}
                     className="justify-start"
                   >
                     <Gift className="h-4 w-4 mr-2 text-green-500" />
@@ -217,14 +234,12 @@ export function QuickRankingActions({ userTypeFilter }: QuickRankingActionsProps
 
       {/* Modals */}
       {showPointAward && (
-        <QuickPointAward
-          isOpen={showPointAward}
-          onClose={() => setShowPointAward(false)}
+        <UnifiedQuickPointAward
+          open={showPointAward}
+          onOpenChange={setShowPointAward}
+          userIds={[]} // Will be populated by user selection in the modal
           userType={selectedUserType}
-          onPointsAwarded={(data) => {
-            console.log('Points awarded:', data)
-            setShowPointAward(false)
-          }}
+          onSubmit={handlePointsAwarded}
         />
       )}
 
@@ -233,10 +248,14 @@ export function QuickRankingActions({ userTypeFilter }: QuickRankingActionsProps
           isOpen={showAchievementAward}
           onClose={() => setShowAchievementAward(false)}
           userType={selectedUserType}
-          onAchievementAwarded={(data) => {
-            console.log('Achievement awarded:', data)
-            setShowAchievementAward(false)
-          }}
+          onAchievementAwarded={handleAchievementAwarded}
+        />
+      )}
+
+      {showRewardApproval && (
+        <RewardApprovalModal
+          open={showRewardApproval}
+          onOpenChange={setShowRewardApproval}
         />
       )}
     </div>

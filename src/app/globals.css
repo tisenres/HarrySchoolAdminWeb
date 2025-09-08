@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Harry School CRM Color Variables - Restored Original Teal */
+/* Harry School CRM Color Variables - Updated to Brand Green #1d7452 */
 :root {
   --radius: 0.625rem;
   --background: 0 0% 100%;
@@ -11,8 +11,8 @@
   --card-foreground: 222.2 84% 4.9%;
   --popover: 0 0% 100%;
   --popover-foreground: 222.2 84% 4.9%;
-  /* PRIMARY COLOR: Original teal #14B8A6 = hsl(162, 84%, 44%) */
-  --primary: 162 84% 44%;
+  /* PRIMARY COLOR: Harry School green #1d7452 = hsl(145, 62%, 29%) */
+  --primary: 145 62% 29%;
   --primary-foreground: 0 0% 98.5%;
   --secondary: 0 0% 97%;
   --secondary-foreground: 0 0% 20.5%;

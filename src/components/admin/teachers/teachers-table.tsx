@@ -97,7 +97,8 @@ const getDefaultColumns = (t: any): ColumnConfig[] => {
   const getText = (key: string, fallback: string) => {
     try {
       const translated = t(`columns.${key}`)
-      return translated.includes('columns.') ? fallback : translated
+      // Check if translation failed (returns the key path)
+      return translated.includes('components.teachersTable.columns.') ? fallback : translated
     } catch {
       return fallback
     }
@@ -139,16 +140,13 @@ export function TeachersTable({
   showArchived = false,
 }: TeachersTableProps) {
   const t = useTranslations('components.teachersTable')
-  const [columnConfig, setColumnConfig] = useState<ColumnConfig[]>(() => getDefaultColumns(t))
+  const [columnConfig, setColumnConfig] = useState<ColumnConfig[]>([])
   const [tableDensity, setTableDensity] = useState<'comfortable' | 'compact' | 'spacious'>('comfortable')
 
-  // Update column config when translations are ready
+  // Initialize column config when translations are ready
   useEffect(() => {
     const updatedColumns = getDefaultColumns(t)
-    setColumnConfig(prev => prev.map((col, index) => ({
-      ...col,
-      label: updatedColumns[index]?.label || col.label
-    })))
+    setColumnConfig(updatedColumns)
   }, [t])
 
   // Memoized sorted data

@@ -1,22 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
-
-// Create service role client for server-side operations
-// This bypasses RLS policies for administrative operations
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
-  }
-)
+import { getApiClient, getCurrentOrganizationId } from '@/lib/supabase-unified'
 
 // Simplified GET - fetch students with minimal overhead
 export async function GET(request: NextRequest) {
   try {
+    console.log('🔍 GET /api/students - Starting request')
+    
+    // Get unified client
+    const supabase = await getApiClient()
+    const organizationId = await getCurrentOrganizationId()
+    
+    console.log('🏢 Organization ID:', organizationId)
+    
     // Parse query parameters for pagination and filtering
     const searchParams = request.nextUrl.searchParams
     const page = Number(searchParams.get('page')) || 1
@@ -25,11 +20,18 @@ export async function GET(request: NextRequest) {
     const sortOrder = searchParams.get('sort_order') || searchParams.get('sort_direction') || 'desc'
     const query = searchParams.get('query') || ''
     
-    // Build query - use default org for now
+    console.log('📄 Query params:', { page, limit, sortBy, sortOrder, query })
+    
+    // Build query with organization filter
     let studentsQuery = supabase
       .from('students')
       .select('*', { count: 'exact' })
       .is('deleted_at', null)
+    
+    // Add organization filter if available
+    if (organizationId) {
+      studentsQuery = studentsQuery.eq('organization_id', organizationId)
+    }
     
     // Apply search if provided
     if (query) {
@@ -80,21 +82,71 @@ export async function GET(request: NextRequest) {
 // Simplified POST - create student with minimal overhead
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
+    console.log('✅ POST /api/students - Starting request')
     
-    // Prepare student data with defaults and field mapping
-    const studentData = {
-      ...body,
-      // Map phone field to primary_phone for database compatibility
-      primary_phone: body.phone || body.primary_phone,
-      organization_id: body.organization_id || '90bb0700-eca6-4925-b618-c0796f2e2187', // Use real org ID
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+    const body = await request.json()
+    console.log('📝 Received data:', { ...body, phone: body.phone ? '[HIDDEN]' : undefined })
+    
+    // Get unified client and organization
+    const supabase = await getApiClient()
+    const organizationId = await getCurrentOrganizationId()
+    
+    if (!organizationId) {
+      console.error('❌ No organization ID found')
+      return NextResponse.json({
+        success: false,
+        error: 'Organization not found'
+      }, { status: 400 })
     }
     
-    // Remove fields that shouldn't be inserted directly
-    delete studentData.phone // phone is mapped to primary_phone
-    delete studentData.full_name // full_name is auto-generated from first_name + last_name
+    // Generate unique student ID
+    const studentId = `HS-STU-${Date.now()}`
+    
+    // Prepare student data with proper field mapping
+    const studentData = {
+      // Required fields
+      first_name: body.first_name,
+      last_name: body.last_name,
+      full_name: `${body.first_name} ${body.last_name}`, // Generate full_name
+      
+      // Phone field mapping
+      primary_phone: body.phone || body.primary_phone,
+      
+      // System fields
+      student_id: studentId,
+      organization_id: organizationId,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      
+      // Optional fields (only include if provided)
+      ...(body.date_of_birth && { date_of_birth: body.date_of_birth }),
+      ...(body.gender && { gender: body.gender }),
+      ...(body.email && { email: body.email }),
+      ...(body.parent_name && { parent_name: body.parent_name }),
+      ...(body.parent_phone && { parent_phone: body.parent_phone }),
+      ...(body.parent_email && { parent_email: body.parent_email }),
+      ...(body.address && { address: body.address }),
+      ...(body.enrollment_date && { enrollment_date: body.enrollment_date }),
+      ...(body.status && { status: body.status }),
+      ...(body.current_level && { current_level: body.current_level }),
+      ...(body.preferred_subjects && { preferred_subjects: body.preferred_subjects }),
+      ...(body.grade_level && { grade_level: body.grade_level }),
+      ...(body.medical_notes && { medical_notes: body.medical_notes }),
+      ...(body.emergency_contact && { emergency_contact: body.emergency_contact }),
+      ...(body.payment_status && { payment_status: body.payment_status }),
+      ...(body.balance !== undefined && { balance: body.balance }),
+      ...(body.tuition_fee && { tuition_fee: body.tuition_fee }),
+      ...(body.notes && { notes: body.notes }),
+      
+      // Default values
+      enrollment_status: body.status || 'active',
+      is_active: body.is_active !== false,
+    }
+    
+    console.log('💾 Prepared data for insert:', { 
+      ...studentData, 
+      primary_phone: studentData.primary_phone ? '[HIDDEN]' : undefined 
+    })
     
     // Insert student
     const { data: newStudent, error: insertError } = await supabase
@@ -104,21 +156,25 @@ export async function POST(request: NextRequest) {
       .single()
     
     if (insertError) {
-      console.error('Insert error:', insertError)
+      console.error('❌ Insert error:', insertError)
       return NextResponse.json({ 
         success: false,
         error: 'Failed to create student',
-        details: insertError.message 
+        details: insertError.message,
+        code: insertError.code
       }, { status: 500 })
     }
     
+    console.log('🎉 Student created successfully:', newStudent?.id)
+    
     return NextResponse.json({
       success: true,
-      data: newStudent
+      data: newStudent,
+      message: 'Student created successfully'
     }, { status: 201 })
     
   } catch (error) {
-    console.error('Unexpected error in POST /api/students:', error)
+    console.error('❌ Unexpected error in POST /api/students:', error)
     return NextResponse.json({ 
       success: false,
       error: 'Internal server error',

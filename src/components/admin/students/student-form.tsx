@@ -110,7 +110,6 @@ export function StudentForm({
       status: student.status,
       current_level: student.current_level,
       preferred_subjects: student.preferred_subjects,
-      academic_year: student.academic_year || '',
       grade_level: student.grade_level || '',
       medical_notes: student.medical_notes || '',
       emergency_contact: student.emergency_contact,
@@ -139,7 +138,6 @@ export function StudentForm({
       status: 'active',
       current_level: '',
       preferred_subjects: [],
-      academic_year: '2024-2025',
       grade_level: '',
       medical_notes: '',
       emergency_contact: {
@@ -625,19 +623,6 @@ export function StudentForm({
                           )}
                         />
 
-                        <FormField
-                          control={form.control}
-                          name="academic_year"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>{t('fields.academicYear')}</FormLabel>
-                              <FormControl>
-                                <Input placeholder={t('placeholders.academicYear')} {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
                       </div>
 
                       <FormField

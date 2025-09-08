@@ -8,21 +8,79 @@ import { QueryClient, QueryCache, MutationCache } from '@tanstack/react-query'
 // Performance monitoring for queries
 const queryCache = new QueryCache({
   onError: (error, query) => {
-    // Safely serialize query key and error for logging
-    const errorMessage = error instanceof Error ? error.message : String(error)
-    const queryKey = Array.isArray(query.queryKey) ? query.queryKey.map(k => typeof k === 'object' ? JSON.stringify(k) : k) : query.queryKey
-    
     if (process.env.NODE_ENV === 'development') {
-      console.error('[React Query] Query failed:', {
-        queryKey,
-        error: errorMessage
-      })
+      try {
+        // Enhanced error inspection and serialization
+        let errorInfo = 'Unknown error'
+        try {
+          if (error instanceof Error) {
+            errorInfo = `${error.name}: ${error.message}`
+            if (error.stack) {
+              errorInfo += `\nStack: ${error.stack.split('\n')[0]}`
+            }
+          } else if (error && typeof error === 'object') {
+            // Handle error objects from fetch, axios, etc.
+            const errorObj = error as any
+            if (errorObj.message) {
+              errorInfo = errorObj.message
+            } else if (errorObj.status && errorObj.statusText) {
+              errorInfo = `HTTP ${errorObj.status}: ${errorObj.statusText}`
+            } else if (errorObj.response?.status) {
+              errorInfo = `HTTP ${errorObj.response.status}: ${errorObj.response.statusText || 'Request failed'}`
+            } else {
+              errorInfo = JSON.stringify(error, null, 2)
+            }
+          } else {
+            errorInfo = String(error)
+          }
+        } catch (serializeError) {
+          errorInfo = `[Error serialization failed: ${serializeError}]`
+        }
+
+        const queryKey = query?.queryKey ? 
+          (Array.isArray(query.queryKey) ? 
+            query.queryKey.map(k => {
+              try {
+                return typeof k === 'object' ? JSON.stringify(k) : String(k)
+              } catch {
+                return '[Complex Object]'
+              }
+            }) : 
+            String(query.queryKey)
+          ) : 
+          '[No Query Key]'
+        
+        console.error('[React Query] Query failed:', {
+          queryKey,
+          errorType: typeof error,
+          errorConstructor: error?.constructor?.name,
+          error: errorInfo
+        })
+      } catch (logError) {
+        console.error('[React Query] Query failed with logging error:', logError)
+      }
     }
   },
   onSuccess: (data, query) => {
     if (process.env.NODE_ENV === 'development') {
-      const queryKey = Array.isArray(query.queryKey) ? query.queryKey.map(k => typeof k === 'object' ? JSON.stringify(k) : k) : query.queryKey
-      console.log('[React Query] Query success:', queryKey)
+      try {
+        const queryKey = query?.queryKey ? 
+          (Array.isArray(query.queryKey) ? 
+            query.queryKey.map(k => {
+              try {
+                return typeof k === 'object' ? JSON.stringify(k) : String(k)
+              } catch {
+                return '[Complex Object]'
+              }
+            }) : 
+            String(query.queryKey)
+          ) : 
+          '[No Query Key]'
+        
+        console.log('[React Query] Query success:', queryKey)
+      } catch (logError) {
+        console.error('[React Query] Query success logging error:', logError)
+      }
     }
   }
 })
@@ -30,19 +88,28 @@ const queryCache = new QueryCache({
 // Performance monitoring for mutations
 const mutationCache = new MutationCache({
   onError: (error, variables, context, mutation) => {
-    const errorMessage = error instanceof Error ? error.message : String(error)
-    const mutationKey = mutation.options.mutationKey
-    
     if (process.env.NODE_ENV === 'development') {
-      console.error('[React Query] Mutation failed:', {
-        mutationKey,
-        error: errorMessage
-      })
+      try {
+        const errorMessage = error instanceof Error ? error.message : String(error || 'Unknown error')
+        const mutationKey = mutation?.options?.mutationKey || '[No Mutation Key]'
+        
+        console.error('[React Query] Mutation failed:', {
+          mutationKey,
+          error: errorMessage
+        })
+      } catch (logError) {
+        console.error('[React Query] Mutation failed with logging error:', logError)
+      }
     }
   },
   onSuccess: (data, variables, context, mutation) => {
     if (process.env.NODE_ENV === 'development') {
-      console.log('[React Query] Mutation success:', mutation.options.mutationKey)
+      try {
+        const mutationKey = mutation?.options?.mutationKey || '[No Mutation Key]'
+        console.log('[React Query] Mutation success:', mutationKey)
+      } catch (logError) {
+        console.error('[React Query] Mutation success logging error:', logError)
+      }
     }
   }
 })

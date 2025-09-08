@@ -57,23 +57,21 @@ export class GroupService {
     return { user, profile }
   }
 
-  async create(groupData: z.infer<typeof groupInsertSchema>): Promise<Group> {
-    const { user } = await this.checkPermission(['admin', 'superadmin'])
-    
-    const validatedData = groupInsertSchema.parse(groupData)
+  async create(groupData: any): Promise<Group> {
+    const response = await fetch('/api/groups', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(groupData),
+    })
 
-    const { data, error } = await this.supabase
-      .from('groups')
-      .insert({
-        ...validatedData,
-        created_by: user.id,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      })
-      .select()
-      .single()
+    if (!response.ok) {
+      const errorData = await response.json()
+      throw new Error(errorData.error || 'Failed to create group')
+    }
 
-    if (error) throw error
+    const data = await response.json()
     return data
   }
 
@@ -150,50 +148,33 @@ export class GroupService {
     return { data: data || [], count: count || 0 }
   }
 
-  async update(id: string, updateData: z.infer<typeof groupUpdateSchema>): Promise<Group> {
-    const { user, profile } = await this.checkPermission(['admin', 'superadmin'])
+  async update(id: string, updateData: any): Promise<Group> {
+    const response = await fetch(`/api/groups/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(updateData),
+    })
 
-    const validatedData = groupUpdateSchema.parse(updateData)
-
-    let query = this.supabase
-      .from('groups')
-      .update({
-        ...validatedData,
-        updated_by: user.id,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', id)
-      .eq('deleted_at', null)
-
-    if (profile.role === 'admin') {
-      query = query.eq('organization_id', profile.organization_id)
+    if (!response.ok) {
+      const errorData = await response.json()
+      throw new Error(errorData.error || 'Failed to update group')
     }
 
-    const { data, error } = await query.select().single()
-
-    if (error) throw error
+    const data = await response.json()
     return data
   }
 
   async softDelete(id: string): Promise<void> {
-    const { user, profile } = await this.checkPermission(['admin', 'superadmin'])
+    const response = await fetch(`/api/groups/${id}`, {
+      method: 'DELETE',
+    })
 
-    let query = this.supabase
-      .from('groups')
-      .update({
-        deleted_at: new Date().toISOString(),
-        deleted_by: user.id
-      })
-      .eq('id', id)
-      .eq('deleted_at', null)
-
-    if (profile.role === 'admin') {
-      query = query.eq('organization_id', profile.organization_id)
+    if (!response.ok) {
+      const errorData = await response.json()
+      throw new Error(errorData.error || 'Failed to delete group')
     }
-
-    const { error } = await query
-
-    if (error) throw error
   }
 
   async getGroupStats(id: string) {

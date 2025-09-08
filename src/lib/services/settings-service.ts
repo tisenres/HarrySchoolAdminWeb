@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/client'
+import { getApiClient, getCurrentUser, getCurrentProfile } from '@/lib/supabase-unified'
 import { z } from 'zod'
 import organizationService from './organization-service'
 import profileService from './profile-service'
@@ -61,18 +61,15 @@ const organizationSettingsSchema = z.object({
 })
 
 export class SettingsService {
-  private supabase = createClient()
+  private async getSupabase() {
+    return await getApiClient()
+  }
 
   async checkPermission(allowedRoles: string[] = ['admin', 'superadmin']) {
-    const { data: { user } } = await this.supabase.auth.getUser()
+    const user = await getCurrentUser()
     if (!user) throw new Error('Unauthorized')
 
-    const { data: profile } = await this.supabase
-      .from('profiles')
-      .select('role, organization_id')
-      .eq('id', user.id)
-      .single()
-
+    const profile = await getCurrentProfile()
     if (!profile || !allowedRoles.includes(profile.role)) {
       throw new Error('Insufficient permissions')
     }

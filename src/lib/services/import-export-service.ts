@@ -1,4 +1,6 @@
 import * as XLSX from 'xlsx'
+import jsPDF from 'jspdf'
+import autoTable from 'jspdf-autotable'
 
 export interface ImportResult<T = any> {
   success: boolean
@@ -18,16 +20,48 @@ export interface ImportError {
 
 export interface ExportOptions {
   filename?: string
-  format: 'xlsx' | 'csv'
+  format: 'xlsx' | 'csv' | 'pdf'
   sheetName?: string
   includeHeaders?: boolean
   dateFormat?: string
+  title?: string
+  orientation?: 'portrait' | 'landscape'
 }
 
 export interface ImportTemplate {
   headers: string[]
   sampleData: any[][]
   instructions: string[]
+}
+
+export interface ChartData {
+  type: 'bar' | 'line' | 'pie' | 'doughnut'
+  title: string
+  labels: string[]
+  datasets: {
+    label: string
+    data: number[]
+    backgroundColor?: string | string[]
+    borderColor?: string | string[]
+    borderWidth?: number
+  }[]
+}
+
+export interface DetailedExportData {
+  title: string
+  dateRange?: string
+  summary: Record<string, any>
+  charts: ChartData[]
+  sheets: {
+    name: string
+    headers: string[]
+    data: any[][]
+    formatting?: {
+      headerStyle?: any
+      cellStyles?: any
+      columnWidths?: number[]
+    }
+  }[]
 }
 
 export class ImportExportService {
@@ -131,6 +165,94 @@ export class ImportExportService {
       const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8' })
       this.downloadBlob(blob, `${filename}.csv`)
     }
+  }
+
+  /**
+   * Export data to PDF file with table formatting
+   */
+  static exportToPDF(
+    data: any[],
+    headers: string[],
+    options: {
+      filename?: string
+      title?: string
+      orientation?: 'portrait' | 'landscape'
+      summary?: Record<string, any>
+    } = {}
+  ): void {
+    const {
+      filename = `export_${new Date().toISOString().split('T')[0]}`,
+      title = 'Report',
+      orientation = 'portrait',
+      summary = {}
+    } = options
+
+    // Create new PDF document
+    const doc = new jsPDF({
+      orientation: orientation,
+      unit: 'mm',
+      format: 'a4'
+    })
+
+    // Add title
+    doc.setFontSize(18)
+    doc.setFont('helvetica', 'bold')
+    doc.text(title, 14, 20)
+
+    // Add date
+    doc.setFontSize(10)
+    doc.setFont('helvetica', 'normal')
+    doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 30)
+
+    let yPosition = 40
+
+    // Add summary section if provided
+    if (Object.keys(summary).length > 0) {
+      doc.setFontSize(14)
+      doc.setFont('helvetica', 'bold')
+      doc.text('Summary', 14, yPosition)
+      yPosition += 10
+
+      doc.setFontSize(10)
+      doc.setFont('helvetica', 'normal')
+      
+      Object.entries(summary).forEach(([key, value]) => {
+        const label = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())
+        doc.text(`${label}: ${value}`, 14, yPosition)
+        yPosition += 6
+      })
+      
+      yPosition += 10
+    }
+
+    // Add data table
+    doc.setFontSize(14)
+    doc.setFont('helvetica', 'bold')
+    doc.text('Details', 14, yPosition)
+    yPosition += 10
+
+    // Create table using autoTable
+    autoTable(doc, {
+      head: [headers],
+      body: data,
+      startY: yPosition,
+      styles: {
+        fontSize: 8,
+        cellPadding: 2,
+      },
+      headStyles: {
+        fillColor: [29, 116, 82], // Harry School green color
+        textColor: 255,
+        fontStyle: 'bold',
+      },
+      alternateRowStyles: {
+        fillColor: [245, 245, 245],
+      },
+      margin: { top: 20, right: 14, bottom: 20, left: 14 },
+    })
+
+    // Save the PDF
+    doc.save(`${filename}.pdf`)
   }
 
   /**
@@ -377,5 +499,315 @@ export class ImportExportService {
       
       return cleaned
     })
+  }
+
+  /**
+   * Generate a Canvas chart as base64 image data URL
+   */
+  private static generateChartImage(chartData: ChartData): Promise<string> {
+    return new Promise((resolve, reject) => {
+      // Create a temporary canvas
+      const canvas = document.createElement('canvas')
+      canvas.width = 800
+      canvas.height = 400
+      const ctx = canvas.getContext('2d')
+      
+      if (!ctx) {
+        reject(new Error('Could not get canvas context'))
+        return
+      }
+
+      // Manually draw a simple chart since Chart.js needs DOM
+      ctx.fillStyle = '#ffffff'
+      ctx.fillRect(0, 0, canvas.width, canvas.height)
+      
+      // Draw title
+      ctx.fillStyle = '#1d7452'
+      ctx.font = 'bold 24px Arial'
+      ctx.textAlign = 'center'
+      ctx.fillText(chartData.title, canvas.width / 2, 40)
+      
+      // Draw simple bar chart
+      if (chartData.type === 'bar') {
+        const barWidth = (canvas.width - 100) / chartData.labels.length
+        const maxValue = Math.max(...chartData.datasets[0].data)
+        
+        chartData.labels.forEach((label, index) => {
+          const value = chartData.datasets[0].data[index]
+          const barHeight = (value / maxValue) * 300
+          const x = 50 + index * barWidth
+          const y = canvas.height - 80 - barHeight
+          
+          // Draw bar
+          ctx.fillStyle = chartData.datasets[0].backgroundColor as string || '#1d7452'
+          ctx.fillRect(x + 10, y, barWidth - 20, barHeight)
+          
+          // Draw value on top of bar
+          ctx.fillStyle = '#333'
+          ctx.font = '14px Arial'
+          ctx.textAlign = 'center'
+          ctx.fillText(value.toString(), x + barWidth / 2, y - 10)
+          
+          // Draw label
+          ctx.fillText(label, x + barWidth / 2, canvas.height - 20)
+        })
+      }
+      
+      resolve(canvas.toDataURL('image/png'))
+    })
+  }
+
+  /**
+   * Export detailed report with charts and formatted data
+   */
+  static async exportDetailedExcel(exportData: DetailedExportData): Promise<void> {
+    const workbook = XLSX.utils.book_new()
+    
+    // Add summary sheet
+    const summaryData = [
+      ['Report Title', exportData.title],
+      ['Date Range', exportData.dateRange || 'N/A'],
+      ['Generated On', new Date().toLocaleString()],
+      [''], // Empty row
+      ['Summary Statistics', '']
+    ]
+    
+    // Add summary statistics
+    Object.entries(exportData.summary).forEach(([key, value]) => {
+      const label = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())
+      summaryData.push([label, value])
+    })
+    
+    const summarySheet = XLSX.utils.aoa_to_sheet(summaryData)
+    
+    // Style the summary sheet
+    const range = XLSX.utils.decode_range(summarySheet['!ref'] || 'A1')
+    summarySheet['!cols'] = [{ width: 25 }, { width: 20 }]
+    
+    XLSX.utils.book_append_sheet(workbook, summarySheet, 'Summary')
+    
+    // Add data sheets
+    exportData.sheets.forEach(sheet => {
+      const worksheetData = [sheet.headers, ...sheet.data]
+      const worksheet = XLSX.utils.aoa_to_sheet(worksheetData)
+      
+      // Apply formatting if provided
+      if (sheet.formatting?.columnWidths) {
+        worksheet['!cols'] = sheet.formatting.columnWidths.map(width => ({ width }))
+      } else {
+        // Auto-fit columns
+        const range = XLSX.utils.decode_range(worksheet['!ref'] || 'A1')
+        const colWidths: any[] = []
+        
+        for (let c = range.s.c; c <= range.e.c; c++) {
+          let maxWidth = 10
+          for (let r = range.s.r; r <= range.e.r; r++) {
+            const cellAddress = XLSX.utils.encode_cell({ r, c })
+            const cell = worksheet[cellAddress]
+            if (cell && cell.v) {
+              const cellValue = String(cell.v)
+              maxWidth = Math.max(maxWidth, cellValue.length)
+            }
+          }
+          colWidths[c] = { width: Math.min(maxWidth + 2, 50) }
+        }
+        worksheet['!cols'] = colWidths
+      }
+      
+      XLSX.utils.book_append_sheet(workbook, worksheet, sheet.name)
+    })
+    
+    // Generate and download file
+    const excelBuffer = XLSX.write(workbook, { 
+      bookType: 'xlsx', 
+      type: 'array',
+      cellStyles: true
+    })
+    const blob = new Blob([excelBuffer], { 
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+    })
+    
+    const filename = `${exportData.title.replace(/\s+/g, '_').toLowerCase()}_${new Date().toISOString().split('T')[0]}.xlsx`
+    this.downloadBlob(blob, filename)
+  }
+
+  /**
+   * Export detailed PDF report with charts and formatted data
+   */
+  static async exportDetailedPDF(exportData: DetailedExportData): Promise<void> {
+    const doc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4'
+    })
+
+    // Add title page
+    doc.setFontSize(24)
+    doc.setFont('helvetica', 'bold')
+    doc.text(exportData.title, 105, 40, { align: 'center' })
+
+    // Add date range
+    if (exportData.dateRange) {
+      doc.setFontSize(14)
+      doc.setFont('helvetica', 'normal')
+      doc.text(`Period: ${exportData.dateRange}`, 105, 55, { align: 'center' })
+    }
+
+    // Add generation info
+    doc.setFontSize(10)
+    doc.text(`Generated on: ${new Date().toLocaleString()}`, 105, 65, { align: 'center' })
+
+    let yPosition = 80
+
+    // Add summary section
+    doc.setFontSize(18)
+    doc.setFont('helvetica', 'bold')
+    doc.text('Executive Summary', 20, yPosition)
+    yPosition += 15
+
+    doc.setFontSize(12)
+    doc.setFont('helvetica', 'normal')
+    
+    Object.entries(exportData.summary).forEach(([key, value]) => {
+      const label = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())
+      doc.text(`${label}: `, 20, yPosition)
+      doc.setFont('helvetica', 'bold')
+      doc.text(String(value), 80, yPosition)
+      doc.setFont('helvetica', 'normal')
+      yPosition += 8
+    })
+
+    yPosition += 10
+
+    // Add chart descriptions (since we can't easily embed charts in jsPDF)
+    if (exportData.charts.length > 0) {
+      doc.setFontSize(18)
+      doc.setFont('helvetica', 'bold')
+      doc.text('Charts & Visualizations', 20, yPosition)
+      yPosition += 15
+
+      exportData.charts.forEach(chart => {
+        doc.setFontSize(14)
+        doc.setFont('helvetica', 'bold')
+        doc.text(chart.title, 20, yPosition)
+        yPosition += 10
+
+        doc.setFontSize(10)
+        doc.setFont('helvetica', 'normal')
+        doc.text(`Chart Type: ${chart.type.toUpperCase()}`, 25, yPosition)
+        yPosition += 6
+
+        // Show chart data in table format
+        const chartTableData = chart.labels.map((label, index) => [
+          label, 
+          chart.datasets[0].data[index].toString()
+        ])
+
+        autoTable(doc, {
+          head: [['Category', 'Value']],
+          body: chartTableData,
+          startY: yPosition,
+          margin: { left: 25, right: 20 },
+          styles: { fontSize: 9 },
+          headStyles: {
+            fillColor: [29, 116, 82],
+            textColor: 255,
+            fontStyle: 'bold',
+          },
+        })
+
+        yPosition = (doc as any).lastAutoTable.finalY + 15
+      })
+    }
+
+    // Add data tables
+    exportData.sheets.forEach((sheet, sheetIndex) => {
+      if (yPosition > 250) {
+        doc.addPage()
+        yPosition = 30
+      }
+
+      doc.setFontSize(18)
+      doc.setFont('helvetica', 'bold')
+      doc.text(sheet.name, 20, yPosition)
+      yPosition += 15
+
+      autoTable(doc, {
+        head: [sheet.headers],
+        body: sheet.data,
+        startY: yPosition,
+        styles: {
+          fontSize: 8,
+          cellPadding: 2,
+        },
+        headStyles: {
+          fillColor: [29, 116, 82],
+          textColor: 255,
+          fontStyle: 'bold',
+        },
+        alternateRowStyles: {
+          fillColor: [245, 245, 245],
+        },
+        margin: { top: 20, right: 14, bottom: 20, left: 14 },
+        pageBreak: 'auto',
+      })
+
+      yPosition = (doc as any).lastAutoTable.finalY + 20
+    })
+
+    // Save the PDF
+    const filename = `${exportData.title.replace(/\s+/g, '_').toLowerCase()}_${new Date().toISOString().split('T')[0]}.pdf`
+    doc.save(filename)
+  }
+
+  /**
+   * Export detailed CSV with all data sheets combined
+   */
+  static exportDetailedCSV(exportData: DetailedExportData): void {
+    let csvContent = ''
+    
+    // Add header information
+    csvContent += `"${exportData.title}"\n`
+    if (exportData.dateRange) {
+      csvContent += `"Period: ${exportData.dateRange}"\n`
+    }
+    csvContent += `"Generated on: ${new Date().toLocaleString()}"\n\n`
+    
+    // Add summary
+    csvContent += '"EXECUTIVE SUMMARY"\n'
+    Object.entries(exportData.summary).forEach(([key, value]) => {
+      const label = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())
+      csvContent += `"${label}","${value}"\n`
+    })
+    csvContent += '\n'
+    
+    // Add chart data
+    exportData.charts.forEach(chart => {
+      csvContent += `"${chart.title.toUpperCase()}"\n`
+      csvContent += `"Category","Value"\n`
+      chart.labels.forEach((label, index) => {
+        csvContent += `"${label}","${chart.datasets[0].data[index]}"\n`
+      })
+      csvContent += '\n'
+    })
+    
+    // Add data sheets
+    exportData.sheets.forEach(sheet => {
+      csvContent += `"${sheet.name.toUpperCase()}"\n`
+      
+      // Headers
+      csvContent += sheet.headers.map(header => `"${header}"`).join(',') + '\n'
+      
+      // Data rows
+      sheet.data.forEach(row => {
+        csvContent += row.map(cell => `"${cell || ''}"`).join(',') + '\n'
+      })
+      csvContent += '\n'
+    })
+    
+    // Download CSV
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8' })
+    const filename = `${exportData.title.replace(/\s+/g, '_').toLowerCase()}_${new Date().toISOString().split('T')[0]}.csv`
+    this.downloadBlob(blob, filename)
   }
 }

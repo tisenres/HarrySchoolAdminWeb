@@ -26,47 +26,79 @@ const QuickActionsSection = React.memo(() => {
   // const tQuickActions = useTranslations('quickActions') // Temporarily disabled for deployment
   
   return (
-    <Card className="p-6">
-      <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <Card className="p-6 bg-gradient-to-br from-slate-50 to-slate-100/50 border-0 shadow-lg">
+      <h2 className="text-xl font-semibold mb-6 text-slate-800">Quick Actions</h2>
+      <div className="flex flex-col gap-4">
         <Link href="/en/teachers">
-          <Button 
-            variant="outline" 
-            className="w-full h-auto p-4 flex flex-col items-center gap-2 hover:bg-accent hover:text-accent-foreground transition-colors"
-          >
-            <Users className="h-6 w-6" />
-            <span className="text-sm font-medium">Manage Teachers</span>
-          </Button>
+          <div className="group relative w-full overflow-hidden rounded-2xl bg-gradient-to-r from-blue-500 to-blue-600 p-6 shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-[1.02] cursor-pointer">
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-blue-700 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+            <div className="relative flex items-center gap-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/20 backdrop-blur-sm">
+                <Users className="h-6 w-6 text-white" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold text-white">Manage Teachers</h3>
+                <p className="text-sm text-blue-100">Add, edit and manage teacher profiles</p>
+              </div>
+              <div className="text-white/60 group-hover:text-white transition-colors">
+                →
+              </div>
+            </div>
+          </div>
         </Link>
         
         <Link href="/en/students">
-          <Button 
-            variant="outline" 
-            className="w-full h-auto p-4 flex flex-col items-center gap-2 hover:bg-accent hover:text-accent-foreground transition-colors"
-          >
-            <UserPlus className="h-6 w-6" />
-            <span className="text-sm font-medium">Manage Students</span>
-          </Button>
+          <div className="group relative w-full overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-500 to-emerald-600 p-6 shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-[1.02] cursor-pointer">
+            <div className="absolute inset-0 bg-gradient-to-r from-emerald-600 to-emerald-700 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+            <div className="relative flex items-center gap-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/20 backdrop-blur-sm">
+                <UserPlus className="h-6 w-6 text-white" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold text-white">Manage Students</h3>
+                <p className="text-sm text-emerald-100">Enroll and manage student records</p>
+              </div>
+              <div className="text-white/60 group-hover:text-white transition-colors">
+                →
+              </div>
+            </div>
+          </div>
         </Link>
         
         <Link href="/en/groups">
-          <Button 
-            variant="outline" 
-            className="w-full h-auto p-4 flex flex-col items-center gap-2 hover:bg-accent hover:text-accent-foreground transition-colors"
-          >
-            <BookOpen className="h-6 w-6" />
-            <span className="text-sm font-medium">Manage Groups</span>
-          </Button>
+          <div className="group relative w-full overflow-hidden rounded-2xl bg-gradient-to-r from-purple-500 to-purple-600 p-6 shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-[1.02] cursor-pointer">
+            <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-purple-700 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+            <div className="relative flex items-center gap-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/20 backdrop-blur-sm">
+                <BookOpen className="h-6 w-6 text-white" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold text-white">Manage Groups</h3>
+                <p className="text-sm text-purple-100">Create and organize class groups</p>
+              </div>
+              <div className="text-white/60 group-hover:text-white transition-colors">
+                →
+              </div>
+            </div>
+          </div>
         </Link>
         
         <Link href="/en/finance">
-          <Button 
-            variant="outline" 
-            className="w-full h-auto p-4 flex flex-col items-center gap-2 hover:bg-accent hover:text-accent-foreground transition-colors"
-          >
-            <DollarSign className="h-6 w-6" />
-            <span className="text-sm font-medium">Finance</span>
-          </Button>
+          <div className="group relative w-full overflow-hidden rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 p-6 shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-[1.02] cursor-pointer">
+            <div className="absolute inset-0 bg-gradient-to-r from-amber-600 to-amber-700 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+            <div className="relative flex items-center gap-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/20 backdrop-blur-sm">
+                <DollarSign className="h-6 w-6 text-white" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold text-white">Finance</h3>
+                <p className="text-sm text-amber-100">Track payments and financial reports</p>
+              </div>
+              <div className="text-white/60 group-hover:text-white transition-colors">
+                →
+              </div>
+            </div>
+          </div>
         </Link>
       </div>
     </Card>

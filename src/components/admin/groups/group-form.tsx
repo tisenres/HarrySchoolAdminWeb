@@ -82,6 +82,7 @@ export function GroupForm({
   const tActions = useTranslations('actions')
   const [currentStep, setCurrentStep] = useState(0)
   const [schedule, setSchedule] = useState<ScheduleSlot[]>(group?.schedule || [])
+  const [error, setError] = useState<string>('')
   
   const isEditing = !!group
   const schema = isEditing ? updateGroupSchema : createGroupSchema
@@ -136,6 +137,7 @@ export function GroupForm({
 
   const onSubmit = async (data: CreateGroupRequest | UpdateGroupRequest) => {
     try {
+      setError('')
       let savedGroup: Group
 
       if (isEditing && 'id' in data) {
@@ -147,6 +149,13 @@ export function GroupForm({
       onSave(savedGroup)
     } catch (error) {
       console.error('Failed to save group:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Failed to save group'
+      setError(errorMessage)
+      
+      // If it's a validation error about start date, focus on the dates step
+      if (errorMessage.includes('start date') || errorMessage.includes('Start date')) {
+        setCurrentStep(2) // Go to Dates & Pricing step
+      }
     }
   }
 
@@ -425,7 +434,13 @@ export function GroupForm({
                           mode="single"
                           selected={field.value ? new Date(field.value) : undefined}
                           onSelect={(date) => field.onChange(date?.toISOString().split('T')[0])}
-                          disabled={(date) => date < new Date()}
+                          disabled={(date) => {
+                            const today = new Date()
+                            today.setHours(0, 0, 0, 0)
+                            const checkDate = new Date(date)
+                            checkDate.setHours(0, 0, 0, 0)
+                            return checkDate < today
+                          }}
                           initialFocus
                         />
                       </PopoverContent>
@@ -668,7 +683,10 @@ export function GroupForm({
                 variant={isActive ? 'default' : isCompleted ? 'secondary' : 'outline'}
                 size="sm"
                 className="h-8"
-                onClick={() => setCurrentStep(index)}
+                onClick={() => {
+                  setCurrentStep(index)
+                  setError('') // Clear error when changing steps
+                }}
               >
                 <Icon className="h-3 w-3 mr-1" />
                 <span className="hidden sm:inline">{step.title}</span>
@@ -688,13 +706,34 @@ export function GroupForm({
             {renderStepContent()}
           </div>
 
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-md p-4">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <X className="h-5 w-5 text-red-400" />
+                </div>
+                <div className="ml-3">
+                  <h3 className="text-sm font-medium text-red-800">
+                    Error creating group
+                  </h3>
+                  <div className="mt-2 text-sm text-red-700">
+                    {error}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="flex items-center justify-between pt-6 border-t">
             <div>
               {currentStep > 0 && (
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => setCurrentStep(currentStep - 1)}
+                  onClick={() => {
+                    setCurrentStep(currentStep - 1)
+                    setError('')
+                  }}
                 >
                   {tActions('previous')}
                 </Button>
@@ -713,7 +752,10 @@ export function GroupForm({
               {currentStep < steps.length - 1 ? (
                 <Button
                   type="button"
-                  onClick={() => setCurrentStep(currentStep + 1)}
+                  onClick={() => {
+                    setCurrentStep(currentStep + 1)
+                    setError('')
+                  }}
                 >
                   {tActions('next')}
                 </Button>

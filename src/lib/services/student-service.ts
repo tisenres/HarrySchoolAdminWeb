@@ -2,7 +2,6 @@ import { createClient } from '@/lib/supabase/client'
 import { z } from 'zod'
 import { Database } from '@/types/database'
 import { uuidSchema, nameSchema, emailSchema, phoneSchema } from '@/lib/validations'
-import { createStudentAuth, getStudentCredentials } from '@/lib/utils/auth-generator'
 
 type Student = Database['public']['Tables']['students']['Row']
 type StudentInsert = Database['public']['Tables']['students']['Insert']
@@ -78,7 +77,7 @@ export class StudentService {
     return { user, profile }
   }
 
-  async create(studentData: z.infer<typeof studentInsertSchema>): Promise<Student & { credentials?: { username: string; password: string } }> {
+  async create(studentData: z.infer<typeof studentInsertSchema>): Promise<Student> {
     const { user } = await this.checkPermission(['admin', 'superadmin'])
     
     const validatedData = studentInsertSchema.parse(studentData)
@@ -97,30 +96,7 @@ export class StudentService {
 
     if (studentError) throw studentError
 
-    // Auto-generate authentication credentials for the student
-    try {
-      const { credentials } = await createStudentAuth(
-        validatedData.first_name,
-        validatedData.last_name,
-        validatedData.date_of_birth,
-        student.id,
-        validatedData.organization_id,
-        user.id
-      )
-
-      // Return student data with credentials for admin display
-      return {
-        ...student,
-        credentials: {
-          username: credentials.username,
-          password: credentials.password
-        }
-      }
-    } catch (authError) {
-      // If auth creation fails, still return the student but log the error
-      console.error('Failed to create student authentication:', authError)
-      return student
-    }
+    return student
   }
 
   async getById(id: string): Promise<Student | null> {
@@ -145,7 +121,21 @@ export class StudentService {
   async getCredentials(studentId: string): Promise<{ username: string; password: string } | null> {
     await this.checkPermission(['admin', 'superadmin'])
     
-    return await getStudentCredentials(studentId)
+    const { data, error } = await this.supabase
+      .from('student_profiles')
+      .select('username, password_visible')
+      .eq('student_id', studentId)
+      .is('deleted_at', null)
+      .single()
+    
+    if (error || !data) {
+      return null
+    }
+    
+    return {
+      username: data.username,
+      password: data.password_visible
+    }
   }
 
   async getByOrganization(
@@ -404,4 +394,5 @@ export class StudentService {
   }
 }
 
-export default new StudentService()
+export const studentService = new StudentService()
+export default studentService

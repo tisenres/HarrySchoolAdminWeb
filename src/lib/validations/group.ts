@@ -26,7 +26,8 @@ export const createGroupSchema = z.object({
     .min(3, 'Group code must be at least 3 characters')
     .max(20, 'Group code must not exceed 20 characters')
     .regex(/^[A-Z0-9-_]+$/, 'Group code must contain only uppercase letters, numbers, hyphens, and underscores')
-    .trim(),
+    .trim()
+    .optional(),
   
   subject: z.string()
     .min(2, 'Subject must be at least 2 characters')
@@ -68,8 +69,9 @@ export const createGroupSchema = z.object({
       const parsed = new Date(date)
       const today = new Date()
       today.setHours(0, 0, 0, 0)
+      parsed.setHours(0, 0, 0, 0)
       return parsed >= today
-    }, 'Start date cannot be in the past'),
+    }, 'Start date must be today or in the future'),
   
   end_date: z.string()
     .optional()
@@ -146,9 +148,7 @@ export const createGroupSchema = z.object({
   path: ['schedule']
 })
 
-export const updateGroupSchema = createGroupSchema.partial().extend({
-  id: z.string().uuid('Invalid group ID')
-})
+export const updateGroupSchema = createGroupSchema.partial()
 
 // Filter validation
 export const groupFiltersSchema = z.object({

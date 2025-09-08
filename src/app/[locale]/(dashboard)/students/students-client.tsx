@@ -165,22 +165,15 @@ export default function StudentsClient() {
         }
       }
       
-      // CRITICAL FIX: Force immediate refresh
+      // Success! Close form and refresh data
       setIsFormOpen(false)
       setEditingStudent(undefined)
       
-      // Multiple refresh attempts to ensure data shows
-      await refetch() // Refresh students data
+      // Refresh data properly
+      await refetch()
       await loadStatistics()
       
-      // Nuclear option: If data still doesn't show, force reload
-      setTimeout(async () => {
-        await refetch()
-        // If still no data after 500ms, force page reload
-        setTimeout(() => {
-          window.location.reload()
-        }, 500)
-      }, 100)
+      console.log('✅ Student saved and data refreshed successfully!')
       
     } catch (error) {
       console.error('Error saving student:', error)

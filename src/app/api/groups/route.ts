@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerClient } from '@/lib/supabase/server'
-import { groupInsertSchema, groupUpdateSchema } from '@/lib/validations'
+import { getApiClient, getCurrentOrganizationId } from '@/lib/supabase-unified'
+import { createGroupSchema, updateGroupSchema } from '@/lib/validations/group'
 import { z } from 'zod'
 
 export async function GET(request: NextRequest) {
@@ -23,13 +23,24 @@ export async function GET(request: NextRequest) {
     const sort_field = searchParams.get('sort_field') || 'created_at'
     const sort_direction = (searchParams.get('sort_direction') || 'desc') as 'asc' | 'desc'
     
-    const supabase = await createServerClient()
+    console.log('🔍 GET /api/groups - Starting request')
     
-    // Build query
+    // Get unified client and organization
+    const supabase = await getApiClient()
+    const organizationId = await getCurrentOrganizationId()
+    
+    console.log('🏢 Organization ID:', organizationId)
+    
+    // Build query with organization filter
     let query = supabase
       .from('groups')
       .select('*', { count: 'exact' })
       .is('deleted_at', null)
+    
+    // Add organization filter if available
+    if (organizationId) {
+      query = query.eq('organization_id', organizationId)
+    }
     
     // Apply search filters
     if (search) {
@@ -104,40 +115,51 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const validatedData = groupInsertSchema.parse(body)
+    const validatedData = createGroupSchema.parse(body)
     
-    const supabase = await createServerClient()
+    console.log('🔍 POST /api/groups - Starting request')
     
-    // Get current user
-    const { data: { user }, error: userError } = await supabase.auth.getUser()
-    if (userError || !user) {
+    // Get unified client and organization
+    const supabase = await getApiClient()
+    const organizationId = await getCurrentOrganizationId()
+    
+    if (!organizationId) {
+      console.error('❌ No organization ID found')
       return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
+        { error: 'Organization not found. Please contact administrator.' },
+        { status: 400 }
       )
     }
     
-    // Get organization (simplified)
-    const { data: adminUser } = await supabase
-      .from('admin_users')
-      .select('organization_id')
-      .eq('auth_user_id', user.id)
-      .single()
-    
-    const organizationId = adminUser?.organization_id || 'default-org'
+    console.log('🏢 Organization ID:', organizationId)
     
     // Generate group code if not provided
     const groupCode = validatedData.group_code || await generateGroupCode(validatedData.subject, validatedData.level)
     
-    // Create group
+    // Create group with proper data transformation
     const { data: group, error } = await supabase
       .from('groups')
       .insert({
-        ...validatedData,
-        group_code: groupCode,
         organization_id: organizationId,
-        created_by: user.id,
-        updated_by: user.id,
+        name: validatedData.name,
+        group_code: groupCode,
+        subject: validatedData.subject,
+        level: validatedData.level,
+        group_type: validatedData.group_type,
+        description: validatedData.description,
+        max_students: validatedData.max_students,
+        schedule: validatedData.schedule, // This is now an array of schedule slots
+        classroom: validatedData.classroom,
+        online_meeting_url: validatedData.online_meeting_url,
+        start_date: validatedData.start_date,
+        end_date: validatedData.end_date,
+        duration_weeks: validatedData.duration_weeks,
+        price_per_student: validatedData.price_per_student,
+        currency: validatedData.currency,
+        payment_frequency: validatedData.payment_frequency,
+        notes: validatedData.notes,
+        status: 'active',
+        is_active: true,
         current_enrollment: 0,
         waiting_list_count: 0,
         created_at: new Date().toISOString(),

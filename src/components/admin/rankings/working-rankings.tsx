@@ -5,6 +5,8 @@ import { IntegratedRankingsLeaderboard } from './integrated-rankings-leaderboard
 import { ReferralAchievementsIntegration } from './referral-achievements-integration'
 import { RankingsAnalyticsDashboard } from './rankings-analytics-dashboard'
 import { AwardAchievementModal } from './award-achievement-modal'
+import { UnifiedQuickPointAward } from './unified-quick-point-award'
+import { RewardApprovalModal } from '@/components/admin/rewards/reward-approval-modal'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
@@ -28,6 +30,7 @@ import {
   Clock,
   Activity
 } from 'lucide-react'
+import type { PointsAwardRequest } from '@/types/ranking'
 
 interface User {
   id: string
@@ -119,6 +122,9 @@ export function WorkingRankings() {
   const [usersLoading, setUsersLoading] = useState(true)
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
   const [showAchievementModal, setShowAchievementModal] = useState(false)
+  const [showPointAwardModal, setShowPointAwardModal] = useState(false)
+  const [showRewardApprovalModal, setShowRewardApprovalModal] = useState(false)
+  const [selectedUserType, setSelectedUserType] = useState<'student' | 'teacher'>('student')
 
   useEffect(() => {
     const fetchRankingsStats = async () => {
@@ -225,6 +231,29 @@ export function WorkingRankings() {
       setUsersLoading(false)
     }
   }, [])
+
+  // Handler functions for modals
+  const handlePointsAwarded = async (data: PointsAwardRequest) => {
+    console.log('Points awarded successfully:', data)
+    await refreshData()
+    setShowPointAwardModal(false)
+  }
+
+  const handleRewardApproved = async () => {
+    console.log('Rewards processed successfully')
+    await refreshData()
+    setShowRewardApprovalModal(false)
+  }
+
+  const handleAwardPoints = (userType: 'student' | 'teacher') => {
+    setSelectedUserType(userType)
+    setShowPointAwardModal(true)
+  }
+
+  const handleTeacherRecognition = () => {
+    setSelectedUserType('teacher')
+    setShowPointAwardModal(true)
+  }
 
   const filteredUsers = users.filter(user => 
     user.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -367,7 +396,7 @@ export function WorkingRankings() {
                       <Button 
                         className="w-full justify-start" 
                         size="sm"
-                        onClick={() => console.log('Award Points clicked - Implementation needed')}
+                        onClick={() => handleAwardPoints('student')}
                       >
                         <Award className="h-4 w-4 mr-2" />
                         Award Points
@@ -385,7 +414,7 @@ export function WorkingRankings() {
                         className="w-full justify-start" 
                         variant="outline" 
                         size="sm"
-                        onClick={() => console.log('Approve Reward clicked - Implementation needed')}
+                        onClick={() => setShowRewardApprovalModal(true)}
                       >
                         <Gift className="h-4 w-4 mr-2" />
                         Approve Reward
@@ -397,11 +426,21 @@ export function WorkingRankings() {
                         <Users className="h-4 w-4" />
                         Teacher Actions
                       </h4>
-                      <Button className="w-full justify-start" variant="secondary" size="sm">
+                      <Button 
+                        className="w-full justify-start" 
+                        variant="secondary" 
+                        size="sm"
+                        onClick={() => handleTeacherRecognition()}
+                      >
                         <Star className="h-4 w-4 mr-2" />
                         Recognition Award
                       </Button>
-                      <Button className="w-full justify-start" variant="outline" size="sm">
+                      <Button 
+                        className="w-full justify-start" 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleAwardPoints('teacher')}
+                      >
                         <TrendingUp className="h-4 w-4 mr-2" />
                         Performance Bonus
                       </Button>
@@ -584,6 +623,21 @@ export function WorkingRankings() {
         onOpenChange={setShowAchievementModal}
         users={users}
         onSuccess={refreshData}
+      />
+
+      {/* Point Award Modal */}
+      <UnifiedQuickPointAward
+        open={showPointAwardModal}
+        onOpenChange={setShowPointAwardModal}
+        userIds={[]} // Will be populated by user selection in the modal
+        userType={selectedUserType}
+        onSubmit={handlePointsAwarded}
+      />
+
+      {/* Reward Approval Modal */}
+      <RewardApprovalModal
+        open={showRewardApprovalModal}
+        onOpenChange={setShowRewardApprovalModal}
       />
     </div>
   )

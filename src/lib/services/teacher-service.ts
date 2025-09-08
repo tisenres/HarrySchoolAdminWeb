@@ -6,7 +6,6 @@ import type { Teacher, TeacherInsert } from '@/types/database'
 import type { Database } from '@/types/database.types'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { z } from 'zod'
-import { createTeacherAuth, getTeacherCredentials } from '@/lib/utils/auth-generator'
 
 export class TeacherService extends BaseService {
   constructor(tableName: string = 'teachers', supabaseClientProvider?: () => Promise<SupabaseClient<Database>>) {
@@ -16,7 +15,7 @@ export class TeacherService extends BaseService {
   /**
    * Create a new teacher
    */
-  async create(teacherData: z.infer<typeof teacherInsertSchema>): Promise<Teacher & { credentials?: { username: string; password: string } }> {
+  async create(teacherData: z.infer<typeof teacherInsertSchema>): Promise<Teacher> {
     // Check permissions
     await this.checkPermission(['admin', 'superadmin'])
     
@@ -50,50 +49,17 @@ export class TeacherService extends BaseService {
       throw new Error(`Failed to create teacher: ${teacherError.message}`)
     }
     
-    // Auto-generate authentication credentials for the teacher
-    try {
-      const { credentials } = await createTeacherAuth(
-        validatedData.first_name,
-        validatedData.last_name,
-        teacher.id,
-        organizationId,
-        user.id
-      )
-
-      // Log activity
-      await this.logActivity(
-        'CREATE',
-        teacher.id,
-        `${teacher.first_name} ${teacher.last_name}`,
-        null,
-        { ...teacher, credentials: { username: credentials.username, password: '[HIDDEN]' } },
-        `Created new teacher: ${teacher.first_name} ${teacher.last_name} with login credentials`
-      )
-
-      // Return teacher data with credentials for admin display
-      return {
-        ...teacher,
-        credentials: {
-          username: credentials.username,
-          password: credentials.password
-        }
-      }
-    } catch (authError) {
-      // If auth creation fails, still return the teacher but log the error
-      console.error('Failed to create teacher authentication:', authError)
-      
-      // Log activity without credentials
-      await this.logActivity(
-        'CREATE',
-        teacher.id,
-        `${teacher.first_name} ${teacher.last_name}`,
-        null,
-        teacher,
-        `Created new teacher: ${teacher.first_name} ${teacher.last_name} (auth creation failed)`
-      )
-      
-      return teacher
-    }
+    // Log activity
+    await this.logActivity(
+      'CREATE',
+      teacher.id,
+      `${teacher.first_name} ${teacher.last_name}`,
+      null,
+      teacher,
+      `Created new teacher: ${teacher.first_name} ${teacher.last_name}`
+    )
+    
+    return teacher
   }
 
   /**
@@ -120,11 +86,28 @@ export class TeacherService extends BaseService {
 
   /**
    * Get teacher credentials for admin display
+   * Note: This method requires server-side execution due to auth requirements
    */
   async getCredentials(teacherId: string): Promise<{ username: string; password: string } | null> {
     await this.checkPermission(['admin', 'superadmin'])
     
-    return await getTeacherCredentials(teacherId)
+    const supabase = await this.getSupabase()
+    
+    const { data, error } = await supabase
+      .from('teacher_profiles')
+      .select('username, password_visible')
+      .eq('teacher_id', teacherId)
+      .is('deleted_at', null)
+      .single()
+    
+    if (error || !data) {
+      return null
+    }
+    
+    return {
+      username: data.username,
+      password: data.password_visible
+    }
   }
 
   /**
