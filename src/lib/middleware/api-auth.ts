@@ -160,6 +160,62 @@ export async function requireSuperadmin(): Promise<{ user: any; profile: any } |
 }
 
 /**
+ * Multi-role authentication with student data access control
+ */
+export async function withMultiRoleAuth(
+  handler: (request: NextRequest, context: AuthContext, ...args: any[]) => Promise<NextResponse>,
+  options: {
+    allowedRoles: UserRole[]
+    resourceCheck?: (context: AuthContext, resourceId: string) => Promise<boolean>
+  }
+) {
+  return async function(request: NextRequest, ...args: any[]): Promise<NextResponse> {
+    const authResult = await requireAuth()
+    
+    if (authResult instanceof NextResponse) {
+      return authResult
+    }
+    
+    const { user, profile } = authResult
+    
+    // Check if user has required role
+    if (!options.allowedRoles.includes(profile.role)) {
+      return NextResponse.json(
+        { success: false, error: 'Insufficient permissions' },
+        { status: 403 }
+      )
+    }
+    
+    // Additional resource-level check (e.g., student accessing their own data)
+    if (options.resourceCheck) {
+      const { pathname } = new URL(request.url)
+      const resourceId = pathname.split('/').pop() || ''
+      
+      const hasAccess = await options.resourceCheck({ user, profile }, resourceId)
+      if (!hasAccess) {
+        return NextResponse.json(
+          { success: false, error: 'Access denied to this resource' },
+          { status: 403 }
+        )
+      }
+    }
+    
+    try {
+      return await handler(request, { user, profile }, ...args)
+    } catch (error) {
+      const isDev = process.env.NODE_ENV === 'development'
+      if (isDev) {
+        console.error('API route error:', error)
+      }
+      return NextResponse.json(
+        { success: false, error: 'Internal server error' },
+        { status: 500 }
+      )
+    }
+  }
+}
+
+/**
  * Wrapper function to handle authentication in API routes
  */
 export function withAuth(

@@ -3,6 +3,7 @@
 import { useState, useMemo, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useTranslations } from 'next-intl'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
   Table,
@@ -158,6 +159,7 @@ export function StudentsTable({
   bulkReferralLoading = false,
 }: StudentsTableProps) {
   const t = useTranslations('students')
+  const router = useRouter()
   const [columnConfig, setColumnConfig] = useState<ColumnConfig[]>(() => getDefaultColumns(t))
   const [tableDensity, setTableDensity] = useState<'comfortable' | 'compact' | 'spacious'>('comfortable')
 
@@ -519,8 +521,8 @@ export function StudentsTable({
       </div>
 
       {/* Data Table */}
-      <div className="bg-white rounded-lg border">
-        <Table>
+      <div className="bg-white rounded-lg border overflow-auto max-h-[600px]">
+        <Table className="min-w-full">
           <TableHeader>
             <TableRow className="border-b">
               {visibleColumns.map((column) => (
@@ -566,9 +568,10 @@ export function StudentsTable({
               {sortedStudents.map((student, index) => (
                 <motion.tr
                   key={student.id}
-                  className={`border-b hover:bg-muted/50 ${
+                  className={`border-b hover:bg-muted/50 cursor-pointer ${
                     selectedStudents.includes(student.id) ? 'bg-muted/30' : ''
                   }`}
+                  onClick={() => router.push(`/en/students/${student.id}`)}
                   variants={tableRowVariants}
                   initial="hidden"
                   animate="visible"

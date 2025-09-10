@@ -327,7 +327,7 @@ export const GroupsVirtualTable = memo<GroupsVirtualTableProps>(({
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
+            <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => router.push(`/en/groups/${group.id}`)}>
               <Eye className="h-4 w-4 mr-2" />
               View Details
@@ -352,10 +352,10 @@ export const GroupsVirtualTable = memo<GroupsVirtualTableProps>(({
               <Trash2 className="h-4 w-4 mr-2" />
               Delete Group
             </DropdownMenuItem>
-          </DropdownMenuContent>
+            </DropdownMenuContent>
           </DropdownMenu>
         </div>
-      ),
+      )
     }
   ], [
     safeGroups,
@@ -405,3 +405,5 @@ export const GroupsVirtualTable = memo<GroupsVirtualTableProps>(({
 })
 
 GroupsVirtualTable.displayName = 'GroupsVirtualTable'
+
+export default GroupsVirtualTable

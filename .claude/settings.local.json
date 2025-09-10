@@ -8,7 +8,13 @@
       "Read(//var/folders/q3/54fpkjw11k18bwbw216sfjl80000gn/T/TemporaryItems/NSIRD_screencaptureui_s01amW/**)",
       "Read(//Users/tisenres/Claude/**)",
       "Bash(cd:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Read(//var/folders/q3/54fpkjw11k18bwbw216sfjl80000gn/T/TemporaryItems/NSIRD_screencaptureui_ISI9IR/**)",
+      "mcp__supabase__list_tables",
+      "Read(//var/folders/q3/54fpkjw11k18bwbw216sfjl80000gn/T/TemporaryItems/NSIRD_screencaptureui_T1IPdb/**)",
+      "mcp__supabase__execute_sql",
+      "mcp__shadcn-ui__get_component",
+      "mcp__puppeteer__puppeteer_navigate"
     ],
     "deny": [],
     "ask": []

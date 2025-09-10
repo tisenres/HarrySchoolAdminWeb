@@ -21,6 +21,7 @@ import { StudentProfile } from '@/components/admin/students/student-profile'
 import { StudentForm } from '@/components/admin/students/student-form'
 import { EnrollmentManager } from '@/components/admin/students/enrollment-manager'
 import { PaymentTracker } from '@/components/admin/students/payment-tracker'
+import { StudentCredentials } from '@/components/admin/students/student-credentials'
 import { studentService } from '@/lib/services/student-service'
 import { fadeVariants, getAnimationConfig } from '@/lib/animations'
 
@@ -266,6 +267,12 @@ export default function StudentDetailPage() {
         student={student}
         onEdit={() => setIsFormOpen(true)}
         loading={loading}
+      />
+
+      {/* Student Credentials */}
+      <StudentCredentials
+        studentId={student.id}
+        studentName={student.full_name}
       />
 
       {/* Payment Tracker */}

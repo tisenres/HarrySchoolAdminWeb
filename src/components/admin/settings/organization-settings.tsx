@@ -80,16 +80,23 @@ export function OrganizationSettings() {
           currency: data.currency || 'UZS',
           language: data.language || 'en',
         })
+      } else if (response.status === 401) {
+        // User not authorized - this is expected, don't treat as error
+        console.info('Organization settings: User not authorized')
+        return
       } else {
-        throw new Error('Failed to fetch organization settings')
+        throw new Error(`Failed to fetch organization settings: ${response.status}`)
       }
     } catch (error) {
-      console.error('Error fetching organization:', error)
-      toast({
-        title: 'Error',
-        description: 'Failed to load organization settings',
-        variant: 'destructive',
-      })
+      // Don't show toast for auth errors - they are expected
+      if (error instanceof Error && !error.message.includes('401')) {
+        console.error('Error fetching organization:', error)
+        toast({
+          title: 'Error',
+          description: 'Failed to load organization settings',
+          variant: 'destructive',
+        })
+      }
     } finally {
       setIsLoading(false)
     }

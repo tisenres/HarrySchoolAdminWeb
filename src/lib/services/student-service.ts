@@ -118,6 +118,27 @@ export class StudentService {
     return data
   }
 
+  // Public method for accessing student profiles without admin authentication
+  async getByIdPublic(id: string): Promise<Partial<Student> | null> {
+    try {
+      const response = await fetch(`/api/public/students/${id}`)
+      if (!response.ok) {
+        if (response.status === 404) return null
+        throw new Error(`Failed to fetch student: ${response.statusText}`)
+      }
+      
+      const result = await response.json()
+      if (result.success) {
+        return result.data
+      } else {
+        throw new Error(result.error || 'Failed to fetch student data')
+      }
+    } catch (error) {
+      console.error('Error fetching public student data:', error)
+      return null
+    }
+  }
+
   async getCredentials(studentId: string): Promise<{ username: string; password: string } | null> {
     await this.checkPermission(['admin', 'superadmin'])
     

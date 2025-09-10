@@ -402,8 +402,8 @@ export function TeachersTable({
       </div>
 
       {/* Table */}
-      <div className="rounded-md border">
-        <Table>
+      <div className="rounded-md border overflow-auto max-h-[600px]">
+        <Table className="min-w-full">
           <TableHeader>
             <TableRow>
               {visibleColumns.map((col) => {

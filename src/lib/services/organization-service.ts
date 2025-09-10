@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/client'
+import { getApiClient, getCurrentUser, getCurrentProfile } from '@/lib/supabase-unified'
 import { z } from 'zod'
 import { Database } from '@/types/database'
 import { uuidSchema, nameSchema, emailSchema, phoneSchema } from '@/lib/validations'
@@ -36,18 +36,15 @@ export const organizationInsertSchema = z.object({
 export const organizationUpdateSchema = organizationInsertSchema.partial()
 
 export class OrganizationService {
-  private supabase = createClient()
+  private async getSupabase() {
+    return await getApiClient()
+  }
 
   async checkPermission(allowedRoles: string[] = ['superadmin']) {
-    const { data: { user } } = await this.supabase.auth.getUser()
+    const user = await getCurrentUser()
     if (!user) throw new Error('Unauthorized')
 
-    const { data: profile } = await this.supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single()
-
+    const profile = await getCurrentProfile()
     if (!profile || !allowedRoles.includes(profile.role)) {
       throw new Error('Insufficient permissions')
     }
@@ -59,8 +56,9 @@ export class OrganizationService {
     await this.checkPermission(['superadmin'])
 
     const validatedData = organizationInsertSchema.parse(organizationData)
+    const supabase = await this.getSupabase()
 
-    const { data, error } = await this.supabase
+    const { data, error } = await supabase
       .from('organizations')
       .insert({
         ...validatedData,
@@ -76,8 +74,12 @@ export class OrganizationService {
 
   async getById(id: string): Promise<Organization | null> {
     await this.checkPermission(['superadmin', 'admin'])
+    return this.getByIdInternal(id)
+  }
 
-    const { data, error } = await this.supabase
+  async getByIdInternal(id: string): Promise<Organization | null> {
+    const supabase = await this.getSupabase()
+    const { data, error } = await supabase
       .from('organizations')
       .select('*')
       .eq('id', id)
@@ -89,7 +91,8 @@ export class OrganizationService {
   }
 
   async getBySlug(slug: string): Promise<Organization | null> {
-    const { data, error } = await this.supabase
+    const supabase = await this.getSupabase()
+    const { data, error } = await supabase
       .from('organizations')
       .select('*')
       .eq('slug', slug)
@@ -103,7 +106,8 @@ export class OrganizationService {
   async getAll(): Promise<Organization[]> {
     await this.checkPermission(['superadmin'])
 
-    const { data, error } = await this.supabase
+    const supabase = await this.getSupabase()
+    const { data, error } = await supabase
       .from('organizations')
       .select('*')
       .eq('deleted_at', null)
@@ -117,8 +121,9 @@ export class OrganizationService {
     await this.checkPermission(['superadmin'])
 
     const validatedData = organizationUpdateSchema.parse(updateData)
+    const supabase = await this.getSupabase()
 
-    const { data, error } = await this.supabase
+    const { data, error } = await supabase
       .from('organizations')
       .update({
         ...validatedData,
@@ -136,7 +141,8 @@ export class OrganizationService {
   async softDelete(id: string): Promise<void> {
     const { user } = await this.checkPermission(['superadmin'])
 
-    const { error } = await this.supabase
+    const supabase = await this.getSupabase()
+    const { error } = await supabase
       .from('organizations')
       .update({
         deleted_at: new Date().toISOString(),
@@ -151,22 +157,23 @@ export class OrganizationService {
   async getUsageStats(id: string) {
     await this.checkPermission(['superadmin', 'admin'])
 
+    const supabase = await this.getSupabase()
     const [
       { count: teacherCount },
       { count: studentCount },
       { count: groupCount }
     ] = await Promise.all([
-      this.supabase
+      supabase
         .from('teachers')
         .select('*', { count: 'exact', head: true })
         .eq('organization_id', id)
         .eq('deleted_at', null),
-      this.supabase
+      supabase
         .from('students')
         .select('*', { count: 'exact', head: true })
         .eq('organization_id', id)
         .eq('deleted_at', null),
-      this.supabase
+      supabase
         .from('groups')
         .select('*', { count: 'exact', head: true })
         .eq('organization_id', id)

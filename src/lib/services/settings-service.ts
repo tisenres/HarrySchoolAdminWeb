@@ -136,7 +136,7 @@ export class SettingsService {
       throw new Error('Organization ID required')
     }
 
-    const organization = await organizationService.getById(targetOrganization)
+    const organization = await organizationService.getByIdInternal(targetOrganization)
     if (!organization) {
       throw new Error('Organization not found')
     }

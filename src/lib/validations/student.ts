@@ -46,13 +46,9 @@ export const createStudentSchema = z.object({
   
   // Enrollment Information (Optional)
   enrollment_date: z.string().optional(),
-  status: z.enum(['active', 'inactive', 'graduated', 'suspended', 'dropped']).default('active'),
-  current_level: z.string().optional(),
-  preferred_subjects: z.array(z.string()).optional(),
+  enrollment_status: z.enum(['active', 'inactive', 'graduated', 'suspended', 'dropped']).default('active'),
   
   // Academic Information (Optional)
-  groups: z.array(z.string()).default([]),
-  academic_year: z.string().optional(),
   grade_level: z.string().optional(),
   
   // Medical & Emergency (Optional)
@@ -61,16 +57,7 @@ export const createStudentSchema = z.object({
   
   // Financial Information (Optional with defaults)
   payment_status: z.enum(['paid', 'pending', 'overdue', 'partial']).default('pending'),
-  balance: z.number().default(0),
   tuition_fee: z.number().optional(),
-  monthly_fee: z.number().optional(), // NEW: Monthly payment tracking
-  last_payment_date: z.string().optional(), // NEW: Track last payment
-  
-  // Student App Fields (NEW)
-  app_login_email: z.string().email().optional(),
-  app_login_phone: z.string().optional(),
-  push_notification_token: z.string().optional(),
-  outstanding_balance: z.number().default(0),
   
   // Additional Information (Optional)
   notes: z.string().optional(),
@@ -86,16 +73,12 @@ export const updateStudentSchema = createStudentSchema.partial().extend({
 // Filter schema - REMOVED age restrictions
 export const studentFiltersSchema = z.object({
   search: z.string().optional(),
-  status: z.array(z.string()).optional(),
+  enrollment_status: z.array(z.string()).optional(),
   payment_status: z.array(z.string()).optional(),
-  current_level: z.array(z.string()).optional(),
   grade_level: z.array(z.string()).optional(),
-  preferred_subjects: z.array(z.string()).optional(),
-  groups: z.array(z.string()).optional(),
   enrollment_date_from: z.date().optional(),
   enrollment_date_to: z.date().optional(),
   // REMOVED: age_from and age_to
-  has_balance: z.boolean().optional(),
   is_active: z.boolean().optional(),
 })
 
@@ -107,11 +90,8 @@ export const studentSortSchema = z.object({
     'age', 
     'phone', 
     'parent_name', 
-    'status', 
+    'enrollment_status', 
     'payment_status',
-    'current_level', 
-    'enrolled_groups', 
-    'balance', 
     'enrollment_date'
   ]),
   direction: z.enum(['asc', 'desc']),
@@ -142,7 +122,6 @@ export const monthlyPaymentSchema = z.object({
 export const paymentUpdateSchema = z.object({
   student_id: z.string().uuid('Invalid student ID'),
   payment_status: z.enum(['paid', 'pending', 'overdue', 'partial']),
-  balance: z.number().min(0, 'Balance must be non-negative'),
   payment_amount: z.number().min(0, 'Payment amount must be non-negative').optional(),
   payment_notes: z.string().max(500, 'Payment notes must be less than 500 characters').optional(),
 })

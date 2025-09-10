@@ -10,10 +10,9 @@ import type { Database } from '@/types/database'
 // Environment variables validation
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!
 
-if (!SUPABASE_URL || !SUPABASE_ANON_KEY || !SUPABASE_SERVICE_KEY) {
-  throw new Error('❌ Missing Supabase environment variables!')
+if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+  throw new Error('❌ Missing public Supabase environment variables!')
 }
 
 /**
@@ -22,6 +21,12 @@ if (!SUPABASE_URL || !SUPABASE_ANON_KEY || !SUPABASE_SERVICE_KEY) {
  * Обходит RLS, имеет полные права
  */
 export function createAdminClient() {
+  const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!
+  
+  if (!SUPABASE_SERVICE_KEY) {
+    throw new Error('❌ Missing SUPABASE_SERVICE_ROLE_KEY environment variable!')
+  }
+  
   return createSupabaseClient<Database>(
     SUPABASE_URL,
     SUPABASE_SERVICE_KEY,
