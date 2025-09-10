@@ -1,9 +1,12 @@
 {
+  "version": 2,
+  "name": "harry-school-admin",
   "buildCommand": "npm run build:fast",
   "devCommand": "npm run dev",
   "installCommand": "npm install",
   "framework": "nextjs",
   "outputDirectory": ".next",
+  "rootDirectory": "./",
   "regions": ["fra1"],
   "env": {
     "NODE_ENV": "production",
