@@ -8,22 +8,12 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  DropdownMenuCheckboxItem,
 } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Input } from '@/components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { 
   MoreHorizontal, 
   Eye, 
@@ -31,23 +21,11 @@ import {
   Trash2, 
   Phone, 
   Mail, 
-  UserCheck, 
+  Users,
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
-  Settings2,
-  Download,
-  ChevronLeft,
-  ChevronRight,
-  ChevronsLeft,
-  ChevronsRight,
-  Archive,
-  RotateCcw,
-  GraduationCap,
-  Users,
-  CreditCard
 } from 'lucide-react'
-import { VirtualTable, VirtualTableColumn } from '@/components/ui/virtual-table'
 import type { Student, StudentSortConfig } from '@/types/student'
 import { ClientOnly } from '@/components/ui/client-only'
 
@@ -56,26 +34,13 @@ export interface StudentsVirtualTableProps {
   onEdit: (student: Student) => void
   onDelete: (studentId: string) => void
   onBulkDelete: (studentIds: string[]) => void
-  onBulkStatusChange?: (studentIds: string[], status: string) => void
-  onBulkArchive?: (studentIds: string[]) => void
-  onBulkRestore?: (studentIds: string[]) => void
-  onExport?: (studentIds?: string[]) => void
   selectedStudents: string[]
   onSelectionChange: (studentIds: string[]) => void
   sortConfig?: StudentSortConfig
   onSortChange?: (config: StudentSortConfig) => void
-  currentPage?: number
-  totalPages?: number
-  pageSize?: number
-  totalCount?: number
-  onPageChange?: (page: number) => void
-  onPageSizeChange?: (size: number) => void
   loading?: boolean
-  showArchived?: boolean
-  height?: number
 }
 
-// Memoized components for performance
 const StudentAvatar = memo<{ student: Student }>(({ student }) => (
   student.profile_image_url ? (
     <Image
@@ -98,14 +63,6 @@ StudentAvatar.displayName = 'StudentAvatar'
 const StatusBadge = memo<{ status: string }>(({ status }) => {
   if (!status) return null
 
-  const variants = {
-    active: 'default',
-    inactive: 'secondary',
-    graduated: 'default',
-    suspended: 'destructive',
-    dropped: 'outline',
-  } as const
-
   const colors = {
     active: 'bg-green-100 text-green-800 border-green-200',
     inactive: 'bg-gray-100 text-gray-800 border-gray-200',
@@ -116,8 +73,8 @@ const StatusBadge = memo<{ status: string }>(({ status }) => {
 
   return (
     <Badge 
-      variant={variants[status as keyof typeof variants] || 'secondary'}
-      className={`capitalize ${colors[status as keyof typeof colors] || ''}`}
+      variant="outline"
+      className={`capitalize ${colors[status as keyof typeof colors] || 'bg-gray-100 text-gray-800 border-gray-200'}`}
     >
       {status}
     </Badge>
@@ -130,23 +87,19 @@ const PaymentStatusBadge = memo<{ status: string }>(({ status }) => {
   if (!status) return null
 
   const colors = {
-    paid: 'bg-green-100 text-green-800 border-green-200',
-    pending: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+    current: 'bg-green-100 text-green-800 border-green-200',
     overdue: 'bg-red-100 text-red-800 border-red-200',
-    partial: 'bg-orange-100 text-orange-800 border-orange-200',
   } as const
 
   const icons = {
-    paid: '✓',
-    pending: '⏳',
+    current: '✓',
     overdue: '❌',
-    partial: '⚠️',
   } as const
 
   return (
     <Badge 
       variant="outline"
-      className={`capitalize ${colors[status as keyof typeof colors] || ''}`}
+      className={`capitalize ${colors[status as keyof typeof colors] || 'bg-gray-100 text-gray-800 border-gray-200'}`}
     >
       <span className="mr-1">{icons[status as keyof typeof icons]}</span>
       {status}
@@ -161,41 +114,12 @@ export const StudentsVirtualTable = memo<StudentsVirtualTableProps>(({
   onEdit,
   onDelete,
   onBulkDelete,
-  onBulkStatusChange,
-  onBulkArchive,
-  onBulkRestore,
-  onExport,
   selectedStudents,
   onSelectionChange,
   sortConfig,
   onSortChange,
-  currentPage = 1,
-  totalPages = 1,
-  pageSize = 20,
-  totalCount = 0,
-  onPageChange,
-  onPageSizeChange,
   loading = false,
-  showArchived = false,
-  height = 600,
 }) => {
-  const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>({
-    select: true,
-    student_id: true,
-    full_name: true,
-    age: true,
-    contact: true,
-    parent: true,
-    status: true,
-    payment_status: true,
-    level: true,
-    groups: true,
-    balance: true,
-    enrolled_date: true,
-    actions: true,
-  })
-
-  // Helper functions
   const calculateAge = useCallback((birthDate: string): number => {
     const today = new Date()
     const birth = new Date(birthDate)
@@ -207,15 +131,6 @@ export const StudentsVirtualTable = memo<StudentsVirtualTableProps>(({
     return age
   }, [])
 
-  const formatBalance = useCallback((balance: number) => {
-    return new Intl.NumberFormat('uz-UZ', {
-      style: 'currency',
-      currency: 'UZS',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(balance)
-  }, [])
-
   const formatDate = useCallback((dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -224,7 +139,6 @@ export const StudentsVirtualTable = memo<StudentsVirtualTableProps>(({
     })
   }, [])
 
-  // Selection handlers
   const handleSelectAll = useCallback((checked: boolean) => {
     if (checked) {
       onSelectionChange(students.map(s => s.id))
@@ -241,8 +155,7 @@ export const StudentsVirtualTable = memo<StudentsVirtualTableProps>(({
     }
   }, [selectedStudents, onSelectionChange])
 
-  // Sort handler
-  const handleSort = useCallback((field: keyof Student | 'age' | 'enrolled_groups') => {
+  const handleSort = useCallback((field: keyof Student | 'age') => {
     if (!onSortChange) return
 
     const newConfig: StudentSortConfig = {
@@ -255,359 +168,39 @@ export const StudentsVirtualTable = memo<StudentsVirtualTableProps>(({
     onSortChange(newConfig)
   }, [sortConfig, onSortChange])
 
-  // Virtual table columns
-  const columns: VirtualTableColumn<Student>[] = useMemo(() => [
-    // Select column
-    {
-      key: 'select',
-      header: (
-        <Checkbox
-          checked={students.length > 0 && selectedStudents.length === students.length}
-          indeterminate={selectedStudents.length > 0 && selectedStudents.length < students.length}
-          onCheckedChange={handleSelectAll}
-        />
-      ),
-      width: 50,
-      render: (student: Student) => (
-        <Checkbox
-          checked={selectedStudents.includes(student.id)}
-          onCheckedChange={(checked) => 
-            handleSelectStudent(student.id, checked as boolean)
-          }
-        />
-      ),
-    },
-
-    // Student ID column
-    {
-      key: 'student_id',
-      header: (
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-auto p-0 font-medium"
-          onClick={() => handleSort('student_id')}
-        >
-          Student ID
-          {sortConfig?.field === 'student_id' ? (
-            sortConfig.direction === 'asc' ? (
-              <ArrowUp className="ml-2 h-3 w-3" />
-            ) : (
-              <ArrowDown className="ml-2 h-3 w-3" />
-            )
-          ) : (
-            <ArrowUpDown className="ml-2 h-3 w-3 opacity-50" />
-          )}
-        </Button>
-      ),
-      width: 120,
-      render: (student: Student) => (
-        <Link
-          href={`/dashboard/students/${student.id}`}
-          className="font-mono text-sm hover:underline text-primary"
-        >
-          {student.student_id}
-        </Link>
-      ),
-    },
-
-    // Full name column
-    {
-      key: 'full_name',
-      header: (
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-auto p-0 font-medium"
-          onClick={() => handleSort('full_name')}
-        >
-          Name
-          {sortConfig?.field === 'full_name' ? (
-            sortConfig.direction === 'asc' ? (
-              <ArrowUp className="ml-2 h-3 w-3" />
-            ) : (
-              <ArrowDown className="ml-2 h-3 w-3" />
-            )
-          ) : (
-            <ArrowUpDown className="ml-2 h-3 w-3 opacity-50" />
-          )}
-        </Button>
-      ),
-      width: 200,
-      render: (student: Student) => (
-        <div className="flex items-center space-x-3">
-          <StudentAvatar student={student} />
-          <div>
-            <Link
-              href={`/dashboard/students/${student.id}`}
-              className="font-medium hover:underline text-foreground"
-            >
-              {student.full_name}
-            </Link>
-            <div className="text-xs text-muted-foreground">
-              {student.current_level}
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="space-y-3">
+          {Array.from({ length: 8 }, (_, i) => (
+            <div key={i} className="flex items-center border-b border-border/40 animate-pulse">
+              {Array.from({ length: 5 }, (_, j) => (
+                <div key={j} className="flex-1 px-3 py-2">
+                  <div className="h-4 bg-muted/60 rounded" />
+                </div>
+              ))}
             </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  if (!students || students.length === 0) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="text-center text-muted-foreground">
+          <div className="mb-4">
+            <Users className="h-12 w-12 mx-auto opacity-50" />
           </div>
+          <h3 className="font-medium mb-2">No students found</h3>
+          <p className="text-sm">
+            No students match your current filters.
+          </p>
         </div>
-      ),
-    },
-
-    // Age column
-    {
-      key: 'age',
-      header: (
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-auto p-0 font-medium"
-          onClick={() => handleSort('age')}
-        >
-          Age
-          {sortConfig?.field === 'age' ? (
-            sortConfig.direction === 'asc' ? (
-              <ArrowUp className="ml-2 h-3 w-3" />
-            ) : (
-              <ArrowDown className="ml-2 h-3 w-3" />
-            )
-          ) : (
-            <ArrowUpDown className="ml-2 h-3 w-3 opacity-50" />
-          )}
-        </Button>
-      ),
-      width: 80,
-      render: (student: Student) => (
-        <span className="text-sm">
-          {calculateAge(student.date_of_birth)} years
-        </span>
-      ),
-    },
-
-    // Contact column
-    {
-      key: 'contact',
-      header: 'Contact',
-      width: 180,
-      render: (student: Student) => (
-        <div className="space-y-1">
-          <div className="flex items-center space-x-1 text-sm">
-            <Phone className="h-3 w-3 text-muted-foreground" />
-            <span>{student.phone}</span>
-          </div>
-          {student.email && (
-            <div className="flex items-center space-x-1 text-sm text-muted-foreground">
-              <Mail className="h-3 w-3" />
-              <span className="truncate max-w-32">{student.email}</span>
-            </div>
-          )}
-        </div>
-      ),
-    },
-
-    // Parent column
-    {
-      key: 'parent',
-      header: 'Parent/Guardian',
-      width: 160,
-      render: (student: Student) => (
-        <div>
-          <div className="font-medium text-sm">
-            {student.parent_name}
-          </div>
-          <div className="flex items-center space-x-1 text-xs text-muted-foreground">
-            <Phone className="h-3 w-3" />
-            <span>{student.parent_phone}</span>
-          </div>
-        </div>
-      ),
-    },
-
-    // Status column
-    {
-      key: 'status',
-      header: (
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-auto p-0 font-medium"
-          onClick={() => handleSort('status')}
-        >
-          Status
-          {sortConfig?.field === 'status' ? (
-            sortConfig.direction === 'asc' ? (
-              <ArrowUp className="ml-2 h-3 w-3" />
-            ) : (
-              <ArrowDown className="ml-2 h-3 w-3" />
-            )
-          ) : (
-            <ArrowUpDown className="ml-2 h-3 w-3 opacity-50" />
-          )}
-        </Button>
-      ),
-      width: 100,
-      render: (student: Student) => <StatusBadge status={student.status} />,
-    },
-
-    // Payment status column
-    {
-      key: 'payment_status',
-      header: (
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-auto p-0 font-medium"
-          onClick={() => handleSort('payment_status')}
-        >
-          Payment
-          {sortConfig?.field === 'payment_status' ? (
-            sortConfig.direction === 'asc' ? (
-              <ArrowUp className="ml-2 h-3 w-3" />
-            ) : (
-              <ArrowDown className="ml-2 h-3 w-3" />
-            )
-          ) : (
-            <ArrowUpDown className="ml-2 h-3 w-3 opacity-50" />
-          )}
-        </Button>
-      ),
-      width: 120,
-      render: (student: Student) => <PaymentStatusBadge status={student.payment_status} />,
-    },
-
-    // Groups column
-    {
-      key: 'groups',
-      header: 'Groups',
-      width: 80,
-      render: (student: Student) => (
-        <div className="flex items-center space-x-1">
-          <Users className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm">{student.groups?.length || 0}</span>
-        </div>
-      ),
-    },
-
-    // Balance column
-    {
-      key: 'balance',
-      header: (
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-auto p-0 font-medium"
-          onClick={() => handleSort('balance')}
-        >
-          Balance
-          {sortConfig?.field === 'balance' ? (
-            sortConfig.direction === 'asc' ? (
-              <ArrowUp className="ml-2 h-3 w-3" />
-            ) : (
-              <ArrowDown className="ml-2 h-3 w-3" />
-            )
-          ) : (
-            <ArrowUpDown className="ml-2 h-3 w-3 opacity-50" />
-          )}
-        </Button>
-      ),
-      width: 120,
-      render: (student: Student) => (
-        <div className={`text-sm ${student.balance > 0 ? 'text-red-600 font-medium' : 'text-muted-foreground'}`}>
-          {formatBalance(student.balance)}
-        </div>
-      ),
-    },
-
-    // Enrollment date column
-    {
-      key: 'enrolled_date',
-      header: (
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-auto p-0 font-medium"
-          onClick={() => handleSort('enrollment_date')}
-        >
-          Enrolled
-          {sortConfig?.field === 'enrollment_date' ? (
-            sortConfig.direction === 'asc' ? (
-              <ArrowUp className="ml-2 h-3 w-3" />
-            ) : (
-              <ArrowDown className="ml-2 h-3 w-3" />
-            )
-          ) : (
-            <ArrowUpDown className="ml-2 h-3 w-3 opacity-50" />
-          )}
-        </Button>
-      ),
-      width: 120,
-      render: (student: Student) => (
-        <span className="text-sm text-muted-foreground">
-          <ClientOnly fallback="Loading...">
-            {formatDate(student.enrollment_date)}
-          </ClientOnly>
-        </span>
-      ),
-    },
-
-    // Actions column
-    {
-      key: 'actions',
-      header: '',
-      width: 60,
-      render: (student: Student) => (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="sm">
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem asChild>
-              <Link href={`/dashboard/students/${student.id}`}>
-                <Eye className="mr-2 h-4 w-4" />
-                View Profile
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onEdit(student)}>
-              <Edit className="mr-2 h-4 w-4" />
-              Edit Student
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            {student.balance > 0 && (
-              <DropdownMenuItem>
-                <CreditCard className="mr-2 h-4 w-4" />
-                Process Payment
-              </DropdownMenuItem>
-            )}
-            <DropdownMenuItem>
-              <Users className="mr-2 h-4 w-4" />
-              Manage Enrollment
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={() => onDelete(student.id)}
-              className="text-destructive"
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              Delete Student
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      ),
-    },
-  ].filter(col => columnVisibility[col.key] !== false), [
-    students,
-    selectedStudents,
-    sortConfig,
-    handleSelectAll,
-    handleSelectStudent,
-    handleSort,
-    calculateAge,
-    formatBalance,
-    formatDate,
-    onEdit,
-    onDelete,
-    columnVisibility,
-  ])
+      </div>
+    )
+  }
 
   return (
     <motion.div 
@@ -616,225 +209,180 @@ export const StudentsVirtualTable = memo<StudentsVirtualTableProps>(({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
-      {/* Table Controls */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          {selectedStudents.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="flex items-center space-x-2"
-            >
-              <span className="text-sm text-muted-foreground">
-                {selectedStudents.length} selected
-              </span>
-              
-              {onBulkStatusChange && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm">
-                      <UserCheck className="h-4 w-4 mr-2" />
-                      Change Status
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent>
-                    <DropdownMenuItem onClick={() => onBulkStatusChange(selectedStudents, 'active')}>
-                      Active
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => onBulkStatusChange(selectedStudents, 'inactive')}>
-                      Inactive
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => onBulkStatusChange(selectedStudents, 'suspended')}>
-                      Suspended
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => onBulkStatusChange(selectedStudents, 'graduated')}>
-                      <GraduationCap className="h-4 w-4 mr-2" />
-                      Graduated
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
-
-              {onBulkArchive && !showArchived && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => onBulkArchive(selectedStudents)}
-                >
-                  <Archive className="h-4 w-4 mr-2" />
-                  Archive
-                </Button>
-              )}
-
-              {onBulkRestore && showArchived && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => onBulkRestore(selectedStudents)}
-                >
-                  <RotateCcw className="h-4 w-4 mr-2" />
-                  Restore
-                </Button>
-              )}
-
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onBulkDelete(selectedStudents)}
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Delete
-              </Button>
-            </motion.div>
-          )}
-        </div>
-
-        <div className="flex items-center space-x-2">
-          {onExport && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onExport(selectedStudents.length > 0 ? selectedStudents : undefined)}
-            >
-              <Download className="h-4 w-4 mr-2" />
-              Export
-            </Button>
-          )}
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm">
-                <Settings2 className="h-4 w-4 mr-2" />
-                Columns
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuLabel>Visible Columns</DropdownMenuLabel>
-              {Object.entries(columnVisibility).map(([key, visible]) => (
-                <DropdownMenuCheckboxItem
-                  key={key}
-                  checked={visible}
-                  onCheckedChange={(checked) => 
-                    setColumnVisibility(prev => ({ ...prev, [key]: checked }))
-                  }
-                >
-                  {key.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                </DropdownMenuCheckboxItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+      <div className="border rounded-lg bg-background overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="min-w-full">
+            <thead className="border-b bg-muted/30 sticky top-0 z-10">
+              <tr>
+                <th className="px-3 py-3 text-left">
+                  <Checkbox
+                    checked={students.length > 0 && selectedStudents.length === students.length}
+                    indeterminate={selectedStudents.length > 0 && selectedStudents.length < students.length}
+                    onCheckedChange={handleSelectAll}
+                  />
+                </th>
+                <th className="px-3 py-3 text-left">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-auto p-0 font-medium"
+                    onClick={() => handleSort('student_id')}
+                  >
+                    Student ID
+                    {sortConfig?.field === 'student_id' ? (
+                      sortConfig.direction === 'asc' ? (
+                        <ArrowUp className="ml-2 h-3 w-3" />
+                      ) : (
+                        <ArrowDown className="ml-2 h-3 w-3" />
+                      )
+                    ) : (
+                      <ArrowUpDown className="ml-2 h-3 w-3 opacity-50" />
+                    )}
+                  </Button>
+                </th>
+                <th className="px-3 py-3 text-left">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-auto p-0 font-medium"
+                    onClick={() => handleSort('full_name')}
+                  >
+                    Name
+                    {sortConfig?.field === 'full_name' ? (
+                      sortConfig.direction === 'asc' ? (
+                        <ArrowUp className="ml-2 h-3 w-3" />
+                      ) : (
+                        <ArrowDown className="ml-2 h-3 w-3" />
+                      )
+                    ) : (
+                      <ArrowUpDown className="ml-2 h-3 w-3 opacity-50" />
+                    )}
+                  </Button>
+                </th>
+                <th className="px-3 py-3 text-left">Age</th>
+                <th className="px-3 py-3 text-left">Contact</th>
+                <th className="px-3 py-3 text-left">Status</th>
+                <th className="px-3 py-3 text-left">Payment</th>
+                <th className="px-3 py-3 text-left">Enrolled</th>
+                <th className="px-3 py-3 text-left">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {students.map((student, index) => {
+                const isSelected = selectedStudents.includes(student.id)
+                const isEven = index % 2 === 0
+                return (
+                  <tr
+                    key={student.id}
+                    className={`border-b border-border/40 transition-colors duration-150 ${
+                      isSelected ? 'bg-muted/30' : ''
+                    } ${isEven ? 'bg-muted/10' : ''} hover:bg-muted/50`}
+                  >
+                    <td className="px-3 py-2">
+                      <Checkbox
+                        checked={selectedStudents.includes(student.id)}
+                        onCheckedChange={(checked) => 
+                          handleSelectStudent(student.id, checked as boolean)
+                        }
+                      />
+                    </td>
+                    <td className="px-3 py-2">
+                      <Link
+                        href={`/students/${student.id}`}
+                        className="font-mono text-sm hover:underline text-primary"
+                      >
+                        {student.student_id}
+                      </Link>
+                    </td>
+                    <td className="px-3 py-2">
+                      <div className="flex items-center space-x-3">
+                        <StudentAvatar student={student} />
+                        <div>
+                          <Link
+                            href={`/students/${student.id}`}
+                            className="font-medium hover:underline text-foreground"
+                          >
+                            {student.full_name}
+                          </Link>
+                          <div className="text-xs text-muted-foreground">
+                            Level {student.current_level}
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-3 py-2 text-sm">
+                      {calculateAge(student.date_of_birth)} years
+                    </td>
+                    <td className="px-3 py-2">
+                      <div className="space-y-1">
+                        <div className="flex items-center space-x-1 text-sm">
+                          <Phone className="h-3 w-3 text-muted-foreground" />
+                          <span>{student.primary_phone}</span>
+                        </div>
+                        {student.email && (
+                          <div className="flex items-center space-x-1 text-sm text-muted-foreground">
+                            <Mail className="h-3 w-3" />
+                            <span className="truncate max-w-32">{student.email}</span>
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-3 py-2">
+                      <StatusBadge status={student.enrollment_status} />
+                    </td>
+                    <td className="px-3 py-2">
+                      <PaymentStatusBadge status={student.payment_status} />
+                    </td>
+                    <td className="px-3 py-2 text-sm text-muted-foreground">
+                      <ClientOnly fallback="Loading...">
+                        {formatDate(student.enrollment_date)}
+                      </ClientOnly>
+                    </td>
+                    <td className="px-3 py-2">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem asChild>
+                            <Link href={`/students/${student.id}`}>
+                              <Eye className="mr-2 h-4 w-4" />
+                              View Profile
+                            </Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => onEdit(student)}>
+                            <Edit className="mr-2 h-4 w-4" />
+                            Edit Student
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem 
+                            onClick={() => {
+                              alert(`Manage enrollment for ${student.full_name} - Feature coming soon!`)
+                            }}
+                          >
+                            <Users className="mr-2 h-4 w-4" />
+                            Manage Enrollment
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            onClick={() => onDelete(student.id)}
+                            className="text-destructive"
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Delete Student
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
         </div>
       </div>
-
-      {/* Virtual Table */}
-      <VirtualTable
-        data={students}
-        columns={columns}
-        height={height}
-        itemHeight={64}
-        loading={loading}
-        getItemId={(student) => student.id}
-        selectedItems={new Set(selectedStudents)}
-        emptyPlaceholder={
-          <div className="text-center text-muted-foreground py-12">
-            <div className="mb-4">
-              <Users className="h-12 w-12 mx-auto opacity-50" />
-            </div>
-            <h3 className="font-medium mb-2">No students found</h3>
-            <p className="text-sm">
-              {showArchived ? 'No archived students found.' : 'No students match your current filters.'}
-            </p>
-          </div>
-        }
-        zebra
-        stickyHeader
-      />
-
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between">
-          <div className="text-sm text-muted-foreground">
-            Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, totalCount)} of {totalCount} students
-          </div>
-          
-          <div className="flex items-center space-x-2">
-            {onPageSizeChange && (
-              <div className="flex items-center space-x-2">
-                <span className="text-sm text-muted-foreground">Rows per page:</span>
-                <Select
-                  value={pageSize.toString()}
-                  onValueChange={(value) => onPageSizeChange(parseInt(value))}
-                >
-                  <SelectTrigger className="w-20">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="20">20</SelectItem>
-                    <SelectItem value="50">50</SelectItem>
-                    <SelectItem value="100">100</SelectItem>
-                    <SelectItem value="200">200</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-            
-            <div className="flex items-center space-x-1">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onPageChange?.(1)}
-                disabled={currentPage === 1}
-              >
-                <ChevronsLeft className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onPageChange?.(currentPage - 1)}
-                disabled={currentPage === 1}
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              
-              <div className="flex items-center space-x-1">
-                <Input
-                  type="number"
-                  min={1}
-                  max={totalPages}
-                  value={currentPage}
-                  onChange={(e) => {
-                    const page = parseInt(e.target.value)
-                    if (page >= 1 && page <= totalPages) {
-                      onPageChange?.(page)
-                    }
-                  }}
-                  className="w-16 text-center"
-                />
-                <span className="text-sm text-muted-foreground">
-                  of {totalPages}
-                </span>
-              </div>
-              
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onPageChange?.(currentPage + 1)}
-                disabled={currentPage === totalPages}
-              >
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onPageChange?.(totalPages)}
-                disabled={currentPage === totalPages}
-              >
-                <ChevronsRight className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
     </motion.div>
   )
 })

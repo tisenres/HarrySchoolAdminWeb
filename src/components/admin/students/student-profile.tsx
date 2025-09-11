@@ -240,7 +240,7 @@ export function StudentProfile({
             </CardHeader>
             <CardContent>
               <div className="flex flex-wrap gap-2">
-                {student.preferred_subjects.map((subject) => (
+                {(student.preferred_subjects || []).map((subject) => (
                   <Badge key={subject} variant="secondary">
                     {subject}
                   </Badge>
@@ -315,10 +315,16 @@ export function StudentProfile({
                 <div className="flex items-start space-x-3">
                   <MapPin className="h-4 w-4 text-muted-foreground mt-1" />
                   <div>
-                    <p>{student.address.street}</p>
-                    <p>{student.address.city}, {student.address.region}</p>
-                    {student.address.postal_code && <p>{student.address.postal_code}</p>}
-                    <p>{student.address.country}</p>
+                    {student.address ? (
+                      <>
+                        <p>{student.address.street}</p>
+                        <p>{student.address.city}, {student.address.region}</p>
+                        {student.address.postal_code && <p>{student.address.postal_code}</p>}
+                        <p>{student.address.country}</p>
+                      </>
+                    ) : (
+                      <p className="text-muted-foreground">No address information available</p>
+                    )}
                   </div>
                 </div>
               </CardContent>
@@ -358,24 +364,34 @@ export function StudentProfile({
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <p className="font-medium">{student.emergency_contact.name}</p>
-                    <p className="text-sm text-muted-foreground">{student.emergency_contact.relationship}</p>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex items-center space-x-3">
-                      <Phone className="h-4 w-4 text-muted-foreground" />
-                      <span>{student.emergency_contact.phone}</span>
-                    </div>
-                    {student.emergency_contact.email && (
-                      <div className="flex items-center space-x-3">
-                        <Mail className="h-4 w-4 text-muted-foreground" />
-                        <span>{student.emergency_contact.email}</span>
+                {(student.emergency_contacts && student.emergency_contacts.length > 0) ? (
+                  <div className="space-y-4">
+                    {student.emergency_contacts.map((contact: any, index: number) => (
+                      <div key={index} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <p className="font-medium">{contact.name || 'No name provided'}</p>
+                          <p className="text-sm text-muted-foreground">{contact.relationship || 'No relationship specified'}</p>
+                        </div>
+                        <div className="space-y-2">
+                          {contact.phone && (
+                            <div className="flex items-center space-x-3">
+                              <Phone className="h-4 w-4 text-muted-foreground" />
+                              <span>{contact.phone}</span>
+                            </div>
+                          )}
+                          {contact.email && (
+                            <div className="flex items-center space-x-3">
+                              <Mail className="h-4 w-4 text-muted-foreground" />
+                              <span>{contact.email}</span>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    )}
+                    ))}
                   </div>
-                </div>
+                ) : (
+                  <p className="text-muted-foreground">No emergency contact information available</p>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -427,9 +443,9 @@ export function StudentProfile({
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {student.groups.length > 0 ? (
+                {(student.groups || []).length > 0 ? (
                   <div className="space-y-3">
-                    {student.groups.map((groupId, index) => (
+                    {(student.groups || []).map((groupId, index) => (
                       <div key={groupId} className="flex items-center justify-between p-3 bg-muted rounded-lg">
                         <div>
                           <p className="font-medium">Group {index + 1}</p>

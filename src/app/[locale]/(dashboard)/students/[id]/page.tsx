@@ -94,11 +94,29 @@ export default function StudentDetailPage() {
     setLoading(true)
     setError(null)
     try {
-      const studentData = await studentService.getById(studentId)
-      if (studentData) {
-        setStudent(studentData as any)
+      // Use the API endpoint instead of direct service call for client-side access
+      const response = await fetch(`/api/students/${studentId}`)
+      if (!response.ok) {
+        if (response.status === 404) {
+          setError('Student not found')
+        } else {
+          setError('Failed to load student data')
+        }
+        return
+      }
+      
+      const result = await response.json()
+      if (result.success && result.data) {
+        // Ensure required arrays exist
+        const studentData = {
+          ...result.data,
+          groups: result.data.groups || [],
+          preferred_subjects: result.data.preferred_subjects || [],
+          emergency_contacts: result.data.emergency_contacts || []
+        }
+        setStudent(studentData)
       } else {
-        setError('Student not found')
+        setError(result.error || 'Student not found')
       }
     } catch (err) {
       console.error('Error loading student:', err)
@@ -128,7 +146,8 @@ export default function StudentDetailPage() {
 
     try {
       // Simulate enrollment
-      const updatedGroups = [...student.groups, groupId]
+      const currentGroups = student.groups || []
+      const updatedGroups = [...currentGroups, groupId]
       const updatedStudent = await studentService.update(student.id, {
         groups: updatedGroups
       } as any)
@@ -143,7 +162,8 @@ export default function StudentDetailPage() {
 
     try {
       // Simulate withdrawal
-      const updatedGroups = student.groups.filter(id => id !== groupId)
+      const currentGroups = student.groups || []
+      const updatedGroups = currentGroups.filter(id => id !== groupId)
       const updatedStudent = await studentService.update(student.id, {
         groups: updatedGroups
       } as any)
@@ -174,12 +194,12 @@ export default function StudentDetailPage() {
   }
 
   const getEnrolledGroups = () => {
-    if (!student) return []
+    if (!student || !student.groups) return []
     return availableGroups.filter(group => student.groups.includes(group.id))
   }
 
   const getAvailableGroups = () => {
-    if (!student) return availableGroups
+    if (!student || !student.groups) return availableGroups
     return availableGroups.filter(group => !student.groups.includes(group.id))
   }
 
