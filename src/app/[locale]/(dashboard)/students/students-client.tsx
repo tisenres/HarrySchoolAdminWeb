@@ -1,5 +1,6 @@
 'use client'
-import { useState, useCallback, useEffect, lazy, Suspense } from 'react'
+import { useState, useCallback, useEffect, lazy, Suspense, useMemo } from 'react'
+import { useDebounce } from '@/hooks/use-debounce'
 import { motion } from 'framer-motion'
 import { useTranslations } from 'next-intl'
 import { useQuery } from '@tanstack/react-query'
@@ -49,21 +50,30 @@ export default function StudentsClient() {
   })
   const [showArchived] = useState(false)
   
+  // Debounce search to avoid API calls on every keystroke
+  const debouncedSearch = useDebounce(filters.search || '', 500)
+  
   // Form states
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [editingStudent, setEditingStudent] = useState<Student | undefined>()
   const [formLoading, setFormLoading] = useState(false)
 
   // Use React Query for students data
+  // Create filters object with debounced search for the query
+  const queryFilters = useMemo(() => ({
+    ...filters,
+    search: debouncedSearch
+  }), [filters, debouncedSearch])
+
   const { data: studentsResponse, isLoading, error, refetch } = useQuery({
-    queryKey: ['students', filters, sortConfig, pagination.current_page, pagination.page_size],
+    queryKey: ['students', queryFilters, sortConfig, pagination.current_page, pagination.page_size],
     queryFn: async () => {
       const params = new URLSearchParams({
         page: pagination.current_page.toString(),
         limit: pagination.page_size.toString(),
         sort_field: sortConfig.field as string,
         sort_direction: sortConfig.direction,
-        ...(filters.search && { query: filters.search }),
+        ...(debouncedSearch && { query: debouncedSearch }),
         ...(filters.status && { status: filters.status as any }),
         ...(filters.grade_level && { grade_level: filters.grade_level as any })
       } as any)

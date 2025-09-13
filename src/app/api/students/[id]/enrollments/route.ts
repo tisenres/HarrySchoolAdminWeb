@@ -16,25 +16,35 @@ const unenrollmentSchema = z.object({
 export const GET = withAuth(async (
   _request: NextRequest,
   _context,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) => {
+  const { id: studentId } = await params
   const studentService = new StudentService()
-  const enrollments = await studentService.getEnrollmentHistory(params.id)
+  const enrollments = await studentService.getEnrollmentHistory(studentId)
   return NextResponse.json(enrollments)
 }, 'admin')
 
 export const POST = withAuth(async (
   request: NextRequest,
-  _context,
-  { params }: { params: { id: string } }
+  context,
+  { params }: { params: Promise<{ id: string }> }
 ) => {
+  const { id: studentId } = await params
   const body = await request.json()
   
   try {
     const { groupId, notes } = enrollmentSchema.parse(body)
     const studentService = new StudentService()
     
-    await studentService.enrollInGroup(params.id, groupId, notes)
+    console.log('🔍 Enrollment context:', { 
+      hasContext: !!context,
+      hasUser: !!context?.user,
+      hasProfile: !!context?.profile,
+      userId: context?.user?.id,
+      profileRole: context?.profile?.role
+    })
+    
+    await studentService.enrollInGroup(studentId, groupId, notes, context)
     
     return NextResponse.json({ success: true, message: 'Student enrolled successfully' })
   } catch (error) {
@@ -51,16 +61,17 @@ export const POST = withAuth(async (
 
 export const DELETE = withAuth(async (
   request: NextRequest,
-  _context,
-  { params }: { params: { id: string } }
+  context,
+  { params }: { params: Promise<{ id: string }> }
 ) => {
+  const { id: studentId } = await params
   const body = await request.json()
   
   try {
     const { groupId, reason } = unenrollmentSchema.parse(body)
     const studentService = new StudentService()
     
-    await studentService.unenrollFromGroup(params.id, groupId, reason)
+    await studentService.unenrollFromGroup(studentId, groupId, reason, context)
     
     return NextResponse.json({ success: true, message: 'Student unenrolled successfully' })
   } catch (error) {

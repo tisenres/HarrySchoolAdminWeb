@@ -521,8 +521,9 @@ export function StudentsTable({
       </div>
 
       {/* Data Table */}
-      <div className="bg-white rounded-lg border overflow-auto max-h-[600px]">
-        <Table className="min-w-full">
+      <div className="bg-white rounded-lg border">
+        <div className="overflow-auto max-h-[600px] scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+          <Table className="min-w-full relative">
           <TableHeader>
             <TableRow className="border-b">
               {visibleColumns.map((column) => (
@@ -568,10 +569,9 @@ export function StudentsTable({
               {sortedStudents.map((student, index) => (
                 <motion.tr
                   key={student.id}
-                  className={`border-b hover:bg-muted/50 cursor-pointer ${
+                  className={`border-b hover:bg-muted/50 ${
                     selectedStudents.includes(student.id) ? 'bg-muted/30' : ''
                   }`}
-                  onClick={() => router.push(`/en/students/${student.id}`)}
                   variants={tableRowVariants}
                   initial="hidden"
                   animate="visible"
@@ -586,7 +586,19 @@ export function StudentsTable({
                   {visibleColumns.map((column) => (
                     <TableCell 
                       key={column.key} 
-                      className={`${densityClasses[tableDensity]} ${column.width || ''}`}
+                      className={`${densityClasses[tableDensity]} ${column.width || ''} ${
+                        column.key !== 'select' && column.key !== 'actions' ? 'cursor-pointer' : ''
+                      }`}
+                      onClick={column.key !== 'select' && column.key !== 'actions' ? 
+                        (e) => {
+                          // Prevent navigation if click target is inside a checkbox or button
+                          const target = e.target as HTMLElement
+                          if (target.closest('input[type="checkbox"]') || target.closest('button') || target.closest('a')) {
+                            return
+                          }
+                          router.push(`/en/students/${student.id}`)
+                        } : undefined
+                      }
                     >
                       {column.key === 'select' && (
                         <Checkbox
@@ -594,6 +606,7 @@ export function StudentsTable({
                           onCheckedChange={(checked) => 
                             handleSelectStudent(student.id, checked as boolean)
                           }
+                          onClick={(e) => e.stopPropagation()}
                         />
                       )}
 
@@ -786,6 +799,7 @@ export function StudentsTable({
             )}
           </TableBody>
         </Table>
+        </div>
       </div>
 
       {/* Pagination */}

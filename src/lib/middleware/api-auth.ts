@@ -33,7 +33,7 @@ function generateSecureSessionHash(user: any): string {
 /**
  * Middleware to require authentication for API routes with caching
  */
-export async function requireAuth(): Promise<{ user: any; profile: any } | NextResponse> {
+export async function requireAuth(request?: NextRequest): Promise<{ user: any; profile: any } | NextResponse> {
   let supabase: any
   let user: any
   
@@ -121,8 +121,8 @@ export async function requireAuth(): Promise<{ user: any; profile: any } | NextR
 /**
  * Middleware to require specific roles for API routes
  */
-export async function requireRole(requiredRoles: UserRole[]): Promise<{ user: any; profile: any } | NextResponse> {
-  const authResult = await requireAuth()
+export async function requireRole(requiredRoles: UserRole[], request?: NextRequest): Promise<{ user: any; profile: any } | NextResponse> {
+  const authResult = await requireAuth(request)
   
   if (authResult instanceof NextResponse) {
     return authResult
@@ -148,15 +148,15 @@ export async function requireRole(requiredRoles: UserRole[]): Promise<{ user: an
 /**
  * Middleware for admin-only API routes
  */
-export async function requireAdmin(): Promise<{ user: any; profile: any } | NextResponse> {
-  return requireRole(['admin', 'superadmin'])
+export async function requireAdmin(request?: NextRequest): Promise<{ user: any; profile: any } | NextResponse> {
+  return requireRole(['admin', 'superadmin'], request)
 }
 
 /**
  * Middleware for superadmin-only API routes
  */
-export async function requireSuperadmin(): Promise<{ user: any; profile: any } | NextResponse> {
-  return requireRole(['superadmin'])
+export async function requireSuperadmin(request?: NextRequest): Promise<{ user: any; profile: any } | NextResponse> {
+  return requireRole(['superadmin'], request)
 }
 
 /**
@@ -170,7 +170,7 @@ export async function withMultiRoleAuth(
   }
 ) {
   return async function(request: NextRequest, ...args: any[]): Promise<NextResponse> {
-    const authResult = await requireAuth()
+    const authResult = await requireAuth(request)
     
     if (authResult instanceof NextResponse) {
       return authResult
@@ -227,13 +227,13 @@ export function withAuth(
     
     switch (authLevel) {
       case 'superadmin':
-        authResult = await requireSuperadmin()
+        authResult = await requireSuperadmin(request)
         break
       case 'admin':
-        authResult = await requireAdmin()
+        authResult = await requireAdmin(request)
         break
       default:
-        authResult = await requireAuth()
+        authResult = await requireAuth(request)
         break
     }
     

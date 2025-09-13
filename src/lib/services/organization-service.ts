@@ -123,10 +123,18 @@ export class OrganizationService {
     const validatedData = organizationUpdateSchema.parse(updateData)
     const supabase = await this.getSupabase()
 
+    // Clean up any "null" strings to actual null values
+    const cleanedData = Object.fromEntries(
+      Object.entries(validatedData).map(([key, value]) => [
+        key,
+        value === "null" || value === "undefined" ? null : value
+      ])
+    )
+
     const { data, error } = await supabase
       .from('organizations')
       .update({
-        ...validatedData,
+        ...cleanedData,
         updated_at: new Date().toISOString()
       })
       .eq('id', id)

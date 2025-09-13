@@ -1,26 +1,10 @@
 {
-  "version": 2,
-  "name": "harry-school-admin",
   "buildCommand": "npm run build:fast",
   "devCommand": "npm run dev",
   "installCommand": "npm install",
   "framework": "nextjs",
   "outputDirectory": ".next",
-  "rootDirectory": "./",
   "regions": ["fra1"],
-  "env": {
-    "NODE_ENV": "production",
-    "SKIP_TYPE_CHECK": "true",
-    "SKIP_LINT": "true",
-    "DISABLE_STATIC_GENERATION": "true"
-  },
-  "build": {
-    "env": {
-      "NODE_ENV": "production",
-      "SKIP_TYPE_CHECK": "true",
-      "SKIP_LINT": "true"
-    }
-  },
   "functions": {
     "app/api/*/route.ts": {
       "maxDuration": 30

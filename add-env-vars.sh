@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# Add environment variables to Vercel production
+echo "Adding environment variables to Vercel..."
+
+# Supabase Configuration
+echo "https://xlcsegukheumsadygmgh.supabase.co" | vercel env add NEXT_PUBLIC_SUPABASE_URL production
+echo "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhsY3NlZ3VraGV1bXNhZHlnbWdoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQzOTM5NzksImV4cCI6MjA2OTk2OTk3OX0.kyHG8NazZruZu_pImGLMO8zFQvo--U6nwBqHbUEHBYE" | vercel env add NEXT_PUBLIC_SUPABASE_ANON_KEY production
+echo "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhsY3NlZ3VraGV1bXNhZHlnbWdoIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NDM5Mzk3OSwiZXhwIjoyMDY5OTY5OTc5fQ.hWgaYpSST_kClaO8-KHlWXGAH6_FOonXO9Ke_b6Xaac" | vercel env add SUPABASE_SERVICE_ROLE_KEY production
+
+# Legacy compatibility
+echo "https://xlcsegukheumsadygmgh.supabase.co" | vercel env add SUPABASE_URL production
+echo "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhsY3NlZ3VraGV1bXNhZHlnbWdoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQzOTM5NzksImV4cCI6MjA2OTk2OTk3OX0.kyHG8NazZruZu_pImGLMO8zFQvo--U6nwBqHbUEHBYE" | vercel env add SUPABASE_ANON_KEY production
+echo "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhsY3NlZ3VraGV1bXNhZHlnbWdoIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NDM5Mzk3OSwiZXhwIjoyMDY5OTY5OTc5fQ.hWgaYpSST_kClaO8-KHlWXGAH6_FOonXO9Ke_b6Xaac" | vercel env add SUPABASE_SECRET_KEY production
+
+echo "Environment variables added successfully!"

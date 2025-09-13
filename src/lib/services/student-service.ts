@@ -413,6 +413,182 @@ export class StudentService {
       retentionRate: totalStudents ? ((activeStudents || 0) / totalStudents) * 100 : 0
     }
   }
+
+  // Enrollment methods
+  async enrollInGroup(
+    studentId: string, 
+    groupId: string, 
+    notes?: string, 
+    authContext?: { user: any; profile: any }
+  ): Promise<void> {
+    const { user, profile } = authContext ? authContext : await this.checkPermission(['admin', 'superadmin'])
+    
+    // Check if student exists and belongs to organization
+    const { data: student, error: studentError } = await this.supabase
+      .from('students')
+      .select('id, organization_id')
+      .eq('id', studentId)
+      .eq('organization_id', profile.organization_id)
+      .is('deleted_at', null)
+      .single()
+    
+    if (studentError || !student) {
+      throw new Error('Student not found')
+    }
+
+    // Check if group exists and belongs to organization
+    const { data: group, error: groupError } = await this.supabase
+      .from('groups')
+      .select('id, organization_id, max_students, current_enrollment')
+      .eq('id', groupId)
+      .eq('organization_id', profile.organization_id)
+      .is('deleted_at', null)
+      .single()
+    
+    if (groupError || !group) {
+      throw new Error('Group not found')
+    }
+
+    // Check if student is already enrolled
+    const { data: existingEnrollment } = await this.supabase
+      .from('student_group_enrollments')
+      .select('id')
+      .eq('student_id', studentId)
+      .eq('group_id', groupId)
+      .eq('status', 'active')
+      .is('deleted_at', null)
+      .single()
+    
+    if (existingEnrollment) {
+      throw new Error('Student is already enrolled in this group')
+    }
+
+    // Check group capacity
+    if (group.max_students && group.current_enrollment >= group.max_students) {
+      throw new Error('Group has reached maximum capacity')
+    }
+
+    // Begin transaction - create enrollment record
+    const enrollmentData = {
+      organization_id: profile.organization_id,
+      student_id: studentId,
+      group_id: groupId,
+      enrollment_date: new Date().toISOString().split('T')[0],
+      start_date: new Date().toISOString().split('T')[0],
+      status: 'active',
+      payment_status: 'pending',
+      notes: notes || null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      created_by: user.id
+    }
+
+    const { error: enrollmentError } = await this.supabase
+      .from('student_group_enrollments')
+      .insert(enrollmentData)
+    
+    if (enrollmentError) {
+      throw new Error(`Failed to create enrollment: ${enrollmentError.message}`)
+    }
+
+    // Update group's current enrollment count
+    const { error: groupUpdateError } = await this.supabase
+      .from('groups')
+      .update({ 
+        current_enrollment: (group.current_enrollment || 0) + 1,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', groupId)
+    
+    if (groupUpdateError) {
+      console.error('Failed to update group enrollment count:', groupUpdateError)
+    }
+  }
+
+  async unenrollFromGroup(
+    studentId: string, 
+    groupId: string, 
+    reason?: string, 
+    authContext?: { user: any; profile: any }
+  ): Promise<void> {
+    const { user, profile } = authContext ? authContext : await this.checkPermission(['admin', 'superadmin'])
+    
+    // Find active enrollment
+    const { data: enrollment, error: enrollmentError } = await this.supabase
+      .from('student_group_enrollments')
+      .select('id, organization_id')
+      .eq('student_id', studentId)
+      .eq('group_id', groupId)
+      .eq('status', 'active')
+      .eq('organization_id', profile.organization_id)
+      .is('deleted_at', null)
+      .single()
+    
+    if (enrollmentError || !enrollment) {
+      throw new Error('Active enrollment not found')
+    }
+
+    // Update enrollment status to withdrawn
+    const { error: updateError } = await this.supabase
+      .from('student_group_enrollments')
+      .update({
+        status: 'withdrawn',
+        end_date: new Date().toISOString().split('T')[0],
+        completion_date: new Date().toISOString().split('T')[0],
+        notes: reason ? `Withdrawal reason: ${reason}` : 'Withdrawn',
+        updated_at: new Date().toISOString(),
+        updated_by: user.id
+      })
+      .eq('id', enrollment.id)
+    
+    if (updateError) {
+      throw new Error(`Failed to update enrollment: ${updateError.message}`)
+    }
+
+    // Update group's current enrollment count
+    const { data: group, error: groupError } = await this.supabase
+      .from('groups')
+      .select('current_enrollment')
+      .eq('id', groupId)
+      .single()
+    
+    if (!groupError && group) {
+      await this.supabase
+        .from('groups')
+        .update({ 
+          current_enrollment: Math.max((group.current_enrollment || 1) - 1, 0),
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', groupId)
+    }
+  }
+
+  async getEnrollmentHistory(studentId: string): Promise<any[]> {
+    const { profile } = await this.checkPermission(['admin', 'superadmin'])
+    
+    const { data: enrollments, error } = await this.supabase
+      .from('student_group_enrollments')
+      .select(`
+        *,
+        groups (
+          id,
+          name,
+          group_code,
+          subject,
+          level
+        )
+      `)
+      .eq('student_id', studentId)
+      .eq('organization_id', profile.organization_id)
+      .is('deleted_at', null)
+      .order('enrollment_date', { ascending: false })
+    
+    if (error) {
+      throw new Error(`Failed to fetch enrollment history: ${error.message}`)
+    }
+
+    return enrollments || []
+  }
 }
 
 export const studentService = new StudentService()

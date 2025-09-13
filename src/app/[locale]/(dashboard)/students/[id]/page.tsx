@@ -25,25 +25,6 @@ import { StudentCredentials } from '@/components/admin/students/student-credenti
 import { studentService } from '@/lib/services/student-service'
 import { fadeVariants, getAnimationConfig } from '@/lib/animations'
 
-// Mock groups data for enrollment manager
-const generateMockGroups = () => {
-  const subjects = ['English', 'Mathematics', 'Physics', 'Chemistry', 'Computer Science']
-  const levels = ['Beginner (A1)', 'Elementary (A2)', 'Intermediate (B1)', 'Advanced (C1)']
-  
-  return Array.from({ length: 20 }, (_, i) => ({
-    id: `group-${i + 1}`,
-    name: `${subjects[i % subjects.length]} ${levels[i % levels.length]}`,
-    group_code: `${subjects[i % subjects.length]!.substring(0, 3).toUpperCase()}-${levels[i % levels.length]![0]}${i + 1}`,
-    subject: subjects[i % subjects.length]!,
-    level: levels[i % levels.length]!,
-    teacher_name: `Teacher ${i + 1}`,
-    max_students: 15 + (i % 10),
-    current_enrollment: Math.floor(Math.random() * 20),
-    status: 'active',
-    start_date: new Date(2024, i % 12, 1).toISOString(),
-    schedule_summary: 'Mon, Wed, Fri 10:00-12:00'
-  }))
-}
 
 export default function StudentDetailPage() {
   const params = useParams()
@@ -60,31 +41,18 @@ export default function StudentDetailPage() {
   
   // Enrollment states
   const [isEnrollmentOpen, setIsEnrollmentOpen] = useState(false)
-  const [availableGroups] = useState(generateMockGroups())
+  const [availableGroups, setAvailableGroups] = useState([])
+  const [groupsLoading, setGroupsLoading] = useState(false)
   
   // Payment states
-  const [paymentHistory] = useState([
-    {
-      id: '1',
-      amount: 500000,
-      date: new Date(2024, 11, 15).toISOString(),
-      method: 'cash' as const,
-      status: 'completed' as const,
-      description: 'Monthly tuition payment'
-    },
-    {
-      id: '2',
-      amount: 500000,
-      date: new Date(2024, 10, 15).toISOString(),
-      method: 'bank_transfer' as const,
-      status: 'completed' as const,
-      description: 'Monthly tuition payment'
-    }
-  ])
+  const [paymentHistory, setPaymentHistory] = useState([])
+  const [paymentsLoading, setPaymentsLoading] = useState(false)
 
   useEffect(() => {
     if (studentId) {
       loadStudent()
+      loadAvailableGroups()
+      loadPaymentHistory()
     }
   }, [studentId])
 
@@ -126,6 +94,38 @@ export default function StudentDetailPage() {
     }
   }
 
+  const loadAvailableGroups = async () => {
+    setGroupsLoading(true)
+    try {
+      const response = await fetch('/api/groups?limit=100&is_active=true')
+      if (response.ok) {
+        const result = await response.json()
+        setAvailableGroups(result.data || [])
+      }
+    } catch (error) {
+      console.error('Error loading groups:', error)
+    } finally {
+      setGroupsLoading(false)
+    }
+  }
+
+  const loadPaymentHistory = async () => {
+    if (!studentId) return
+    
+    setPaymentsLoading(true)
+    try {
+      const response = await fetch(`/api/students/${studentId}/payments`)
+      if (response.ok) {
+        const result = await response.json()
+        setPaymentHistory(result.data || [])
+      }
+    } catch (error) {
+      console.error('Error loading payment history:', error)
+    } finally {
+      setPaymentsLoading(false)
+    }
+  }
+
   const handleEditSubmit = async (data: CreateStudentRequest) => {
     if (!student) return
 
@@ -141,35 +141,55 @@ export default function StudentDetailPage() {
     }
   }
 
-  const handleEnroll = async (groupId: string) => {
+  const handleEnroll = async (groupId: string, notes?: string) => {
     if (!student) return
 
     try {
-      // Simulate enrollment
-      const currentGroups = student.groups || []
-      const updatedGroups = [...currentGroups, groupId]
-      const updatedStudent = await studentService.update(student.id, {
-        groups: updatedGroups
-      } as any)
-      setStudent(updatedStudent as any)
+      const response = await fetch(`/api/students/${student.id}/enrollments`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ groupId, notes }),
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to enroll student')
+      }
+
+      // Refresh student data and available groups after successful enrollment
+      await loadStudent()
+      await loadAvailableGroups()
     } catch (err) {
       console.error('Error enrolling student:', err)
+      alert(`Failed to enroll student: ${err instanceof Error ? err.message : 'Unknown error'}`)
     }
   }
 
-  const handleWithdraw = async (groupId: string) => {
+  const handleWithdraw = async (groupId: string, reason?: string) => {
     if (!student) return
 
     try {
-      // Simulate withdrawal
-      const currentGroups = student.groups || []
-      const updatedGroups = currentGroups.filter(id => id !== groupId)
-      const updatedStudent = await studentService.update(student.id, {
-        groups: updatedGroups
-      } as any)
-      setStudent(updatedStudent as any)
+      const response = await fetch(`/api/students/${student.id}/enrollments`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ groupId, reason }),
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to withdraw student')
+      }
+
+      // Refresh student data and available groups after successful withdrawal
+      await loadStudent()
+      await loadAvailableGroups()
     } catch (err) {
       console.error('Error withdrawing student:', err)
+      alert(`Failed to withdraw student: ${err instanceof Error ? err.message : 'Unknown error'}`)
     }
   }
 
@@ -300,7 +320,7 @@ export default function StudentDetailPage() {
         student={student}
         paymentHistory={paymentHistory}
         onUpdatePayment={handlePaymentUpdate}
-        loading={false}
+        loading={paymentsLoading}
       />
 
       {/* Student Form Dialog */}
@@ -320,7 +340,7 @@ export default function StudentDetailPage() {
         enrolledGroups={getEnrolledGroups()}
         onEnroll={handleEnroll}
         onWithdraw={handleWithdraw}
-        loading={false}
+        loading={groupsLoading}
         open={isEnrollmentOpen}
         onOpenChange={setIsEnrollmentOpen}
       />

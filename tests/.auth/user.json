@@ -1,0 +1,14 @@
+{
+  "cookies": [],
+  "origins": [
+    {
+      "origin": "http://localhost:3002",
+      "localStorage": [
+        {
+          "name": "supabase.auth.token",
+          "value": "{\"access_token\":\"mock_access_token\",\"user\":{\"id\":\"test-user-id\",\"email\":\"test@harryschool.com\",\"role\":\"admin\"}}"
+        }
+      ]
+    }
+  ]
+}

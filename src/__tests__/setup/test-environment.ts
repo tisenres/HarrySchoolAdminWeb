@@ -132,6 +132,51 @@ export async function createTestUser(client: ReturnType<typeof createClient>) {
   return { data, error, testEmail, testPassword }
 }
 
+// Mock next-intl to avoid ES module issues
+jest.mock('next-intl', () => ({
+  useTranslations: (namespace: string) => (key: string) => `${namespace}.${key}`,
+  useLocale: () => 'en',
+  useFormatter: () => ({
+    dateTime: (date: Date) => date.toLocaleDateString(),
+    number: (num: number) => num.toString()
+  })
+}))
+
+// Mock next/navigation
+jest.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: jest.fn(),
+    replace: jest.fn(),
+    back: jest.fn(),
+    forward: jest.fn(),
+    refresh: jest.fn(),
+    prefetch: jest.fn()
+  }),
+  usePathname: () => '/en/students',
+  useSearchParams: () => new URLSearchParams()
+}))
+
+// Mock framer-motion to avoid animation issues in tests
+jest.mock('framer-motion', () => ({
+  motion: {
+    div: 'div',
+    tr: 'tr',
+    td: 'td',
+    th: 'th',
+    button: 'button',
+    span: 'span',
+    h1: 'h1',
+    h2: 'h2',
+    h3: 'h3'
+  },
+  AnimatePresence: ({ children }: { children: React.ReactNode }) => children,
+  useAnimation: () => ({
+    start: jest.fn(),
+    stop: jest.fn(),
+    set: jest.fn()
+  })
+}))
+
 export default {
   TEST_ENV,
   validateTestEnvironment,

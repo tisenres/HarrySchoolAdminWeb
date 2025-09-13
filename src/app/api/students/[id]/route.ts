@@ -19,8 +19,8 @@ async function canAccessStudentProfile(context: any, studentId: string): Promise
   return false
 }
 
-// GET single student with multi-role authentication
-export const GET = withMultiRoleAuth(async (
+// GET single student with authentication
+export const GET = withAuth(async (
   _request: NextRequest,
   context,
   { params }: { params: Promise<{ id: string }> }
@@ -67,10 +67,7 @@ export const GET = withMultiRoleAuth(async (
       { status: 500 }
     )
   }
-}, {
-  allowedRoles: ['admin', 'superadmin', 'viewer'],
-  resourceCheck: canAccessStudentProfile
-})
+}, 'admin')
 
 // UPDATE student with authentication and proper organization handling
 export const PUT = withAuth(async (

@@ -35,6 +35,19 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
   
+  // Handle legacy /dashboard routes FIRST (before locale processing)
+  if (pathname.startsWith('/dashboard')) {
+    const cleanPath = pathname.replace('/dashboard', '') || '/';
+    return NextResponse.redirect(new URL(`/${defaultLocale}${cleanPath}`, request.url));
+  }
+
+  // Handle legacy dashboard routes with locale prefix (e.g., /en/dashboard/students)
+  if (pathname.match(/^\/[a-z]{2}\/dashboard/)) {
+    const locale = pathname.split('/')[1];
+    const cleanPath = pathname.replace(`/${locale}/dashboard`, '') || '/';
+    return NextResponse.redirect(new URL(`/${locale}${cleanPath}`, request.url));
+  }
+
   // Check if pathname doesn't have a locale prefix
   const pathnameHasLocale = locales.some(
     (locale) => pathname.startsWith(`/${locale}/`) || pathname === `/${locale}`
@@ -43,12 +56,6 @@ export async function middleware(request: NextRequest) {
   // If no locale prefix, redirect to default locale
   if (!pathnameHasLocale) {
     return NextResponse.redirect(new URL(`/${defaultLocale}${pathname}`, request.url));
-  }
-
-  // Handle legacy /dashboard routes - redirect to clean URLs with locale
-  if (pathname.startsWith('/dashboard')) {
-    const cleanPath = pathname.replace('/dashboard', '') || '/';
-    return NextResponse.redirect(new URL(`/${defaultLocale}${cleanPath}`, request.url));
   }
 
   // Apply rate limiting for authentication routes
